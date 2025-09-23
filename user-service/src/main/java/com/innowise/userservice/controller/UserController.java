@@ -38,7 +38,11 @@ public class UserController {
       @PathVariable Long id,
       @RequestParam(defaultValue = "false") boolean includeCards
   ) {
-    return ResponseEntity.ok(userService.findById(id, includeCards));
+    if (includeCards) {
+      return ResponseEntity.ok(userService.findWithCardsById(id));
+    } else {
+      return ResponseEntity.ok(userService.findWithoutCardsById(id));
+    }
   }
 
   @GetMapping("/email/{email}")

@@ -10,7 +10,6 @@ import com.innowise.userservice.model.mapper.CardMapper;
 import com.innowise.userservice.repository.CardRepository;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -44,7 +43,7 @@ public class CardService {
   @Transactional
   public void delete(Long id) {
     var card = cardRepository.findById(id)
-            .orElseThrow(() -> new CardNotFoundException(id));
+        .orElseThrow(() -> new CardNotFoundException(id));
     cardRepository.delete(card);
     cacheHelper.removeCardFromCache(card.getUser().getId(), id);
   }

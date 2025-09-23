@@ -117,6 +117,15 @@ public class CacheHelper {
     }
   }
 
+  public void invalidate() {
+    cacheManager.getCacheNames().forEach(name -> {
+      var cache = cacheManager.getCache(name);
+      if (cache != null) {
+        cache.invalidate();
+      }
+    });
+  }
+
   private UserResponseDto getCachedUser(String cacheName, Long userId) {
     var cache = cacheManager.getCache(cacheName);
     if (cache != null) {
