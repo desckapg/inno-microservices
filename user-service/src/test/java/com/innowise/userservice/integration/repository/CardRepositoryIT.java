@@ -7,6 +7,8 @@ import com.innowise.userservice.integration.annotation.JpaRepositoryIT;
 import com.innowise.userservice.model.entity.Card;
 import com.innowise.userservice.model.entity.User;
 import com.innowise.userservice.repository.CardRepository;
+import com.innowise.userservice.testutil.Cards;
+import com.innowise.userservice.testutil.Users;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.AfterAll;
@@ -22,8 +24,8 @@ import org.springframework.transaction.support.TransactionTemplate;
 @TestInstance(value = TestInstance.Lifecycle.PER_CLASS)
 public class CardRepositoryIT extends AbstractIntegrationTest {
 
-  private Long userFixtureId;
-  private Long cardFixtureId;
+  private User userFixture;
+  private Card cardFixture;
 
   private final TestEntityManager entityManager;
   private final CardRepository cardRepository;
@@ -31,23 +33,18 @@ public class CardRepositoryIT extends AbstractIntegrationTest {
 
   @BeforeAll
   void prepareFixtures() {
-    var userFixture = userWithoutCardsBuilder.build();
-    var cardFixture = cardWithoutUserBuilder.build();
+    userFixture = Users.buildWithoutId();
+    cardFixture = Cards.buildWithoutId(userFixture);
     userFixture.addCard(cardFixture);
-    transactionTemplate.executeWithoutResult(status ->
-        entityManager.persistAndFlush(userFixture));
-    userFixtureId = userFixture.getId();
-    cardFixtureId = cardFixture.getId();
+    transactionTemplate.executeWithoutResult(status -> {
+      entityManager.persist(userFixture);
+    });
   }
 
   @AfterAll
   void cleanupFixtures() {
     transactionTemplate.executeWithoutResult(status -> {
-      var card = entityManager.find(Card.class, cardFixtureId);
-      var user = entityManager.find(User.class, userFixtureId);
-      if (card != null) {
-        entityManager.remove(card);
-      }
+      var user = entityManager.find(User.class, userFixture.getId());
       if (user != null) {
         entityManager.remove(user);
       }
@@ -59,9 +56,9 @@ public class CardRepositoryIT extends AbstractIntegrationTest {
     entityManager.clear();
   }
 
-    @Test
+  @Test
   void findAllByIdIn_whenIdsNotExist_shouldReturnEmptyList() {
-    var nonExistentIds = List.of(999L, 1000L);
+    var nonExistentIds = List.of(Long.MAX_VALUE, Long.MIN_VALUE);
 
     assertThat(cardRepository.findAllByIdIn(nonExistentIds))
         .isEmpty();
@@ -75,12 +72,10 @@ public class CardRepositoryIT extends AbstractIntegrationTest {
 
   @Test
   void findAllByIdIn_whenMixedIds_shouldReturnOnlyExistingUsers() {
-    var mixedIds = List.of(cardFixtureId, 999L);
+    var mixedIds = List.of(cardFixture.getId(), 999L);
 
     assertThat(cardRepository.findAllByIdIn(mixedIds))
-        .hasSize(1)
-        .extracting(Card::getId)
-        .containsExactlyInAnyOrder(cardFixtureId);
+        .containsExactlyInAnyOrder(cardFixture);
 
   }
 
