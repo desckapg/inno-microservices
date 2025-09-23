@@ -1,15 +1,15 @@
 package com.innowise.userservice.service;
 
+import com.innowise.userservice.cache.CacheHelper;
+import com.innowise.userservice.exception.CardAlreadyExistsException;
 import com.innowise.userservice.exception.CardNotFoundException;
-import com.innowise.userservice.exception.CardWithNumberExistsException;
 import com.innowise.userservice.exception.UserNotFoundException;
+import com.innowise.userservice.exception.UserNotOwnCardException;
 import com.innowise.userservice.model.dto.card.CardCreateRequestDto;
 import com.innowise.userservice.model.dto.card.CardResponseDto;
-import com.innowise.userservice.model.entity.User;
 import com.innowise.userservice.model.mapper.CardMapper;
 import com.innowise.userservice.repository.CardRepository;
 import com.innowise.userservice.repository.UserRepository;
-import jakarta.persistence.EntityManager;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -21,20 +21,26 @@ public class UserCardService {
 
   private final UserRepository userRepository;
   private final CardRepository cardRepository;
-  private final EntityManager entityManager;
   private final CardMapper cardMapper;
+  private final CacheHelper cacheHelper;
 
   @Transactional
   public CardResponseDto createCard(Long userId, CardCreateRequestDto dto) {
     if (cardRepository.existsByNumber(dto.number())) {
-      throw new CardWithNumberExistsException(dto.number());
+      throw new CardAlreadyExistsException(dto.number());
     }
     if (!userRepository.existsById(userId)) {
       throw new UserNotFoundException(userId);
     }
     var card = cardMapper.toEntity(dto);
-    card.setUser(entityManager.getReference(User.class, userId));
-    return cardMapper.toDto(cardRepository.save(card));
+    card.setUser(userRepository.getReferenceById(userId));
+
+    var savedCard = cardRepository.save(card);
+    var cardResponseDto = cardMapper.toDto(savedCard);
+
+    cacheHelper.addCardToCache(userId, cardResponseDto);
+
+    return cardResponseDto;
   }
 
   @Transactional
@@ -46,17 +52,26 @@ public class UserCardService {
         .findById(cardId).orElseThrow(() -> new CardNotFoundException(cardId));
 
     if (!card.getUser().getId().equals(userId)) {
-      throw new UserNotFoundException(userId);
+      throw new UserNotOwnCardException(userId, cardId);
     }
+
     cardRepository.delete(card);
+    cacheHelper.removeCardFromCache(userId, cardId);
   }
 
-
   public List<CardResponseDto> findUserCards(Long userId) {
+    if (cacheHelper.isUserCardsCached(userId)) {
+      return cacheHelper.getCardsFromCache(userId);
+    }
+
     if (!userRepository.existsById(userId)) {
       throw new UserNotFoundException(userId);
     }
-    return cardRepository.findUserCards(userId).stream().map(cardMapper::toDto).toList();
+
+    return cardRepository.findUserCards(userId).stream()
+        .map(cardMapper::toDto)
+        .toList();
+
   }
 
 
