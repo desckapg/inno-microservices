@@ -24,6 +24,7 @@ import org.hibernate.proxy.HibernateProxy;
 @Setter
 @Builder
 @ToString(exclude = {"user"})
+@SuppressWarnings("javaarchitecture:S7027")
 public class Card extends BaseEntity {
 
   @Column(name = "number", nullable = false, unique = true)

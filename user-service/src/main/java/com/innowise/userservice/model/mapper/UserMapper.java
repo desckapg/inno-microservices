@@ -14,6 +14,7 @@ import org.mapstruct.Mapping;
 )
 public interface UserMapper {
 
+  @Mapping(target = "cards", ignore = true)
   User toEntity(UserCreateRequestDto dto);
 
   @Mapping(target = "cards", expression = "java(List.of())")

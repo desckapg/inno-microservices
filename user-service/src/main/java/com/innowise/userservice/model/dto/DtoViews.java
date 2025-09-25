@@ -1,8 +1,10 @@
 package com.innowise.userservice.model.dto;
 
-public class DtoViews {
+public final class DtoViews {
 
-  public static class Basic {}
-  public static class WithCards extends Basic {}
+  private DtoViews() {}
+
+  public interface Basic {}
+  public interface WithCards extends Basic {}
 
 }
