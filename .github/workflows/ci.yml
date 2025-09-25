@@ -93,8 +93,10 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
-          validate-wrappers: 'true'
-          gradle-version: wrapper
+          gradle-version: $ {{ env.GRADLE_VERSION }}
+          build-scan-publish: true
+          build-scan-terms-of-use-url: "https://gradle.com/terms-of-service"
+          build-scan-terms-of-use-agree: "yes"
 
 
 #      - name: Cache Gradle packages
