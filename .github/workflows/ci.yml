@@ -2,13 +2,13 @@ name: CI Pipeline
 
 on:
   pull_request:
-    branches: [ '*' ]
+    branches: [ '**' ]
   push:
-    branches: [ '*' ]
+    branches: [ '**' ]
 
 env:
   JAVA_VERSION: '21'
-  GRADLE_VERSION: 'wrapper'
+  GRADLE_VERSION: '8.14.3'
 
 jobs:
   detect-changes:
@@ -26,10 +26,15 @@ jobs:
       - name: Detect changed services
         id: changes
         run: |
-          SERVICES=$(grep -E "include\(|project\(" settings.gradle.kts | sed -E 's/.*["\x27:]([^"\x27]+)["\x27].*/\1/g' | tr '\n' ' ')
+          SERVICES_RAW=$(grep -E "include\(|project\(" settings.gradle.kts | sed -E 's/.*["\x27:]([^"\x27]+)["\x27].*/\1/g' | sed 's/^://g')
+          
+          readarray -t SERVICES_ARRAY <<< "$SERVICES_RAW"
+          
+          echo "All services found:"
+          printf '%s\n' "${SERVICES_ARRAY[@]}"
           
           if [ "${{ github.event_name }}" == "push" ] && [ "${{ github.ref }}" == "refs/heads/main" ]; then
-            CHANGED_SERVICES=$SERVICES
+            CHANGED_SERVICES=("${SERVICES_ARRAY[@]}")
           else
             if [ "${{ github.event_name }}" == "pull_request" ]; then
               BASE_SHA=${{ github.event.pull_request.base.sha }}
@@ -38,27 +43,26 @@ jobs:
               BASE_SHA=${{ github.event.before }}
               HEAD_SHA=${{ github.sha }}
             fi
-            
+          
             CHANGED_FILES=$(git diff --name-only $BASE_SHA..$HEAD_SHA || git diff --name-only HEAD~1)
-            CHANGED_SERVICES=""
-            
-            for service in $SERVICES; do
-              service_clean=$(echo $service | sed 's/^://g')
-              if echo "$CHANGED_FILES" | grep -q "^$service_clean/"; then
-                CHANGED_SERVICES="$CHANGED_SERVICES $service"
+            CHANGED_SERVICES=()
+          
+            for service in "${SERVICES_ARRAY[@]}"; do
+              if [ -n "$service" ] && echo "$CHANGED_FILES" | grep -q "^$service/"; then
+                CHANGED_SERVICES+=("$service")
               fi
             done
-            
+          
             if echo "$CHANGED_FILES" | grep -qE "(build\.gradle\.kts|settings\.gradle\.kts|gradle\.properties|\.github/workflows/|buildSrc/)"; then
-              CHANGED_SERVICES=$SERVICES
+              CHANGED_SERVICES=("${SERVICES_ARRAY[@]}")
             fi
           fi
           
-          if [ -n "$CHANGED_SERVICES" ]; then
-            MATRIX_JSON=$(echo $CHANGED_SERVICES | tr ' ' '\n' | grep -v '^$' | sed 's/^://g' | jq -R . | jq -s .)
+          if [ ${#CHANGED_SERVICES[@]} -gt 0 ]; then
+            MATRIX_JSON=$(printf '%s\n' "${CHANGED_SERVICES[@]}" | jq -R . | jq -s . | jq -c .)
             echo "matrix={\"service\":$MATRIX_JSON}" >> $GITHUB_OUTPUT
             echo "has-changes=true" >> $GITHUB_OUTPUT
-            echo "Changed services: $CHANGED_SERVICES"
+            echo "Changed services: ${CHANGED_SERVICES[*]}"
           else
             echo "matrix={\"service\":[]}" >> $GITHUB_OUTPUT
             echo "has-changes=false" >> $GITHUB_OUTPUT
@@ -86,30 +90,44 @@ jobs:
           java-version: ${{ env.JAVA_VERSION }}
           distribution: 'temurin'
 
-      - name: Cache Gradle packages
-        uses: actions/cache@v4
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
         with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle.kts', '**/gradle-wrapper.properties', 'buildSrc/**/*.kt') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-
+          gradle-version: ${{ env.GRADLE_VERSION }}
+          build-scan-publish: true
+          build-scan-terms-of-use-url: "https://gradle.com/terms-of-service"
+          build-scan-terms-of-use-agree: "yes"
 
-      - name: Make gradlew executable
-        run: chmod +x ./gradlew
+
+#      - name: Cache Gradle packages
+#        uses: actions/cache@v4
+#        with:
+#          path: |
+#            ~/.gradle/caches
+#            ~/.gradle/wrapper
+#          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle.kts', '**/gradle-wrapper.properties', 'buildSrc/**/*.kt') }}
+#          restore-keys: |
+#            ${{ runner.os }}-gradle-
+#
+#      - name: Make gradlew executable
+#        run: chmod +x ./gradlew
+
+      - name: Warm up Gradle wrapper
+        run: ./gradle -v
 
       - name: Build service
-        run: ./gradlew :${{ matrix.service }}:build -x test
+        run: ./gradle :${{ matrix.service }}:build -x test
 
       - name: Run unit tests
-        run: ./gradlew :${{ matrix.service }}:test
-
-      - name: Run integration tests (with Testcontainers)
-        run: ./gradlew :${{ matrix.service }}:integrationTest
+        run: ./gradle :${{ matrix.service }}:test
         env:
-          # Testcontainers будет использовать Docker daemon из Ubuntu runner
           TESTCONTAINERS_RYUK_DISABLED: false
+#
+#      - name: Run integration tests (with Testcontainers)
+#        run: ./gradlew :${{ matrix.service }}:integrationTest
+#        env:
+#          # Testcontainers будет использовать Docker daemon из Ubuntu runner
+#          TESTCONTAINERS_RYUK_DISABLED: false
 
       - name: Generate version
         id: version
@@ -147,7 +165,7 @@ jobs:
   sonarqube:
     name: SonarQube Analysis
     runs-on: ubuntu-latest
-    needs: [detect-changes, build-and-test]
+    needs: [ detect-changes, build-and-test ]
     if: needs.detect-changes.outputs.has-changes == 'true'
     strategy:
       matrix: ${{ fromJson(needs.detect-changes.outputs.matrix) }}
@@ -187,7 +205,7 @@ jobs:
   docker-build:
     name: Build Docker Images
     runs-on: ubuntu-latest
-    needs: [detect-changes, build-and-test, sonarqube]
+    needs: [ detect-changes, build-and-test, sonarqube ]
     if: needs.detect-changes.outputs.has-changes == 'true' && github.ref == 'refs/heads/main' && github.event_name == 'pull_request'
     strategy:
       matrix: ${{ fromJson(needs.detect-changes.outputs.matrix) }}

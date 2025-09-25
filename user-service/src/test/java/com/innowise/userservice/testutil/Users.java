@@ -2,7 +2,6 @@ package com.innowise.userservice.testutil;
 
 import com.innowise.userservice.model.entity.User;
 import java.time.LocalDate;
-import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class Users {
@@ -34,13 +33,12 @@ public class Users {
 
   public static User buildWithoutId() {
     long n = SEQ.getAndIncrement();
-    var user = User.builder()
+    return User.builder()
         .name("John" + n)
         .surname("Doe" + n)
         .birthDate(LocalDate.now().minusYears(20))
         .email("john" + n + "@example.com")
         .build();
-    return user;
   }
 
   public static User build(String name, String surname, String email) {
