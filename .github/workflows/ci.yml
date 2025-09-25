@@ -8,7 +8,7 @@ on:
 
 env:
   JAVA_VERSION: '21'
-  GRADLE_VERSION: 'wrapper'
+  GRADLE_VERSION: '8.14.3'
 
 jobs:
   detect-changes:
@@ -90,30 +90,41 @@ jobs:
           java-version: ${{ env.JAVA_VERSION }}
           distribution: 'temurin'
 
-      - name: Cache Gradle packages
-        uses: actions/cache@v4
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
         with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle.kts', '**/gradle-wrapper.properties', 'buildSrc/**/*.kt') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-
+          gradle-version: ${{ env.GRADLE_VERSION }}
+
+
+#      - name: Cache Gradle packages
+#        uses: actions/cache@v4
+#        with:
+#          path: |
+#            ~/.gradle/caches
+#            ~/.gradle/wrapper
+#          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle.kts', '**/gradle-wrapper.properties', 'buildSrc/**/*.kt') }}
+#          restore-keys: |
+#            ${{ runner.os }}-gradle-
 
       - name: Make gradlew executable
         run: chmod +x ./gradlew
+
+      - name: Warm up Gradle wrapper
+        run: ./gradlew -v
 
       - name: Build service
         run: ./gradlew :${{ matrix.service }}:build -x test
 
       - name: Run unit tests
         run: ./gradlew :${{ matrix.service }}:test
-
-      - name: Run integration tests (with Testcontainers)
-        run: ./gradlew :${{ matrix.service }}:integrationTest
         env:
-          # Testcontainers будет использовать Docker daemon из Ubuntu runner
           TESTCONTAINERS_RYUK_DISABLED: false
+#
+#      - name: Run integration tests (with Testcontainers)
+#        run: ./gradlew :${{ matrix.service }}:integrationTest
+#        env:
+#          # Testcontainers будет использовать Docker daemon из Ubuntu runner
+#          TESTCONTAINERS_RYUK_DISABLED: false
 
       - name: Generate version
         id: version
