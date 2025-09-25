@@ -1,0 +1,4 @@
+--container-architecture=linux/amd64
+--artifact-server-path $PWD/.artifacts
+-e=.github\workflows\local.json
+--secret-file .env.dev
