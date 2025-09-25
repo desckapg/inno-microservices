@@ -2,9 +2,9 @@ name: CI Pipeline
 
 on:
   pull_request:
-    branches: [ '*' ]
+    branches: [ '**' ]
   push:
-    branches: [ '*' ]
+    branches: [ '**' ]
 
 env:
   JAVA_VERSION: '21'
