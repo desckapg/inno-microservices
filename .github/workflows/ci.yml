@@ -108,18 +108,18 @@ jobs:
 #          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle.kts', '**/gradle-wrapper.properties', 'buildSrc/**/*.kt') }}
 #          restore-keys: |
 #            ${{ runner.os }}-gradle-
-
-      - name: Make gradlew executable
-        run: chmod +x ./gradlew
+#
+#      - name: Make gradlew executable
+#        run: chmod +x ./gradlew
 
       - name: Warm up Gradle wrapper
-        run: ./gradlew -v
+        run: ./gradle -v
 
       - name: Build service
-        run: ./gradlew :${{ matrix.service }}:build -x test
+        run: ./gradle :${{ matrix.service }}:build -x test
 
       - name: Run unit tests
-        run: ./gradlew :${{ matrix.service }}:test
+        run: ./gradle :${{ matrix.service }}:test
         env:
           TESTCONTAINERS_RYUK_DISABLED: false
 #
