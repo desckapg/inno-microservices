@@ -113,13 +113,13 @@ jobs:
 #        run: chmod +x ./gradlew
 
       - name: Warm up Gradle wrapper
-        run: ./gradle -v
+        run: gradle -v
 
       - name: Build service
-        run: ./gradle :${{ matrix.service }}:build -x test
+        run: gradle :${{ matrix.service }}:build -x test
 
       - name: Run unit tests
-        run: ./gradle :${{ matrix.service }}:test
+        run: gradle :${{ matrix.service }}:test
         env:
           TESTCONTAINERS_RYUK_DISABLED: false
 #
