@@ -1,0 +1,8 @@
+[versions]
+mapstruct="1.6.3"
+mockito="5.19.0"
+
+[libraries]
+mockito = {module = "org.mockito:mockito-core", version.ref = "mockito"}
+mapstruct = { module = "org.mapstruct:mapstruct", version.ref = "mapstruct" }
+mapstruct-processor = { module = "org.mapstruct:mapstruct-processor", version.ref = "mapstruct" }

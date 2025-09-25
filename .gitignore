@@ -16,9 +16,10 @@ replay_pid*
 bin/
 build/
 .gradle
-gradle/
+gradle/*
 .gradletasknamecache
 gradle-app.setting
+!gradle/libs.versions.toml
 
 ##############################
 ## IntelliJ
