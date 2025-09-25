@@ -59,7 +59,7 @@ jobs:
           fi
           
           if [ ${#CHANGED_SERVICES[@]} -gt 0 ]; then
-            MATRIX_JSON=$(printf '%s\n' "${CHANGED_SERVICES[@]}" | jq -R . | jq -s .)
+            MATRIX_JSON=$(printf '%s\n' "${CHANGED_SERVICES[@]}" | jq -R . | jq -s . | jq -c .)
             echo "matrix={\"service\":$MATRIX_JSON}" >> $GITHUB_OUTPUT
             echo "has-changes=true" >> $GITHUB_OUTPUT
             echo "Changed services: ${CHANGED_SERVICES[*]}"
