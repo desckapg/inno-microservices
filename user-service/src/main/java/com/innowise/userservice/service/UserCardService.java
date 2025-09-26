@@ -6,7 +6,7 @@ import com.innowise.userservice.exception.CardNotFoundException;
 import com.innowise.userservice.exception.UserNotFoundException;
 import com.innowise.userservice.exception.UserNotOwnCardException;
 import com.innowise.userservice.model.dto.card.CardCreateRequestDto;
-import com.innowise.userservice.model.dto.card.CardResponseDto;
+import com.innowise.userservice.model.dto.card.CardDto;
 import com.innowise.userservice.model.mapper.CardMapper;
 import com.innowise.userservice.repository.CardRepository;
 import com.innowise.userservice.repository.UserRepository;
@@ -25,7 +25,7 @@ public class UserCardService {
   private final CacheHelper cacheHelper;
 
   @Transactional
-  public CardResponseDto createCard(Long userId, CardCreateRequestDto dto) {
+  public CardDto createCard(Long userId, CardCreateRequestDto dto) {
     if (cardRepository.existsByNumber(dto.number())) {
       throw new CardAlreadyExistsException(dto.number());
     }
@@ -59,7 +59,7 @@ public class UserCardService {
     cacheHelper.removeCardFromCache(userId, cardId);
   }
 
-  public List<CardResponseDto> findUserCards(Long userId) {
+  public List<CardDto> findUserCards(Long userId) {
     if (cacheHelper.isUserCardsCached(userId)) {
       return cacheHelper.getCardsFromCache(userId);
     }

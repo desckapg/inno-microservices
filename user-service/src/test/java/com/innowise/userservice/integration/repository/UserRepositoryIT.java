@@ -24,7 +24,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 @JpaRepositoryIT
 @RequiredArgsConstructor
 @TestInstance(Lifecycle.PER_CLASS)
-public class UserRepositoryIT extends AbstractIntegrationTest {
+class UserRepositoryIT extends AbstractIntegrationTest {
 
   private User userFixture;
   private Card cardFixture;
@@ -93,14 +93,6 @@ public class UserRepositoryIT extends AbstractIntegrationTest {
         .hasValueSatisfying(user -> {
           assertThat(user).isEqualTo(userFixture);
         });
-  }
-
-  @Test
-  void findWithCardsByEmail_whenEmailNotExists_shouldReturnEmptyOptional() {
-    var nonExistentEmail = "nonexistent@example.com";
-
-    assertThat(userRepository.findWithCardsByEmail(nonExistentEmail))
-        .isEmpty();
   }
 
   @Test

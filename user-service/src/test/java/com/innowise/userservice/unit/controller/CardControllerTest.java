@@ -23,9 +23,9 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import tools.jackson.databind.ObjectMapper;
 
 @ExtendWith({SpringExtension.class, MockitoExtension.class})
-public class CardControllerTest {
+class CardControllerTest {
 
-  private final String BASE_URL = "/api/v1/cards";
+  private static final String BASE_URL = "/api/v1/cards";
 
   @Mock
   private CardService cardService;

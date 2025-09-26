@@ -35,9 +35,9 @@ import tools.jackson.databind.ObjectMapper;
 
 @WebIT
 @RequiredArgsConstructor
-public class UserControllerIT extends AbstractIntegrationTest {
+class UserControllerIT extends AbstractIntegrationTest {
 
-  private final String BASE_URL = "/api/v1/users";
+  private static final String BASE_URL = "/api/v1/users";
 
   private User userFixture;
   private Card cardFixture;
@@ -82,7 +82,7 @@ public class UserControllerIT extends AbstractIntegrationTest {
   }
 
   @Test
-  void findById_withoutCardsWhenUserNotExists_shouldReturnNotFoundStatus() throws Exception {
+  void findById_whenUserNotExists_shouldReturnNotFoundStatus() throws Exception {
     mockMvc.perform(get(BASE_URL + "/" + Long.MAX_VALUE))
         .andExpect(status().isNotFound());
   }
@@ -129,23 +129,12 @@ public class UserControllerIT extends AbstractIntegrationTest {
   }
 
   @Test
-  void findByEmail_withoutCardsWhenUserExists_shouldUserResponseDto() throws Exception {
+  void findByEmail_whenUserExists_shouldUserResponseDto() throws Exception {
     mockMvc.perform(get(BASE_URL + "/email/" + userFixture.getEmail()))
         .andExpectAll(
             status().isOk(),
             content().contentType(MediaType.APPLICATION_JSON),
             content().json(jsonMapper.writeValueAsString(userMapper.toDto(userFixture)))
-        );
-  }
-
-  @Test
-  void findByEmail_withCardsWhenUserExists_shouldReturnUserResponseDtoWithCards() throws Exception {
-    mockMvc.perform(get(BASE_URL + "/email/" + userFixture.getEmail())
-            .queryParam("includeCards", "true"))
-        .andExpectAll(
-            status().isOk(),
-            content().contentType(MediaType.APPLICATION_JSON),
-            content().json(jsonMapper.writeValueAsString(userMapper.toWithCardsDto(userFixture)))
         );
   }
 

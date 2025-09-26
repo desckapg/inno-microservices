@@ -25,7 +25,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 
 @ServiceIT
 @RequiredArgsConstructor
-public class CardServiceIT extends AbstractIntegrationTest {
+class CardServiceIT extends AbstractIntegrationTest {
 
   private User userFixture;
   private Card cardFixture;
@@ -87,11 +87,12 @@ public class CardServiceIT extends AbstractIntegrationTest {
   @Test
   @Transactional
   void update_whenCardNotExists_shouldThrowCardNotFoundException() {
-    assertThatThrownBy(() -> cardService.update(Long.MAX_VALUE, new CardUpdateRequestDto(
+    var updateDto = new CardUpdateRequestDto(
         cardFixture.getNumber(),
         cardFixture.getHolder(),
         cardFixture.getExpirationDate()
-    )))
+    );
+    assertThatThrownBy(() -> cardService.update(Long.MAX_VALUE, updateDto))
         .isInstanceOf(CardNotFoundException.class);
   }
 

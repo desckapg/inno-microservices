@@ -3,7 +3,7 @@ package com.innowise.userservice.service;
 import com.innowise.userservice.cache.CacheHelper;
 import com.innowise.userservice.exception.CardNotFoundException;
 import com.innowise.userservice.exception.CardAlreadyExistsException;
-import com.innowise.userservice.model.dto.card.CardResponseDto;
+import com.innowise.userservice.model.dto.card.CardDto;
 import com.innowise.userservice.model.dto.card.CardUpdateRequestDto;
 import com.innowise.userservice.model.entity.Card;
 import com.innowise.userservice.model.mapper.CardMapper;
@@ -22,7 +22,7 @@ public class CardService {
   private final CacheHelper cacheHelper;
 
   @Transactional
-  public CardResponseDto update(Long id, CardUpdateRequestDto dto) {
+  public CardDto update(Long id, CardUpdateRequestDto dto) {
     Card card = cardRepository.findById(id)
         .orElseThrow(() -> new CardNotFoundException(id));
 
@@ -48,13 +48,13 @@ public class CardService {
     cacheHelper.removeCardFromCache(card.getUser().getId(), id);
   }
 
-  public CardResponseDto findById(Long id) {
+  public CardDto findById(Long id) {
     return cardRepository.findById(id)
         .map(cardMapper::toDto)
         .orElseThrow(() -> new CardNotFoundException(id));
   }
 
-  public List<CardResponseDto> findAllByIdIn(List<Long> ids) {
+  public List<CardDto> findAllByIdIn(List<Long> ids) {
     return cardRepository.findAllByIdIn(ids).stream()
         .map(cardMapper::toDto)
         .toList();

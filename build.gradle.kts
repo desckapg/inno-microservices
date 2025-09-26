@@ -4,7 +4,6 @@ plugins {
     id("org.sonarqube") version "6.3.1.5724"
 }
 
-
 allprojects {
     group = "com.innowise"
     repositories {
@@ -25,6 +24,7 @@ subprojects {
                 "sonar.coverage.jacoco.xmlReportPaths",
                 "build/reports/jacoco/test/jacocoTestReport.xml"
             )
+            property("sonar.projectKey", "desckapg_inno-microservices_${project.name}")
         }
     }
 

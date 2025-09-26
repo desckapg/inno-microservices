@@ -11,7 +11,7 @@ import static org.mockito.Mockito.when;
 import com.innowise.userservice.cache.CacheHelper;
 import com.innowise.userservice.exception.CardNotFoundException;
 import com.innowise.userservice.exception.CardAlreadyExistsException;
-import com.innowise.userservice.model.dto.card.CardResponseDto;
+import com.innowise.userservice.model.dto.card.CardDto;
 import com.innowise.userservice.model.dto.card.CardUpdateRequestDto;
 import com.innowise.userservice.model.entity.Card;
 import com.innowise.userservice.model.mapper.CardMapper;
@@ -31,7 +31,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith({MockitoExtension.class})
-public class CardServiceTest {
+class CardServiceTest {
 
   @Mock
   private CardRepository cardRepository;
@@ -77,7 +77,7 @@ public class CardServiceTest {
     when(cardRepository.save(any(Card.class)))
         .thenReturn(updatedCard);
 
-    CardResponseDto result = cardService.update(existingCard.getId(), updateDto);
+    CardDto result = cardService.update(existingCard.getId(), updateDto);
 
     assertThat(result).isEqualTo(cardMapper.toDto(updatedCard));
     verify(cardRepository).save(any(Card.class));
@@ -156,7 +156,7 @@ public class CardServiceTest {
     when(cardRepository.findById(card.getId()))
         .thenReturn(Optional.of(card));
 
-    CardResponseDto result = cardService.findById(card.getId());
+    CardDto result = cardService.findById(card.getId());
 
     assertThat(result)
         .isEqualTo(cardMapper.toDto(card));
@@ -184,7 +184,7 @@ public class CardServiceTest {
     when(cardRepository.findAllByIdIn(ids))
         .thenReturn(cards);
 
-    List<CardResponseDto> result = cardService.findAllByIdIn(ids);
+    List<CardDto> result = cardService.findAllByIdIn(ids);
 
     assertThat(result)
         .containsExactlyElementsOf(
@@ -200,7 +200,7 @@ public class CardServiceTest {
 
     when(cardRepository.findAllByIdIn(ids)).thenReturn(List.of());
 
-    List<CardResponseDto> result = cardService.findAllByIdIn(ids);
+    List<CardDto> result = cardService.findAllByIdIn(ids);
 
     assertThat(result).isEmpty();
   }

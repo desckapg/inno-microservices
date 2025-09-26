@@ -11,7 +11,7 @@ import com.innowise.userservice.cache.CacheHelper;
 import com.innowise.userservice.controller.CardController;
 import com.innowise.userservice.integration.AbstractIntegrationTest;
 import com.innowise.userservice.integration.annotation.WebIT;
-import com.innowise.userservice.model.dto.card.CardResponseDto;
+import com.innowise.userservice.model.dto.card.CardDto;
 import com.innowise.userservice.model.dto.card.CardUpdateRequestDto;
 import com.innowise.userservice.model.entity.Card;
 import com.innowise.userservice.model.entity.User;
@@ -34,9 +34,9 @@ import tools.jackson.databind.ObjectMapper;
 
 @WebIT
 @RequiredArgsConstructor
-public class CardControllerIT extends AbstractIntegrationTest {
+class CardControllerIT extends AbstractIntegrationTest {
 
-  private final String BASE_URL = "/api/v1/cards";
+  private static final String BASE_URL = "/api/v1/cards";
 
   private static User userFixture;
   private static Card cardFixture;
@@ -106,7 +106,7 @@ public class CardControllerIT extends AbstractIntegrationTest {
     mockMvc.perform(put(BASE_URL + "/" + cardFixture.getId())
             .contentType(MediaType.APPLICATION_JSON)
             .content(jsonMapper.writeValueAsString(invalidDto)))
-        .andExpect(status().isUnprocessableContent());
+        .andExpect(status().isUnprocessableEntity());
   }
 
   @Test
@@ -117,7 +117,7 @@ public class CardControllerIT extends AbstractIntegrationTest {
         "Another Bank",
         cardFixture.getExpirationDate()
     );
-    var expectedResponseDto = new CardResponseDto(
+    var expectedResponseDto = new CardDto(
         cardFixture.getId(),
         cardFixture.getNumber(),
         validUpdateDto.holder(),
