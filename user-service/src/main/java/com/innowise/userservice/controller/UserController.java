@@ -2,11 +2,11 @@ package com.innowise.userservice.controller;
 
 import com.innowise.userservice.model.dto.card.CardCreateRequestDto;
 import com.innowise.userservice.model.dto.card.CardDto;
-import com.innowise.userservice.model.dto.user.UserCreateRequestDto;
 import com.innowise.userservice.model.dto.user.UserDto;
-import com.innowise.userservice.model.dto.user.UserUpdateRequestDto;
 import com.innowise.userservice.service.UserCardService;
 import com.innowise.userservice.service.UserService;
+import com.innowise.userservice.validation.group.OnCreate;
+import com.innowise.userservice.validation.group.OnUpdate;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
 import java.util.List;
@@ -46,14 +46,14 @@ public class UserController {
   }
 
   @PostMapping("/create")
-  public ResponseEntity<UserDto> create(@RequestBody @Validated UserCreateRequestDto dto) {
+  public ResponseEntity<UserDto> create(@RequestBody @Validated(OnCreate.class) UserDto dto) {
     return ResponseEntity.status(HttpStatus.CREATED).body(userService.create(dto));
   }
 
   @PutMapping("/{id}")
   public ResponseEntity<UserDto> update(
       @PathVariable Long id,
-      @RequestBody @Validated UserUpdateRequestDto dto) {
+      @RequestBody @Validated(OnUpdate.class) UserDto dto) {
     return ResponseEntity.ok(userService.update(id, dto));
   }
 
@@ -67,7 +67,7 @@ public class UserController {
   @PostMapping("/{userId}/cards")
   public ResponseEntity<CardDto> createCard(
       @PathVariable Long userId,
-      @RequestBody @Validated CardCreateRequestDto dto
+      @RequestBody @Validated(OnCreate.class) CardCreateRequestDto dto
   ) {
     return ResponseEntity.status(HttpStatus.CREATED)
         .body(userCardService.createCard(userId, dto));
