@@ -18,7 +18,7 @@ dependencies {
 
     // Jackson 2 dependency due to the GenericJackson3JsonRedisSerializer requirement
     // For some reason spring-data-redis 4.0.0-M6 don't provide it as transitive dependency
-    implementation("com.fasterxml.jackson.core:jackson-core:2.20.0-rc1")
+    implementation(libs.jackson2.core)
 
     compileOnly("org.projectlombok:lombok")
 
@@ -39,9 +39,6 @@ dependencies {
 
     testCompileOnly("org.projectlombok:lombok")
     testAnnotationProcessor("org.projectlombok:lombok")
-    compileOnly("org.mapstruct:mapstruct:1.6.0")
-    annotationProcessor("org.mapstruct:mapstruct-processor:1.6.0")
-    annotationProcessor("org.projectlombok:lombok-mapstruct-binding:0.2.0")
 }
 
 tasks.jacocoTestReport {
