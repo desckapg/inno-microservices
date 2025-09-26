@@ -1,8 +1,6 @@
 name: build-test-analyze
 
 on:
-  pull_request:
-    branches: [ '**' ]
   push:
     branches: [ '**' ]
 
