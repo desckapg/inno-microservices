@@ -1,10 +1,11 @@
 package com.innowise.userservice.controller;
 
 import com.innowise.userservice.model.dto.card.CardCreateRequestDto;
-import com.innowise.userservice.model.dto.card.CardResponseDto;
+import com.innowise.userservice.model.dto.card.CardDto;
 import com.innowise.userservice.model.dto.user.UserCreateRequestDto;
-import com.innowise.userservice.model.dto.user.UserResponseDto;
+import com.innowise.userservice.model.dto.user.UserDto;
 import com.innowise.userservice.model.dto.user.UserUpdateRequestDto;
+import com.innowise.userservice.model.dto.user.UserWithCardsDto;
 import com.innowise.userservice.service.UserCardService;
 import com.innowise.userservice.service.UserService;
 import jakarta.validation.constraints.Email;
@@ -33,33 +34,30 @@ public class UserController {
   private final UserService userService;
   private final UserCardService userCardService;
 
+
   @GetMapping("/{id}")
-  public ResponseEntity<UserResponseDto> findById(
+  public ResponseEntity<?> findById(
       @PathVariable Long id,
-      @RequestParam(defaultValue = "false") boolean includeCards
+      @RequestParam(name = "includeCards", required = false, defaultValue = "false") boolean includeCards
   ) {
     if (includeCards) {
       return ResponseEntity.ok(userService.findWithCardsById(id));
-    } else {
-      return ResponseEntity.ok(userService.findWithoutCardsById(id));
     }
+    return ResponseEntity.ok(userService.findById(id));
   }
 
   @GetMapping("/email/{email}")
-  public ResponseEntity<UserResponseDto> findByEmail(
-      @PathVariable @NotNull @Email String email,
-      @RequestParam(defaultValue = "false") boolean includeCards
-  ) {
-    return ResponseEntity.ok(userService.findByEmail(email, includeCards));
+  public ResponseEntity<UserDto> findByEmail(@PathVariable @NotNull @Email String email) {
+    return ResponseEntity.ok(userService.findByEmail(email));
   }
 
   @PostMapping("/create")
-  public ResponseEntity<UserResponseDto> create(@RequestBody @Validated UserCreateRequestDto dto) {
+  public ResponseEntity<UserDto> create(@RequestBody @Validated UserCreateRequestDto dto) {
     return ResponseEntity.status(HttpStatus.CREATED).body(userService.create(dto));
   }
 
   @PutMapping("/{id}")
-  public ResponseEntity<UserResponseDto> update(
+  public ResponseEntity<UserDto> update(
       @PathVariable Long id,
       @RequestBody @Validated UserUpdateRequestDto dto) {
     return ResponseEntity.ok(userService.update(id, dto));
@@ -73,7 +71,7 @@ public class UserController {
 
 
   @PostMapping("/{userId}/cards")
-  public ResponseEntity<CardResponseDto> createCard(
+  public ResponseEntity<CardDto> createCard(
       @PathVariable Long userId,
       @RequestBody @Validated CardCreateRequestDto dto
   ) {
@@ -91,7 +89,7 @@ public class UserController {
   }
 
   @GetMapping("/{userId}/cards")
-  public ResponseEntity<List<CardResponseDto>> findUserCards(@PathVariable Long userId) {
+  public ResponseEntity<List<CardDto>> findUserCards(@PathVariable Long userId) {
     return ResponseEntity.ok(userCardService.findUserCards(userId));
   }
 

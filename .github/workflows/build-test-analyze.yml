@@ -118,7 +118,6 @@ jobs:
           name: ${{ matrix.service }} Tests
           path: |
             ${{ matrix.service }}/build/test-results/test/*.xml
-            ${{ matrix.service }}/build/test-results/integrationTest/*.xml
           reporter: java-junit
 
       - name: Upload build artifacts

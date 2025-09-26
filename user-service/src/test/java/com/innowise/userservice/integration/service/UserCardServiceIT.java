@@ -3,6 +3,10 @@ package com.innowise.userservice.integration.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.innowise.userservice.exception.CardAlreadyExistsException;
+import com.innowise.userservice.exception.CardNotFoundException;
+import com.innowise.userservice.exception.UserNotFoundException;
+import com.innowise.userservice.exception.UserNotOwnCardException;
 import com.innowise.userservice.integration.AbstractIntegrationTest;
 import com.innowise.userservice.integration.annotation.ServiceIT;
 import com.innowise.userservice.model.dto.card.CardCreateRequestDto;
@@ -23,7 +27,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 
 @ServiceIT
 @RequiredArgsConstructor
-public class UserCardServiceIT extends AbstractIntegrationTest {
+class UserCardServiceIT extends AbstractIntegrationTest {
 
   private User userFixture;
   private Card cardFixture;
@@ -87,13 +91,24 @@ public class UserCardServiceIT extends AbstractIntegrationTest {
 
   @Test
   @Transactional
+  void createCard_whenCardWithNumberExists_shouldCardAlreadyExistsException() {
+    var newCard = Cards.build();
+    assertThatThrownBy(() -> userCardService.createCard(Long.MAX_VALUE, new CardCreateRequestDto(
+        cardFixture.getNumber(),
+        newCard.getHolder(),
+        newCard.getExpirationDate()
+    ))).isInstanceOf(CardAlreadyExistsException.class);
+  }
+
+  @Test
+  @Transactional
   void createCard_whenUserDoesNotExist_shouldThrowUserNotFoundException() {
     var newCardDto = Cards.build();
     assertThatThrownBy(() -> userCardService.createCard(Long.MAX_VALUE, new CardCreateRequestDto(
         newCardDto.getNumber(),
         newCardDto.getHolder(),
         newCardDto.getExpirationDate()
-    ))).isInstanceOf(com.innowise.userservice.exception.UserNotFoundException.class);
+    ))).isInstanceOf(UserNotFoundException.class);
   }
 
   @Test
@@ -107,14 +122,26 @@ public class UserCardServiceIT extends AbstractIntegrationTest {
   @Transactional
   void deleteCard_whenUserDoesNotExist_shouldThrowUserNotFoundException() {
     assertThatThrownBy(() -> userCardService.deleteCard(Long.MAX_VALUE, cardFixture.getId()))
-        .isInstanceOf(com.innowise.userservice.exception.UserNotFoundException.class);
+        .isInstanceOf(UserNotFoundException.class);
   }
 
   @Test
   @Transactional
   void deleteCard_whenCardDoesNotExist_shouldThrowCardNotFoundException() {
     assertThatThrownBy(() -> userCardService.deleteCard(userFixture.getId(), Long.MAX_VALUE))
-        .isInstanceOf(com.innowise.userservice.exception.CardNotFoundException.class);
+        .isInstanceOf(CardNotFoundException.class);
   }
+
+  @Test
+  @Transactional
+  void deleteCard_whenUserNotOwnCard_shouldThrowUserNotOwnCardException() {
+    var newUser = Users.buildWithoutId();
+    entityManager.persist(newUser);
+
+    assertThatThrownBy(() -> userCardService.deleteCard(newUser.getId(), cardFixture.getId()))
+        .isInstanceOf(UserNotOwnCardException.class);
+  }
+
+
 
 }

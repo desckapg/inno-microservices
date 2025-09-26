@@ -4,6 +4,7 @@ import com.innowise.userservice.exception.CardAlreadyExistsException;
 import com.innowise.userservice.exception.CardNotFoundException;
 import com.innowise.userservice.exception.UserAlreadyExistsException;
 import com.innowise.userservice.exception.UserNotFoundException;
+import com.innowise.userservice.exception.UserNotOwnCardException;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.Nullable;
 import org.springframework.data.crossstore.ChangeSetPersister.NotFoundException;
@@ -39,13 +40,18 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         .body(ex.getMessage());
   }
 
+  @ExceptionHandler(value = {UserNotOwnCardException.class})
+  public ResponseEntity<Void> handleNotOwnCardException(RuntimeException ex) {
+    return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+  }
+
   @Override
   protected ResponseEntity<Object> handleMethodArgumentNotValid(
       MethodArgumentNotValidException ex,
       HttpHeaders headers,
       HttpStatusCode status,
       WebRequest request) {
-    return ResponseEntity.unprocessableContent()
+    return ResponseEntity.unprocessableEntity()
         .body(ex.getFieldErrors()
             .stream()
             .map(error -> error.getField() + " : " + error.getDefaultMessage())

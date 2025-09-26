@@ -22,7 +22,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 @JpaRepositoryIT
 @RequiredArgsConstructor
 @TestInstance(value = TestInstance.Lifecycle.PER_CLASS)
-public class CardRepositoryIT extends AbstractIntegrationTest {
+class CardRepositoryIT extends AbstractIntegrationTest {
 
   private User userFixture;
   private Card cardFixture;

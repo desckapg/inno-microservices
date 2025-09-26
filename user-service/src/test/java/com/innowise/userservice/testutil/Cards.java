@@ -50,7 +50,6 @@ public final class Cards {
     return card;
   }
 
-
   public static Card build(Long id, String number, String holder, User user) {
     var card = Card.builder()
         .user(user)

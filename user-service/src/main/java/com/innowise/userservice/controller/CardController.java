@@ -1,6 +1,6 @@
 package com.innowise.userservice.controller;
 
-import com.innowise.userservice.model.dto.card.CardResponseDto;
+import com.innowise.userservice.model.dto.card.CardDto;
 import com.innowise.userservice.model.dto.card.CardUpdateRequestDto;
 import com.innowise.userservice.service.CardService;
 import java.util.List;
@@ -25,7 +25,7 @@ public class CardController {
   private final CardService cardService;
 
   @PutMapping("/{id}")
-  public ResponseEntity<CardResponseDto> update(
+  public ResponseEntity<CardDto> update(
       @PathVariable Long id,
       @RequestBody @Validated CardUpdateRequestDto dto
   ) {
@@ -39,12 +39,12 @@ public class CardController {
   }
 
   @GetMapping("/{id}")
-  public ResponseEntity<CardResponseDto> findById(@PathVariable Long id) {
+  public ResponseEntity<CardDto> findById(@PathVariable Long id) {
     return ResponseEntity.ok(cardService.findById(id));
   }
 
   @GetMapping("/all")
-  public ResponseEntity<List<CardResponseDto>> findAllByIdIn(
+  public ResponseEntity<List<CardDto>> findAllByIdIn(
       @RequestParam List<Long> ids
   ) {
     return ResponseEntity.ok(cardService.findAllByIdIn(ids));

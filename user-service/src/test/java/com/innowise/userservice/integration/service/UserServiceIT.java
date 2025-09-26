@@ -2,7 +2,10 @@ package com.innowise.userservice.integration.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
+import com.innowise.userservice.cache.CacheHelper;
 import com.innowise.userservice.exception.UserNotFoundException;
 import com.innowise.userservice.exception.UserAlreadyExistsException;
 import com.innowise.userservice.integration.AbstractIntegrationTest;
@@ -11,6 +14,7 @@ import com.innowise.userservice.model.dto.user.UserCreateRequestDto;
 import com.innowise.userservice.model.dto.user.UserUpdateRequestDto;
 import com.innowise.userservice.model.entity.User;
 import com.innowise.userservice.model.mapper.UserMapper;
+import com.innowise.userservice.repository.UserRepository;
 import com.innowise.userservice.service.UserService;
 import com.innowise.userservice.testutil.Cards;
 import com.innowise.userservice.testutil.Users;
@@ -18,23 +22,34 @@ import jakarta.persistence.EntityManager;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.springframework.cache.CacheManager;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
 @ServiceIT
 @RequiredArgsConstructor
-public class UserServiceIT extends AbstractIntegrationTest {
+class UserServiceIT extends AbstractIntegrationTest {
 
   private User userFixture;
 
+  @MockitoSpyBean
+  private final UserRepository userRepository;
+
+  @InjectMocks
   private final UserService userService;
 
   private final EntityManager entityManager;
   private final TransactionTemplate transactionTemplate;
 
   private final UserMapper userMapper;
+
+  private final CacheHelper cacheHelper;
+  private final CacheManager cacheManager;
 
   @BeforeAll
   void prepareFixtures() {
@@ -53,15 +68,31 @@ public class UserServiceIT extends AbstractIntegrationTest {
     });
   }
 
+  @AfterEach
+  void cleanupCache() {
+    cacheHelper.invalidate();
+  }
+
   @Test
   void contextLoads() {
     assertThat(userService).isNotNull();
   }
 
   @Test
-  void findById_whenWithoutCardsAndUserExists_shouldReturnUserResponseDtoWithoutCards() {
-    assertThat(userService.findWithoutCardsById(userFixture.getId())).isEqualTo(
-        userMapper.toDto(userFixture));
+  void findById_whenUserExists_shouldReturnUserResponseDtoWithoutCards() {
+    assertThat(userService.findById(userFixture.getId()))
+        .isEqualTo(userMapper.toDto(userFixture));
+  }
+
+  @Test
+  void findById_whenInvokedTwice_shouldExecuteOneSqlStatement() {
+
+    userService.findById(userFixture.getId());
+    var cachedUser = userService.findById(userFixture.getId());
+
+    verify(userRepository, times(1)).findById(userFixture.getId());
+    assertThat(cachedUser).isEqualTo(userMapper.toDto(userFixture));
+
   }
 
   @Test
@@ -72,7 +103,7 @@ public class UserServiceIT extends AbstractIntegrationTest {
 
   @Test
   void findById_whenWithoutCardsAndUserNotExists_shouldThrowUserNotFoundException() {
-    assertThatThrownBy(() -> userService.findWithoutCardsById(Long.MAX_VALUE)).isInstanceOf(
+    assertThatThrownBy(() -> userService.findById(Long.MAX_VALUE)).isInstanceOf(
         UserNotFoundException.class);
   }
 
@@ -83,58 +114,53 @@ public class UserServiceIT extends AbstractIntegrationTest {
   }
 
   @Test
-  void findByEmail_whenWithoutCardsAndUserExists_shouldReturnUserResponseDtoWithoutCards() {
-    assertThat(userService.findByEmail(userFixture.getEmail(), false)).isEqualTo(
-        userMapper.toDto(userFixture));
+  void findByEmail_whenUserExists_shouldReturnUserResponseDtoWithoutCards() {
+    assertThat(userService.findByEmail(userFixture.getEmail()))
+        .isEqualTo(userMapper.toDto(userFixture));
   }
 
   @Test
-  void findByEmail_whenWithCardsAndUserExists_shouldReturnUserResponseDtoWithCards() {
-    assertThat(userService.findByEmail(userFixture.getEmail(), true)).isEqualTo(
-        userMapper.toWithCardsDto(userFixture));
-  }
-
-  @Test
-  void findByEmail_whenWithoutCardsAndUserNotExists_shouldThrowUserNotFoundException() {
+  void findByEmail_whenUserNotExists_shouldThrowUserNotFoundException() {
     assertThatThrownBy(
-        () -> userService.findByEmail("nonexisting@example.com", false)).isInstanceOf(
+        () -> userService.findByEmail("nonexisting@example.com")).isInstanceOf(
         UserNotFoundException.class);
   }
 
   @Test
-  void findByEmail_whenWithCardsAndUserNotExists_shouldThrowUserNotFoundException() {
-    assertThatThrownBy(() -> userService.findByEmail("nonexisting@example.com", true)).isInstanceOf(
-        UserNotFoundException.class);
+  void findAllByIdIn_whenUsersExist_shouldReturnListOfUserResponseDto() {
+    assertThat(userService.findAllByIdIn(List.of(userFixture.getId(), Long.MAX_VALUE)))
+        .containsExactly(userMapper.toDto(userFixture));
   }
 
   @Test
-  void findAllByIdIn_whenWithoutCardsAndUsersExist_shouldReturnListOfUserResponseDtoWithoutCards() {
-    assertThat(userService.findAllByIdIn(List.of(userFixture.getId(), Long.MAX_VALUE),
-        false)).containsExactly(userMapper.toDto(userFixture));
+  void findWithCardsAllByIdIn_whenUsersExist_shouldReturnListOfUserResponseDtoWithCards() {
+    assertThat(userService.findWithCardsAllByIdIn(List.of(userFixture.getId(), Long.MAX_VALUE)))
+        .containsExactly(userMapper.toWithCardsDto(userFixture));
   }
 
   @Test
-  void findAllByIdIn_whenWithCardsAndUsersExist_shouldReturnListOfUserResponseDtoWithCards() {
-    assertThat(userService.findAllByIdIn(List.of(userFixture.getId(), Long.MAX_VALUE),
-        true)).containsExactly(userMapper.toWithCardsDto(userFixture));
+  void findAllByIdIn_whenUsersNotExist_shouldReturnEmptyList() {
+    assertThat(userService.findAllByIdIn(List.of(Long.MAX_VALUE)))
+        .isEmpty();
   }
 
   @Test
-  void findAllByIdIn_whenWithoutCardsAndUsersNotExist_shouldReturnEmptyList() {
-    assertThat(userService.findAllByIdIn(List.of(Long.MAX_VALUE), false)).isEmpty();
-  }
-
-  @Test
-  void findAllByIdIn_whenWithCardsAndUsersNotExist_shouldReturnEmptyList() {
-    assertThat(userService.findAllByIdIn(List.of(Long.MAX_VALUE), true)).isEmpty();
+  void findWithCardsAllByIdIn_whenUsersNotExist_shouldReturnEmptyList() {
+    assertThat(userService.findAllByIdIn(List.of(Long.MAX_VALUE)))
+        .isEmpty();
   }
 
   @Test
   @Transactional
   void create_whenUserWithEmailExists_shouldThrowUserWithEmailExistsException() {
-    assertThatThrownBy(() -> userService.create(
-        new UserCreateRequestDto("New", "User", userFixture.getBirthDate(),
-            userFixture.getEmail()))).isInstanceOf(UserAlreadyExistsException.class);
+    var createDto = new UserCreateRequestDto(
+        "New",
+        "User",
+        userFixture.getBirthDate(),
+        userFixture.getEmail()
+    );
+    assertThatThrownBy(() -> userService.create(createDto))
+        .isInstanceOf(UserAlreadyExistsException.class);
   }
 
   @Test
@@ -150,10 +176,14 @@ public class UserServiceIT extends AbstractIntegrationTest {
   @Test
   @Transactional
   void update_whenUserNotExist_shouldThrowUserNotFoundException() {
-    assertThatThrownBy(() -> userService.update(Long.MAX_VALUE,
-        new UserUpdateRequestDto(userFixture.getName(), userFixture.getSurname(),
-            userFixture.getEmail(), userFixture.getBirthDate()))).isInstanceOf(
-        UserNotFoundException.class);
+    var updateDto = new UserUpdateRequestDto(
+        userFixture.getName(),
+        userFixture.getSurname(),
+        userFixture.getEmail(),
+        userFixture.getBirthDate()
+    );
+    assertThatThrownBy(() -> userService.update(Long.MAX_VALUE, updateDto))
+        .isInstanceOf(UserNotFoundException.class);
   }
 
   @Test

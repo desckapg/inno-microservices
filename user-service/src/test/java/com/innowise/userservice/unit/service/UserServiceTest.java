@@ -11,9 +11,11 @@ import com.innowise.userservice.cache.CacheHelper;
 import com.innowise.userservice.exception.UserNotFoundException;
 import com.innowise.userservice.exception.UserAlreadyExistsException;
 import com.innowise.userservice.model.dto.user.UserCreateRequestDto;
-import com.innowise.userservice.model.dto.user.UserResponseDto;
+import com.innowise.userservice.model.dto.user.UserDto;
 import com.innowise.userservice.model.dto.user.UserUpdateRequestDto;
+import com.innowise.userservice.model.dto.user.UserWithCardsDto;
 import com.innowise.userservice.model.entity.User;
+import com.innowise.userservice.model.mapper.CardMapper;
 import com.innowise.userservice.model.mapper.CardMapperImpl;
 import com.innowise.userservice.model.mapper.UserMapper;
 import com.innowise.userservice.model.mapper.UserMapperImpl;
@@ -31,7 +33,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 @ExtendWith({SpringExtension.class, MockitoExtension.class})
-public class UserServiceTest {
+class UserServiceTest {
 
   @Mock
   private UserRepository userRepository;
@@ -39,7 +41,9 @@ public class UserServiceTest {
   @Mock
   private CacheHelper cacheManager;
 
-  private final UserMapper userMapper = new UserMapperImpl(new CardMapperImpl());
+  private final CardMapper cardMapper = new CardMapperImpl();
+  private final UserMapper userMapper = new UserMapperImpl(cardMapper);
+
   private UserService userService;
 
   @BeforeEach
@@ -57,7 +61,7 @@ public class UserServiceTest {
     when(userRepository.existsByEmail("john@example.com")).thenReturn(false);
     when(userRepository.save(any(User.class))).thenReturn(savedUser);
 
-    UserResponseDto result = userService.create(createDto);
+    UserDto result = userService.create(createDto);
 
     assertThat(result.id()).isEqualTo(1L);
     assertThat(result.name()).isEqualTo("John");
@@ -97,7 +101,7 @@ public class UserServiceTest {
     when(userRepository.existsByEmail("jane@example.com")).thenReturn(false);
     when(userRepository.save(any(User.class))).thenReturn(updatedUser);
 
-    UserResponseDto result = userService.update(userId, updateDto);
+    UserDto result = userService.update(userId, updateDto);
 
     assertThat(result.name()).isEqualTo("Jane");
     assertThat(result.surname()).isEqualTo("Smith");
@@ -170,7 +174,7 @@ public class UserServiceTest {
 
     when(userRepository.findById(userId)).thenReturn(Optional.of(user));
 
-    UserResponseDto result = userService.findWithoutCardsById(userId);
+    UserDto result = userService.findById(userId);
 
     assertThat(result.id()).isEqualTo(userId);
     assertThat(result.name()).isEqualTo("John");
@@ -185,7 +189,8 @@ public class UserServiceTest {
     when(userRepository.findWithCardsById(user.getId()))
         .thenReturn(Optional.empty());
 
-    assertThatThrownBy(() -> userService.findWithCardsById(user.getId()))
+    var id = user.getId();
+    assertThatThrownBy(() -> userService.findWithCardsById(id))
         .isInstanceOf(UserNotFoundException.class);
   }
 
@@ -196,7 +201,7 @@ public class UserServiceTest {
 
     when(userRepository.findWithCardsById(userId)).thenReturn(Optional.of(user));
 
-    UserResponseDto result = userService.findWithCardsById(userId);
+    UserWithCardsDto result = userService.findWithCardsById(userId);
 
     assertThat(result.id()).isEqualTo(userId);
     assertThat(result.name()).isEqualTo("John");
@@ -222,7 +227,7 @@ public class UserServiceTest {
 
     when(userRepository.findByEmail(email)).thenReturn(Optional.of(user));
 
-    UserResponseDto result = userService.findByEmail(email, false);
+    UserDto result = userService.findByEmail(email);
 
     assertThat(result.email()).isEqualTo(email);
     assertThat(result.name()).isEqualTo("John");
@@ -235,37 +240,12 @@ public class UserServiceTest {
 
     when(userRepository.findByEmail(email)).thenReturn(Optional.empty());
 
-    assertThatThrownBy(() -> userService.findByEmail(email, false))
+    assertThatThrownBy(() -> userService.findByEmail(email))
         .isInstanceOf(UserNotFoundException.class);
   }
 
   @Test
-  void findWithCardsByEmail_whenUserExists_shouldReturnUserWithCards() {
-    String email = "john@example.com";
-    User user = Users.buildWithId(1L, "John", "Doe", email);
-
-    when(userRepository.findWithCardsByEmail(email)).thenReturn(Optional.of(user));
-
-    UserResponseDto result = userService.findByEmail(email, true);
-
-    assertThat(result.email()).isEqualTo(email);
-    assertThat(result.name()).isEqualTo("John");
-    assertThat(result.surname()).isEqualTo("Doe");
-    assertThat(result.cards()).isNotNull();
-  }
-
-  @Test
-  void findWithCardsByEmail_whenUserNotFound_shouldThrowUserNotFoundException() {
-    String email = "john@example.com";
-
-    when(userRepository.findWithCardsByEmail(email)).thenReturn(Optional.empty());
-
-    assertThatThrownBy(() -> userService.findByEmail(email, true))
-        .isInstanceOf(UserNotFoundException.class);
-  }
-
-  @Test
-  void findAll_ByIdIn_whenUsersExist_shouldReturnUsersList() {
+  void findAllByIdIn_whenUsersExist_shouldReturnUsersList() {
     List<Long> ids = List.of(1L, 2L);
     List<User> users = List.of(
         Users.buildWithId(1L, "John", "Doe", "john@example.com"),
@@ -274,7 +254,7 @@ public class UserServiceTest {
 
     when(userRepository.findAllByIdIn(ids)).thenReturn(users);
 
-    List<UserResponseDto> result = userService.findAllByIdIn(ids, false);
+    List<UserDto> result = userService.findAllByIdIn(ids);
 
     assertThat(result).hasSize(2);
     assertThat(result.get(0).name()).isEqualTo("John");
@@ -283,20 +263,21 @@ public class UserServiceTest {
 
   @Test
   void findAllByIdInWithCards_whenUsersExist_shouldReturnUsersWithCardsList() {
-    List<Long> ids = List.of(1L, 2L);
     List<User> users = List.of(
-        Users.buildWithId(1L, "John", "Doe", "john@example.com"),
-        Users.buildWithId(2L, "Jane", "Smith", "jane@example.com")
+        Users.build(),
+        Users.build()
     );
 
-    when(userRepository.findAllWithCardsByIdIn(ids)).thenReturn(users);
+    List<Long> ids = users.stream().map(User::getId).toList();
 
-    List<UserResponseDto> result = userService.findAllByIdIn(ids, true);
+    when(userRepository.findAllWithCardsByIdIn(ids))
+        .thenReturn(users);
 
-    assertThat(result).hasSize(2);
-    assertThat(result.get(0).name()).isEqualTo("John");
-    assertThat(result.get(1).name()).isEqualTo("Jane");
-    assertThat(result.get(0).cards()).isNotNull();
-    assertThat(result.get(1).cards()).isNotNull();
+    List<UserWithCardsDto> result = userService.findWithCardsAllByIdIn(ids);
+
+    assertThat(result)
+        .containsExactlyInAnyOrderElementsOf(
+            users.stream().map(userMapper::toWithCardsDto).toList()
+        );
   }
 }
