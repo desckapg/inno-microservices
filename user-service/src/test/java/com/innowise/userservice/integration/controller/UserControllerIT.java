@@ -13,7 +13,7 @@ import com.innowise.userservice.cache.CacheHelper;
 import com.innowise.userservice.controller.UserController;
 import com.innowise.userservice.integration.AbstractIntegrationTest;
 import com.innowise.userservice.integration.annotation.WebIT;
-import com.innowise.userservice.model.dto.user.UserCreateRequestDto;
+import com.innowise.userservice.model.dto.user.UserDto;
 import com.innowise.userservice.model.entity.Card;
 import com.innowise.userservice.model.entity.User;
 import com.innowise.userservice.model.mapper.CardMapper;
@@ -60,16 +60,12 @@ class UserControllerIT extends AbstractIntegrationTest {
   void prepareFixtures() {
     userFixture = Users.buildWithoutId();
     cardFixture = Cards.buildWithoutId(userFixture);
-    transactionTemplate.executeWithoutResult(status -> {
-      entityManager.persist(userFixture);
-    });
+    transactionTemplate.executeWithoutResult(status -> entityManager.persist(userFixture));
   }
 
   @AfterAll
   void cleanupFixtures() {
-    transactionTemplate.executeWithoutResult(status -> {
-      entityManager.remove(entityManager.find(User.class, userFixture.getId()));
-    });
+    transactionTemplate.executeWithoutResult(status -> entityManager.remove(entityManager.find(User.class, userFixture.getId())));
   }
 
   @BeforeEach
@@ -166,12 +162,13 @@ class UserControllerIT extends AbstractIntegrationTest {
     mockMvc.perform(
         post(BASE_URL + "/create")
             .contentType(MediaType.APPLICATION_JSON)
-            .content(jsonMapper.writeValueAsString(new UserCreateRequestDto(
-                creatingUser.getName(),
-                creatingUser.getSurname(),
-                creatingUser.getBirthDate(),
-                creatingUser.getEmail()
-            )))
+            .content(jsonMapper.writeValueAsString(UserDto.builder()
+                .name(creatingUser.getName())
+                .surname(creatingUser.getSurname())
+                .birthDate(creatingUser.getBirthDate())
+                .email(creatingUser.getEmail())
+                .build()
+            ))
     ).andExpectAll(
         status().isCreated(),
         content().contentType(MediaType.APPLICATION_JSON)
@@ -185,12 +182,13 @@ class UserControllerIT extends AbstractIntegrationTest {
     mockMvc.perform(
         put(BASE_URL + "/" + Long.MAX_VALUE)
             .contentType(MediaType.APPLICATION_JSON)
-            .content(jsonMapper.writeValueAsString(new UserCreateRequestDto(
-                updatingUser.getName(),
-                updatingUser.getSurname(),
-                updatingUser.getBirthDate(),
-                updatingUser.getEmail()
-            )))
+            .content(jsonMapper.writeValueAsString(UserDto.builder()
+                .name(updatingUser.getName())
+                .surname(updatingUser.getSurname())
+                .birthDate(updatingUser.getBirthDate())
+                .email(updatingUser.getEmail())
+                .build()
+            ))
     ).andExpect(status().isNotFound());
   }
 
@@ -201,16 +199,17 @@ class UserControllerIT extends AbstractIntegrationTest {
     mockMvc.perform(
         put(BASE_URL + "/" + updatingUser.getId())
             .contentType(MediaType.APPLICATION_JSON)
-            .content(jsonMapper.writeValueAsString(new UserCreateRequestDto(
-                updatingUser.getName() + "_update",
-                updatingUser.getSurname() + "_updated",
-                updatingUser.getBirthDate(),
-                updatingUser.getEmail()
-            )))
+            .content(jsonMapper.writeValueAsString(UserDto.builder()
+                .name(updatingUser.getName() + "_updated")
+                .surname(updatingUser.getSurname() + "_updated")
+                .birthDate(updatingUser.getBirthDate())
+                .email(updatingUser.getEmail())
+                .build()
+            ))
     ).andExpectAll(
         status().isOk(),
         content().contentType(MediaType.APPLICATION_JSON),
-        jsonPath("$.name").value(updatingUser.getName() + "_update"),
+        jsonPath("$.name").value(updatingUser.getName() + "_updated"),
         jsonPath("$.surname").value(updatingUser.getSurname() + "_updated"),
         jsonPath("$.email").value(updatingUser.getEmail()),
         jsonPath("$.birthDate").value(updatingUser.getBirthDate().toString()),

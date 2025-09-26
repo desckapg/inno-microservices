@@ -16,3 +16,5 @@ spring:
       port: '${REDIS_PORT}'
       username: '${REDIS_USER}'
       password: '${REDIS_USER_PASSWORD}'
+  jackson:
+    default-property-inclusion: non_null

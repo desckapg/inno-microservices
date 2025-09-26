@@ -10,8 +10,7 @@ import com.innowise.userservice.exception.ResourceAlreadyExistsException;
 import com.innowise.userservice.exception.ResourceNotFoundException;
 import com.innowise.userservice.integration.AbstractIntegrationTest;
 import com.innowise.userservice.integration.annotation.ServiceIT;
-import com.innowise.userservice.model.dto.user.UserCreateRequestDto;
-import com.innowise.userservice.model.dto.user.UserUpdateRequestDto;
+import com.innowise.userservice.model.dto.user.UserDto;
 import com.innowise.userservice.model.entity.User;
 import com.innowise.userservice.model.mapper.UserMapper;
 import com.innowise.userservice.repository.UserRepository;
@@ -26,7 +25,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
-import org.springframework.cache.CacheManager;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -49,23 +47,19 @@ class UserServiceIT extends AbstractIntegrationTest {
   private final UserMapper userMapper;
 
   private final CacheHelper cacheHelper;
-  private final CacheManager cacheManager;
 
   @BeforeAll
   void prepareFixtures() {
     userFixture = Users.buildWithoutId();
     Cards.buildWithoutId(userFixture);
     Cards.buildWithoutId(userFixture);
-    transactionTemplate.executeWithoutResult(status -> {
-      entityManager.persist(userFixture);
-    });
+    transactionTemplate.executeWithoutResult(status -> entityManager.persist(userFixture));
   }
 
   @AfterAll
   void cleanupFixtures() {
-    transactionTemplate.executeWithoutResult(status -> {
-      entityManager.remove(entityManager.find(User.class, userFixture.getId()));
-    });
+    transactionTemplate.executeWithoutResult(status ->
+        entityManager.remove(entityManager.find(User.class, userFixture.getId())));
   }
 
   @AfterEach
@@ -112,7 +106,7 @@ class UserServiceIT extends AbstractIntegrationTest {
   void findByEmail_whenUserNotExists_shouldThrowUserNotFoundException() {
     assertThatThrownBy(
         () -> userService.findByEmail("nonexisting@example.com")).isInstanceOf(
-        ResourceNotFoundException.class)
+            ResourceNotFoundException.class)
         .hasMessageContaining("User", "email");
   }
 
@@ -137,12 +131,14 @@ class UserServiceIT extends AbstractIntegrationTest {
   @Test
   @Transactional
   void create_whenUserWithEmailExists_shouldThrowUserWithEmailExistsException() {
-    var createDto = new UserCreateRequestDto(
-        "New",
-        "User",
-        userFixture.getBirthDate(),
-        userFixture.getEmail()
-    );
+    var creatingdUser = Users.buildWithoutId();
+    var createDto = UserDto.builder()
+        .name(creatingdUser.getName())
+        .surname(creatingdUser.getSurname())
+        .birthDate(creatingdUser.getBirthDate())
+        .email(userFixture.getEmail())
+        .build();
+
     assertThatThrownBy(() -> userService.create(createDto))
         .isInstanceOf(ResourceAlreadyExistsException.class)
         .hasMessageContaining("User", "id");
@@ -152,21 +148,29 @@ class UserServiceIT extends AbstractIntegrationTest {
   @Transactional
   void create_whenUserWithEmailNotExists_shouldReturnCreatedUserResponseDto() {
     var newUser = Users.build();
-    var createDto = new UserCreateRequestDto(newUser.getName(), newUser.getSurname(),
-        newUser.getBirthDate(), newUser.getEmail());
-    assertThat(userService.create(createDto)).usingRecursiveComparison().ignoringFields("id")
-        .isEqualTo(userMapper.toDto(newUser));
+    var createDto = UserDto.builder()
+        .name(newUser.getName())
+        .surname(newUser.getSurname())
+        .birthDate(newUser.getBirthDate())
+        .email(newUser.getEmail())
+        .build();
+
+    assertThat(userService.create(createDto))
+        .usingRecursiveComparison()
+        .ignoringFields("id", "cards")
+        .isEqualTo(newUser);
   }
 
   @Test
   @Transactional
   void update_whenUserNotExist_shouldThrowUserNotFoundException() {
-    var updateDto = new UserUpdateRequestDto(
-        userFixture.getName(),
-        userFixture.getSurname(),
-        userFixture.getEmail(),
-        userFixture.getBirthDate()
-    );
+    var updateDto = UserDto.builder()
+        .name(userFixture.getName())
+        .surname(userFixture.getSurname())
+        .birthDate(userFixture.getBirthDate())
+        .email(userFixture.getEmail())
+        .build();
+
     assertThatThrownBy(() -> userService.update(Long.MAX_VALUE, updateDto))
         .isInstanceOf(ResourceNotFoundException.class)
         .hasMessageContaining("User", "id");
@@ -177,11 +181,12 @@ class UserServiceIT extends AbstractIntegrationTest {
   void update_whenUserExists_shouldReturnUserResponseDto() {
     var newData = Users.build();
     assertThat(userService.update(userFixture.getId(),
-        new UserUpdateRequestDto(
-            newData.getName(),
-            newData.getSurname(),
-            newData.getEmail(),
-            newData.getBirthDate()))
+        UserDto.builder()
+            .name(newData.getName())
+            .surname(newData.getSurname())
+            .email(newData.getEmail())
+            .birthDate(newData.getBirthDate())
+            .build())
     )
         .usingRecursiveComparison()
         .ignoringFields("id", "cards")

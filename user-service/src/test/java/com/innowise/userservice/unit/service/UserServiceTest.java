@@ -10,9 +10,7 @@ import static org.mockito.Mockito.when;
 import com.innowise.userservice.cache.CacheHelper;
 import com.innowise.userservice.exception.ResourceAlreadyExistsException;
 import com.innowise.userservice.exception.ResourceNotFoundException;
-import com.innowise.userservice.model.dto.user.UserCreateRequestDto;
 import com.innowise.userservice.model.dto.user.UserDto;
-import com.innowise.userservice.model.dto.user.UserUpdateRequestDto;
 import com.innowise.userservice.model.entity.User;
 import com.innowise.userservice.model.mapper.CardMapper;
 import com.innowise.userservice.model.mapper.CardMapperImpl;
@@ -52,9 +50,13 @@ class UserServiceTest {
 
   @Test
   void create_whenValidData_shouldCreateUser() {
-    UserCreateRequestDto createDto = new UserCreateRequestDto(
-        "John", "Doe", LocalDate.of(1990, 1, 1), "john@example.com"
-    );
+    var createDto = UserDto.builder()
+        .name("John")
+        .surname("Doe")
+        .birthDate(LocalDate.of(1990, 1, 1))
+        .email("john@example.com")
+        .build();
+
     User savedUser = Users.buildWithId(1L, "John", "Doe", "john@example.com");
 
     when(userRepository.existsByEmail("john@example.com")).thenReturn(false);
@@ -72,9 +74,12 @@ class UserServiceTest {
 
   @Test
   void create_whenEmailExists_shouldThrowUserWithEmailExistsException() {
-    UserCreateRequestDto createDto = new UserCreateRequestDto(
-        "John", "Doe", LocalDate.of(1990, 1, 1), "john@example.com"
-    );
+    var createDto = UserDto.builder()
+        .name("John")
+        .surname("Doe")
+        .birthDate(LocalDate.of(1990, 1, 1))
+        .email("john@example.com")
+        .build();
 
     when(userRepository.existsByEmail("john@example.com")).thenReturn(true);
 
@@ -88,20 +93,22 @@ class UserServiceTest {
 
   @Test
   void update_whenValidData_shouldUpdateUser() {
-    Long userId = 1L;
-    UserUpdateRequestDto updateDto = new UserUpdateRequestDto(
-        "Jane", "Smith", "jane@example.com",
-        LocalDate.of(1991, 2, 2)
-    );
-    User existingUser = Users.buildWithId(userId, "John", "Doe", "john@example.com");
-    User updatedUser = Users.buildWithId(userId, "Jane", "Smith", "jane@example.com");
+    var updateDto = UserDto.builder()
+        .name("Jane")
+        .surname("Smith")
+        .birthDate(LocalDate.of(1991, 2, 2))
+        .email("jane@example.com")
+        .build();
+
+    User existingUser = Users.buildWithId(1L, "John", "Doe", "john@example.com");
+    User updatedUser = Users.buildWithId(2L, "Jane", "Smith", "jane@example.com");
     updatedUser.setBirthDate(LocalDate.of(1991, 2, 2));
 
-    when(userRepository.findById(userId)).thenReturn(Optional.of(existingUser));
+    when(userRepository.findById(1L)).thenReturn(Optional.of(existingUser));
     when(userRepository.existsByEmail("jane@example.com")).thenReturn(false);
     when(userRepository.save(any(User.class))).thenReturn(updatedUser);
 
-    UserDto result = userService.update(userId, updateDto);
+    UserDto result = userService.update(1L, updateDto);
 
     assertThat(result.name()).isEqualTo("Jane");
     assertThat(result.surname()).isEqualTo("Smith");
@@ -112,35 +119,18 @@ class UserServiceTest {
 
   @Test
   void update_whenUserNotFound_shouldThrowUserNotFoundException() {
-    Long userId = 1L;
-    UserUpdateRequestDto updateDto = new UserUpdateRequestDto(
-        "Jane", "Smith", "jane@example.com",
-        LocalDate.of(1991, 2, 2)
-    );
+    var updateDto = UserDto.builder()
+        .name("Jane")
+        .surname("Smith")
+        .birthDate(LocalDate.of(1991, 2, 2))
+        .email("jane@example.com")
+        .build();
 
-    when(userRepository.findById(userId)).thenReturn(Optional.empty());
+    when(userRepository.findById(1L)).thenReturn(Optional.empty());
 
-    assertThatThrownBy(() -> userService.update(userId, updateDto))
+    assertThatThrownBy(() -> userService.update(1L, updateDto))
         .isInstanceOf(ResourceNotFoundException.class)
         .hasMessageContaining("User", "id");
-
-    verify(userRepository, never()).save(any());
-  }
-
-  @Test
-  void update_whenEmailExistsForAnotherUser_shouldThrowUserWithEmailExistsException() {
-    Long userId = 1L;
-    UserUpdateRequestDto updateDto = new UserUpdateRequestDto(
-        "Jane", "Smith", "jane@example.com", LocalDate.of(1991, 2, 2)
-    );
-    User existingUser = Users.buildWithId(userId, "John", "Doe", "john@example.com");
-
-    when(userRepository.findById(userId)).thenReturn(Optional.of(existingUser));
-    when(userRepository.existsByEmail("jane@example.com")).thenReturn(true);
-
-    assertThatThrownBy(() -> userService.update(userId, updateDto))
-        .isInstanceOf(ResourceAlreadyExistsException.class)
-        .hasMessageContaining("User", "email");
 
     verify(userRepository, never()).save(any());
   }

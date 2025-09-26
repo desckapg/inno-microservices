@@ -3,9 +3,7 @@ package com.innowise.userservice.service;
 import com.innowise.userservice.cache.CacheHelper;
 import com.innowise.userservice.exception.ResourceAlreadyExistsException;
 import com.innowise.userservice.exception.ResourceNotFoundException;
-import com.innowise.userservice.model.dto.user.UserCreateRequestDto;
 import com.innowise.userservice.model.dto.user.UserDto;
-import com.innowise.userservice.model.dto.user.UserUpdateRequestDto;
 import com.innowise.userservice.model.entity.User;
 import com.innowise.userservice.model.mapper.UserMapper;
 import com.innowise.userservice.repository.UserRepository;
@@ -25,7 +23,7 @@ public class UserService {
   private final CacheHelper cacheHelper;
 
   @Transactional
-  public UserDto create(UserCreateRequestDto dto) {
+  public UserDto create(UserDto dto) {
     if (userRepository.existsByEmail(dto.email())) {
       throw ResourceAlreadyExistsException.byField("User", "email", dto.email());
     }
@@ -37,7 +35,7 @@ public class UserService {
   }
 
   @Transactional
-  public UserDto update(Long id, UserUpdateRequestDto dto) {
+  public UserDto update(Long id, UserDto dto) {
     User user = userRepository.findById(id)
         .orElseThrow(() -> ResourceNotFoundException.byId("User", id));
 

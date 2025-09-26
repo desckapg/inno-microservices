@@ -44,7 +44,7 @@ dependencies {
 sonar {
     properties {
         property("sonar.exclusions", "**/model/**,**/exception/**,com.innowise.userservice.UserServiceApplication")
-        property("sonar.coverage.exclusions", "**/model/**,**/exception/**,com.innowise.userservice.UserServiceApplication")
+        property("sonar.coverage.exclusions", "**/model/**,com.innowise.userservice.UserServiceApplication")
     }
 }
 
@@ -54,7 +54,6 @@ tasks.jacocoTestReport {
             fileTree(it) {
                 exclude(
                     "com/innowise/userservice/model/**",
-                    "com/innowise/userservice/exception/**",
                     "com.innowise.userservice.UserServiceApplication.class"
                 )
             }

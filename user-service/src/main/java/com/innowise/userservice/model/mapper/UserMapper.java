@@ -1,6 +1,5 @@
 package com.innowise.userservice.model.mapper;
 
-import com.innowise.userservice.model.dto.user.UserCreateRequestDto;
 import com.innowise.userservice.model.dto.user.UserDto;
 import com.innowise.userservice.model.entity.User;
 import org.mapstruct.AfterMapping;
@@ -17,7 +16,7 @@ import org.mapstruct.MappingTarget;
 public interface UserMapper {
 
   @Mapping(target = "cards", ignore = true)
-  User toEntity(UserCreateRequestDto dto);
+  User toEntity(UserDto dto);
 
   UserDto toDto(User user);
 
