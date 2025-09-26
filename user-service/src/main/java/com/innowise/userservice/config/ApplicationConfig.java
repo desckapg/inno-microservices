@@ -13,7 +13,7 @@ import tools.jackson.databind.jsontype.PolymorphicTypeValidator;
 
 @Configuration
 @EnableCaching
-public class RedisConfig {
+public class ApplicationConfig {
 
   @Bean
   public PolymorphicTypeValidator polymorphicTypeValidator() {

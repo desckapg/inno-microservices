@@ -1,8 +1,5 @@
-package com.innowise.userservice.handler;
+package com.innowise.userservice.exception;
 
-import com.innowise.userservice.exception.ResourceAlreadyExistsException;
-import com.innowise.userservice.exception.ResourceNotFoundException;
-import com.innowise.userservice.exception.UserNotOwnCardException;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
@@ -10,7 +7,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.method.MethodValidationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
