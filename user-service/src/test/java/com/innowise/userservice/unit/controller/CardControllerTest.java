@@ -7,7 +7,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.innowise.userservice.controller.CardController;
 import com.innowise.userservice.exception.ResourceNotFoundException;
-import com.innowise.userservice.handler.GlobalExceptionHandler;
+import com.innowise.userservice.exception.GlobalExceptionHandler;
 import com.innowise.userservice.model.dto.card.CardUpdateRequestDto;
 import com.innowise.userservice.service.CardService;
 import org.junit.jupiter.api.BeforeEach;
