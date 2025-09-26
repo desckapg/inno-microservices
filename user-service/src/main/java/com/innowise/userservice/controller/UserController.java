@@ -22,7 +22,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -37,10 +36,7 @@ public class UserController {
 
 
   @GetMapping("/{id}")
-  public ResponseEntity<?> findById(
-      @PathVariable Long id,
-      @RequestParam(name = "includeCards", required = false, defaultValue = "false") boolean includeCards
-  ) {
+  public ResponseEntity<UserDto> findById(@PathVariable Long id) {
     return ResponseEntity.ok(userService.findById(id));
   }
 
