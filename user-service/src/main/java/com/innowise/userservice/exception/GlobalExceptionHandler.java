@@ -19,13 +19,13 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
   @ExceptionHandler(value = {RuntimeException.class})
-  public ResponseEntity<?> handleRuntimeException(RuntimeException ex) {
+  public ResponseEntity<Void> handleRuntimeException(RuntimeException ex) {
     log.error(ex.getMessage(), ex);
     return ResponseEntity.internalServerError().build();
   }
 
   @ExceptionHandler(value = {ResourceNotFoundException.class})
-  public ResponseEntity<?> handleNotFoundException(ResourceNotFoundException ex) {
+  public ResponseEntity<Void> handleNotFoundException(ResourceNotFoundException ex) {
     return ResponseEntity.notFound()
         .build();
   }
@@ -38,7 +38,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
   }
 
   @ExceptionHandler(value = {UserNotOwnCardException.class})
-  public ResponseEntity<?> handleNotOwnCardException(RuntimeException ex) {
+  public ResponseEntity<Void> handleNotOwnCardException(RuntimeException ex) {
     return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
   }
 
