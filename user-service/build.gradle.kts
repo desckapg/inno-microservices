@@ -41,6 +41,13 @@ dependencies {
     testAnnotationProcessor("org.projectlombok:lombok")
 }
 
+sonar {
+    properties {
+        property("sonar.exclusions", "**/model/**,**/exception/**,com.innowise.userservice.UserServiceApplication")
+        property("sonar.coverage.exclusions", "**/model/**,**/exception/**,com.innowise.userservice.UserServiceApplication")
+    }
+}
+
 tasks.jacocoTestReport {
     classDirectories.setFrom(
         files(classDirectories.files.map {
