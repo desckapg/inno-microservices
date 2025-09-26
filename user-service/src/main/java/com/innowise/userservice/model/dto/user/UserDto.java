@@ -17,6 +17,7 @@ import lombok.Builder;
 @Builder
 public record UserDto(
 
+    @Null(groups = OnCreate.class, message = "Id must be null for new users")
     Long id,
 
     @NotBlank(message = "Name is required")

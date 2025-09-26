@@ -7,7 +7,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import com.innowise.userservice.exception.ResourceNotFoundException;
 import com.innowise.userservice.integration.AbstractIntegrationTest;
 import com.innowise.userservice.integration.annotation.ServiceIT;
-import com.innowise.userservice.model.dto.card.CardUpdateRequestDto;
+import com.innowise.userservice.model.dto.card.CardDto;
 import com.innowise.userservice.model.entity.Card;
 import com.innowise.userservice.model.entity.User;
 import com.innowise.userservice.model.mapper.CardMapper;
@@ -42,16 +42,14 @@ class CardServiceIT extends AbstractIntegrationTest {
     userFixture = Users.buildWithoutId();
     cardFixture = Cards.buildWithoutId(userFixture);
     userFixture.addCard(cardFixture);
-    transactionTemplate.executeWithoutResult(status -> {
-      entityManager.persist(userFixture);
-    });
+    transactionTemplate.executeWithoutResult(status ->
+        entityManager.persist(userFixture));
   }
 
   @AfterAll
   void cleanupFixtures() {
-    transactionTemplate.executeWithoutResult(status -> {
-      entityManager.remove(entityManager.find(User.class, userFixture.getId()));
-    });
+    transactionTemplate.executeWithoutResult(status ->
+        entityManager.remove(entityManager.find(User.class, userFixture.getId())));
   }
 
   @Test
@@ -87,11 +85,12 @@ class CardServiceIT extends AbstractIntegrationTest {
   @Test
   @Transactional
   void update_whenCardNotExists_shouldThrowCardNotFoundException() {
-    var updateDto = new CardUpdateRequestDto(
-        cardFixture.getNumber(),
-        cardFixture.getHolder(),
-        cardFixture.getExpirationDate()
-    );
+    var updateDto = CardDto.builder()
+        .number(cardFixture.getNumber())
+        .holder(cardFixture.getHolder())
+        .expirationDate(cardFixture.getExpirationDate())
+        .build();
+
     assertThatThrownBy(() -> cardService.update(Long.MAX_VALUE, updateDto))
         .isInstanceOf(ResourceNotFoundException.class);
   }
@@ -99,12 +98,14 @@ class CardServiceIT extends AbstractIntegrationTest {
   @Test
   @Transactional
   void update_whenCardExists_shouldReturnUpdatedCardResponseDto() {
-    var updateDto = new CardUpdateRequestDto(
-        cardFixture.getNumber(),
-        "Updated Holder",
-        cardFixture.getExpirationDate()
-    );
+    var updateDto = CardDto.builder()
+        .number(cardFixture.getNumber())
+        .holder("Updated Holder")
+        .expirationDate(cardFixture.getExpirationDate())
+        .build();
+
     var updatedCard = cardService.update(cardFixture.getId(), updateDto);
+
     assertThat(updatedCard.number()).isEqualTo(updateDto.number());
     assertThat(updatedCard.holder()).isEqualTo(updateDto.holder());
     assertThat(updatedCard.expirationDate()).isEqualTo(updateDto.expirationDate());

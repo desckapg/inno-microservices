@@ -12,7 +12,6 @@ import com.innowise.userservice.cache.CacheHelper;
 import com.innowise.userservice.exception.ResourceAlreadyExistsException;
 import com.innowise.userservice.exception.ResourceNotFoundException;
 import com.innowise.userservice.model.dto.card.CardDto;
-import com.innowise.userservice.model.dto.card.CardUpdateRequestDto;
 import com.innowise.userservice.model.entity.Card;
 import com.innowise.userservice.model.mapper.CardMapper;
 import com.innowise.userservice.repository.CardRepository;
@@ -39,7 +38,7 @@ class CardServiceTest {
   @Mock
   private CacheHelper cacheHelper;
 
-  private CardMapper cardMapper = Mappers.getMapper(CardMapper.class);
+  private final CardMapper cardMapper = Mappers.getMapper(CardMapper.class);
 
   @InjectMocks
   private CardService cardService;
@@ -58,15 +57,14 @@ class CardServiceTest {
     var user = Users.build();
     Card existingCard = Cards.build(user);
 
-
     Card updatedCard = Cards.build(existingCard.getId());
     updatedCard.setUser(user);
 
-    CardUpdateRequestDto updateDto = new CardUpdateRequestDto(
-        updatedCard.getNumber(),
-        updatedCard.getHolder(),
-        updatedCard.getExpirationDate()
-    );
+    var updateDto = CardDto.builder()
+        .number(updatedCard.getNumber())
+        .holder(updatedCard.getHolder())
+        .expirationDate(updatedCard.getExpirationDate())
+        .build();
 
     updatedCard.setExpirationDate(LocalDate.now().plusYears(2L));
 
@@ -86,16 +84,19 @@ class CardServiceTest {
   @Test
   void update_whenCardNotFound_shouldThrowCardNotFoundException() {
     var nonExistingCard = Cards.build();
-    CardUpdateRequestDto updateDto = new CardUpdateRequestDto(
-        nonExistingCard.getNumber(),
-        nonExistingCard.getHolder(),
-        nonExistingCard.getExpirationDate()
-    );
+
+    var updateDto = CardDto.builder()
+        .number(nonExistingCard.getNumber())
+        .holder(nonExistingCard.getHolder())
+        .expirationDate(nonExistingCard.getExpirationDate())
+        .build();
 
     when(cardRepository.findById(nonExistingCard.getId()))
         .thenReturn(Optional.empty());
 
-    assertThatThrownBy(() -> cardService.update(nonExistingCard.getId(), updateDto))
+    var nonExistingCardId = nonExistingCard.getId();
+
+    assertThatThrownBy(() -> cardService.update(nonExistingCardId, updateDto))
         .isInstanceOf(ResourceNotFoundException.class)
         .hasMessageContaining("Card", "id");
 
@@ -107,18 +108,20 @@ class CardServiceTest {
     Card existingCard = Cards.build(Users.build());
     Card updatingCard = Cards.build(existingCard.getId());
 
-    CardUpdateRequestDto updateDto = new CardUpdateRequestDto(
-        updatingCard.getNumber(),
-        updatingCard.getHolder(),
-        updatingCard.getExpirationDate()
-    );
+    var updateDto = CardDto.builder()
+        .number(updatingCard.getNumber())
+        .holder(updatingCard.getHolder())
+        .expirationDate(updatingCard.getExpirationDate())
+        .build();
 
     when(cardRepository.findById(existingCard.getId()))
         .thenReturn(Optional.of(existingCard));
     when(cardRepository.existsByNumber(updatingCard.getNumber()))
         .thenReturn(true);
 
-    assertThatThrownBy(() -> cardService.update(existingCard.getId(), updateDto))
+    var existingCardId = existingCard.getId();
+
+    assertThatThrownBy(() -> cardService.update(existingCardId, updateDto))
         .isInstanceOf(ResourceAlreadyExistsException.class)
         .hasMessageContaining("Card", "number");
 

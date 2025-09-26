@@ -8,7 +8,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.innowise.userservice.controller.CardController;
 import com.innowise.userservice.exception.ResourceNotFoundException;
 import com.innowise.userservice.exception.GlobalExceptionHandler;
-import com.innowise.userservice.model.dto.card.CardUpdateRequestDto;
+import com.innowise.userservice.model.dto.card.CardDto;
 import com.innowise.userservice.service.CardService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -61,11 +61,8 @@ class CardControllerTest {
 
   @Test
   void update_whenDtoInvalid_shouldReturnBadRequest() throws Exception {
-    var invalidDto = new CardUpdateRequestDto(
-        null,
-        null,
-        null
-    );
+    var invalidDto = CardDto.builder().build();
+
     mockMvc.perform(put(BASE_URL + "/1")
             .contentType(MediaType.APPLICATION_JSON)
             .content(mapper.writeValueAsString(invalidDto)))

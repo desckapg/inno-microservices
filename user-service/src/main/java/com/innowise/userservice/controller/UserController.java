@@ -1,6 +1,5 @@
 package com.innowise.userservice.controller;
 
-import com.innowise.userservice.model.dto.card.CardCreateRequestDto;
 import com.innowise.userservice.model.dto.card.CardDto;
 import com.innowise.userservice.model.dto.user.UserDto;
 import com.innowise.userservice.service.UserCardService;
@@ -67,7 +66,7 @@ public class UserController {
   @PostMapping("/{userId}/cards")
   public ResponseEntity<CardDto> createCard(
       @PathVariable Long userId,
-      @RequestBody @Validated(OnCreate.class) CardCreateRequestDto dto
+      @RequestBody @Validated(OnCreate.class) CardDto dto
   ) {
     return ResponseEntity.status(HttpStatus.CREATED)
         .body(userCardService.createCard(userId, dto));

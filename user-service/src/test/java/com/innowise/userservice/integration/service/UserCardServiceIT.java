@@ -8,11 +8,10 @@ import com.innowise.userservice.exception.ResourceNotFoundException;
 import com.innowise.userservice.exception.UserNotOwnCardException;
 import com.innowise.userservice.integration.AbstractIntegrationTest;
 import com.innowise.userservice.integration.annotation.ServiceIT;
-import com.innowise.userservice.model.dto.card.CardCreateRequestDto;
+import com.innowise.userservice.model.dto.card.CardDto;
 import com.innowise.userservice.model.entity.Card;
 import com.innowise.userservice.model.entity.User;
 import com.innowise.userservice.model.mapper.CardMapper;
-import com.innowise.userservice.model.mapper.UserMapper;
 import com.innowise.userservice.service.UserCardService;
 import com.innowise.userservice.testutil.Cards;
 import com.innowise.userservice.testutil.Users;
@@ -36,23 +35,20 @@ class UserCardServiceIT extends AbstractIntegrationTest {
   private final EntityManager entityManager;
   private final TransactionTemplate transactionTemplate;
 
-  private final UserMapper userMapper;
   private final CardMapper cardMapper;
 
   @BeforeAll
   void prepareFixtures() {
     userFixture = Users.buildWithoutId();
     cardFixture = Cards.buildWithoutId(userFixture);
-    transactionTemplate.executeWithoutResult(status -> {
-      entityManager.persist(userFixture);
-    });
+    transactionTemplate.executeWithoutResult(status ->
+        entityManager.persist(userFixture));
   }
 
   @AfterAll
   void cleanupFixtures() {
-    transactionTemplate.executeWithoutResult(status -> {
-      entityManager.remove(entityManager.find(User.class, userFixture.getId()));
-    });
+    transactionTemplate.executeWithoutResult(status ->
+        entityManager.remove(entityManager.find(User.class, userFixture.getId())));
   }
 
   @Test
@@ -76,11 +72,12 @@ class UserCardServiceIT extends AbstractIntegrationTest {
   @Transactional
   void createCard_whenUserExistsAndCardNumberDoesNotExist_shouldReturnCardResponseDto() {
     var newCardDto = Cards.build(userFixture);
-    var createdCardDto = userCardService.createCard(userFixture.getId(), new CardCreateRequestDto(
-        newCardDto.getNumber(),
-        newCardDto.getHolder(),
-        newCardDto.getExpirationDate()
-    ));
+    var createdCardDto = userCardService.createCard(userFixture.getId(), CardDto.builder()
+        .number(newCardDto.getNumber())
+        .holder(newCardDto.getHolder())
+        .expirationDate(newCardDto.getExpirationDate())
+        .build());
+
     assertThat(createdCardDto.id()).isNotNull();
     assertThat(createdCardDto.userId()).isEqualTo(userFixture.getId());
     assertThat(createdCardDto)
@@ -93,23 +90,31 @@ class UserCardServiceIT extends AbstractIntegrationTest {
   @Transactional
   void createCard_whenCardWithNumberExists_shouldCardAlreadyExistsException() {
     var newCard = Cards.build();
-    assertThatThrownBy(() -> userCardService.createCard(Long.MAX_VALUE, new CardCreateRequestDto(
-        cardFixture.getNumber(),
-        newCard.getHolder(),
-        newCard.getExpirationDate()
-    ))).isInstanceOf(ResourceAlreadyExistsException.class)
-        .hasMessageContaining("Card");
+
+    var createDto = CardDto.builder()
+        .number(cardFixture.getNumber())
+        .holder(newCard.getHolder())
+        .expirationDate(newCard.getExpirationDate())
+        .build();
+
+    assertThatThrownBy(() -> userCardService.createCard(Long.MAX_VALUE, createDto))
+        .isInstanceOf(ResourceAlreadyExistsException.class)
+        .hasMessageContaining("Card", "number");
   }
 
   @Test
   @Transactional
   void createCard_whenUserDoesNotExist_shouldThrowUserNotFoundException() {
     var newCardDto = Cards.build();
-    assertThatThrownBy(() -> userCardService.createCard(Long.MAX_VALUE, new CardCreateRequestDto(
-        newCardDto.getNumber(),
-        newCardDto.getHolder(),
-        newCardDto.getExpirationDate()
-    ))).isInstanceOf(ResourceNotFoundException.class)
+
+    var createDto = CardDto.builder()
+        .number(newCardDto.getNumber())
+        .holder(newCardDto.getHolder())
+        .expirationDate(newCardDto.getExpirationDate())
+        .build();
+
+    assertThatThrownBy(() -> userCardService.createCard(Long.MAX_VALUE, createDto))
+        .isInstanceOf(ResourceNotFoundException.class)
         .hasMessageContaining("User");
   }
 
@@ -123,14 +128,18 @@ class UserCardServiceIT extends AbstractIntegrationTest {
   @Test
   @Transactional
   void deleteCard_whenUserDoesNotExist_shouldThrowUserNotFoundException() {
-    assertThatThrownBy(() -> userCardService.deleteCard(Long.MAX_VALUE, cardFixture.getId()))
+    var cardId = cardFixture.getId();
+
+    assertThatThrownBy(() -> userCardService.deleteCard(Long.MAX_VALUE, cardId))
         .isInstanceOf(ResourceNotFoundException.class);
   }
 
   @Test
   @Transactional
   void deleteCard_whenCardDoesNotExist_shouldThrowCardNotFoundException() {
-    assertThatThrownBy(() -> userCardService.deleteCard(userFixture.getId(), Long.MAX_VALUE))
+    var cardId = userFixture.getId();
+
+    assertThatThrownBy(() -> userCardService.deleteCard(cardId, Long.MAX_VALUE))
         .isInstanceOf(ResourceNotFoundException.class);
   }
 
@@ -140,10 +149,12 @@ class UserCardServiceIT extends AbstractIntegrationTest {
     var newUser = Users.buildWithoutId();
     entityManager.persist(newUser);
 
-    assertThatThrownBy(() -> userCardService.deleteCard(newUser.getId(), cardFixture.getId()))
+    var userId = newUser.getId();
+    var cardId = cardFixture.getId();
+
+    assertThatThrownBy(() -> userCardService.deleteCard(userId, cardId))
         .isInstanceOf(UserNotOwnCardException.class);
   }
-
 
 
 }

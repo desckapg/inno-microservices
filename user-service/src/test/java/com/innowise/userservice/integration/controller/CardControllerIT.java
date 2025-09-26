@@ -12,7 +12,6 @@ import com.innowise.userservice.controller.CardController;
 import com.innowise.userservice.integration.AbstractIntegrationTest;
 import com.innowise.userservice.integration.annotation.WebIT;
 import com.innowise.userservice.model.dto.card.CardDto;
-import com.innowise.userservice.model.dto.card.CardUpdateRequestDto;
 import com.innowise.userservice.model.entity.Card;
 import com.innowise.userservice.model.entity.User;
 import com.innowise.userservice.model.mapper.CardMapper;
@@ -62,7 +61,8 @@ class CardControllerIT extends AbstractIntegrationTest {
 
   @AfterAll
   void cleanupFixtures() {
-    transactionTemplate.executeWithoutResult(status -> entityManager.remove(entityManager.find(User.class, userFixture.getId())));
+    transactionTemplate.executeWithoutResult(
+        status -> entityManager.remove(entityManager.find(User.class, userFixture.getId())));
   }
 
   @AfterEach
@@ -94,11 +94,7 @@ class CardControllerIT extends AbstractIntegrationTest {
   @Test
   @Transactional
   void update_whenDtoInvalid_shouldReturnBadRequest() throws Exception {
-    var invalidDto = new CardUpdateRequestDto(
-        null,
-        null,
-        null
-    );
+    var invalidDto = CardDto.builder().build();
     mockMvc.perform(put(BASE_URL + "/" + cardFixture.getId())
             .contentType(MediaType.APPLICATION_JSON)
             .content(jsonMapper.writeValueAsString(invalidDto)))
@@ -108,11 +104,12 @@ class CardControllerIT extends AbstractIntegrationTest {
   @Test
   @Transactional
   void update_whenDtoValid_shouldSuccessfullyUpdate() throws Exception {
-    var validUpdateDto = new CardUpdateRequestDto(
-        cardFixture.getNumber(),
-        "Another Bank",
-        cardFixture.getExpirationDate()
-    );
+    var validUpdateDto = CardDto.builder()
+        .number(cardFixture.getNumber())
+        .holder("Another Bank")
+        .expirationDate(cardFixture.getExpirationDate())
+        .build();
+
     var expectedResponseDto = new CardDto(
         cardFixture.getId(),
         cardFixture.getNumber(),

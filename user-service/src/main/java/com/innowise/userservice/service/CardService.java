@@ -4,7 +4,6 @@ import com.innowise.userservice.cache.CacheHelper;
 import com.innowise.userservice.exception.ResourceAlreadyExistsException;
 import com.innowise.userservice.exception.ResourceNotFoundException;
 import com.innowise.userservice.model.dto.card.CardDto;
-import com.innowise.userservice.model.dto.card.CardUpdateRequestDto;
 import com.innowise.userservice.model.entity.Card;
 import com.innowise.userservice.model.mapper.CardMapper;
 import com.innowise.userservice.repository.CardRepository;
@@ -22,7 +21,7 @@ public class CardService {
   private final CacheHelper cacheHelper;
 
   @Transactional
-  public CardDto update(Long id, CardUpdateRequestDto dto) {
+  public CardDto update(Long id, CardDto dto) {
     Card card = cardRepository.findById(id)
         .orElseThrow(() -> ResourceNotFoundException.byId("Card", id));
 
