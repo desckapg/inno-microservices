@@ -9,6 +9,9 @@ on:
 env:
   JAVA_VERSION: '21'
   GRADLE_VERSION: '8.14.3'
+  TESTCONTAINERS_RYUK_DISABLED: true
+  TESTCONTAINERS_HOST_OVERRIDE: host.docker.internal
+  SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
 jobs:
   detect-changes:
@@ -19,6 +22,8 @@ jobs:
       matrix: ${{ steps.changes.outputs.matrix }}
       has-changes: ${{ steps.changes.outputs.has-changes }}
     steps:
+      - name: 111
+        run: echo $SONAR_TOKEN
       - name: Checkout code
         uses: actions/checkout@ff7abcd0c3c05ccf6adc123a8cd1fd4fb30fb493
         with:
@@ -105,15 +110,8 @@ jobs:
       - name: Build service
         run: gradle :${{ matrix.service }}:build -x test
 
-      - name: Configure Testcontainers Host
-        run: |
-          export TESTCONTAINERS_HOST_OVERRIDE=host.docker.internal
-          echo "TESTCONTAINERS_HOST_OVERRIDE=host.docker.internal" >> $GITHUB_ENV
-
       - name: Run tests
         run: gradle :${{ matrix.service }}:test
-        env:
-          TESTCONTAINERS_RYUK_DISABLED: true
 
       - name: Generate version
         id: version
@@ -178,6 +176,4 @@ jobs:
           merge-multiple: true
 
       - name: Analyze
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: gradle :sonar --info
