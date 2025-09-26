@@ -9,8 +9,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.innowise.userservice.cache.CacheHelper;
-import com.innowise.userservice.exception.CardNotFoundException;
-import com.innowise.userservice.exception.CardAlreadyExistsException;
+import com.innowise.userservice.exception.ResourceAlreadyExistsException;
+import com.innowise.userservice.exception.ResourceNotFoundException;
 import com.innowise.userservice.model.dto.card.CardDto;
 import com.innowise.userservice.model.dto.card.CardUpdateRequestDto;
 import com.innowise.userservice.model.entity.Card;
@@ -96,7 +96,8 @@ class CardServiceTest {
         .thenReturn(Optional.empty());
 
     assertThatThrownBy(() -> cardService.update(nonExistingCard.getId(), updateDto))
-        .isInstanceOf(CardNotFoundException.class);
+        .isInstanceOf(ResourceNotFoundException.class)
+        .hasMessageContaining("Card", "id");
 
     verify(cardRepository, never()).save(any());
   }
@@ -118,7 +119,8 @@ class CardServiceTest {
         .thenReturn(true);
 
     assertThatThrownBy(() -> cardService.update(existingCard.getId(), updateDto))
-        .isInstanceOf(CardAlreadyExistsException.class);
+        .isInstanceOf(ResourceAlreadyExistsException.class)
+        .hasMessageContaining("Card", "number");
 
     verify(cardRepository, never()).save(any());
   }
@@ -143,7 +145,8 @@ class CardServiceTest {
         .thenReturn(Optional.empty());
 
     assertThatThrownBy(() -> cardService.delete(cardId))
-        .isInstanceOf(CardNotFoundException.class);
+        .isInstanceOf(ResourceNotFoundException.class)
+        .hasMessageContaining("Card", "id");
 
     verify(cardRepository, never()).delete(any());
   }
@@ -171,7 +174,8 @@ class CardServiceTest {
         .thenReturn(Optional.empty());
 
     assertThatThrownBy(() -> cardService.findById(cardId))
-        .isInstanceOf(CardNotFoundException.class);
+        .isInstanceOf(ResourceNotFoundException.class)
+        .hasMessageContaining("Card", "id");
   }
 
   @Test

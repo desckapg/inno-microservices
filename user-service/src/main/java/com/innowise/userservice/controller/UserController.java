@@ -5,13 +5,13 @@ import com.innowise.userservice.model.dto.card.CardDto;
 import com.innowise.userservice.model.dto.user.UserCreateRequestDto;
 import com.innowise.userservice.model.dto.user.UserDto;
 import com.innowise.userservice.model.dto.user.UserUpdateRequestDto;
-import com.innowise.userservice.model.dto.user.UserWithCardsDto;
 import com.innowise.userservice.service.UserCardService;
 import com.innowise.userservice.service.UserService;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.jspecify.annotations.NullMarked;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -29,6 +29,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("api/v1/users/")
 @RequiredArgsConstructor
 @Validated
+@NullMarked
 public class UserController {
 
   private final UserService userService;
@@ -40,9 +41,6 @@ public class UserController {
       @PathVariable Long id,
       @RequestParam(name = "includeCards", required = false, defaultValue = "false") boolean includeCards
   ) {
-    if (includeCards) {
-      return ResponseEntity.ok(userService.findWithCardsById(id));
-    }
     return ResponseEntity.ok(userService.findById(id));
   }
 

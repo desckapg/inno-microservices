@@ -1,9 +1,8 @@
 package com.innowise.userservice.service;
 
 import com.innowise.userservice.cache.CacheHelper;
-import com.innowise.userservice.exception.CardAlreadyExistsException;
-import com.innowise.userservice.exception.CardNotFoundException;
-import com.innowise.userservice.exception.UserNotFoundException;
+import com.innowise.userservice.exception.ResourceAlreadyExistsException;
+import com.innowise.userservice.exception.ResourceNotFoundException;
 import com.innowise.userservice.exception.UserNotOwnCardException;
 import com.innowise.userservice.model.dto.card.CardCreateRequestDto;
 import com.innowise.userservice.model.dto.card.CardDto;
@@ -27,10 +26,10 @@ public class UserCardService {
   @Transactional
   public CardDto createCard(Long userId, CardCreateRequestDto dto) {
     if (cardRepository.existsByNumber(dto.number())) {
-      throw new CardAlreadyExistsException(dto.number());
+      throw ResourceAlreadyExistsException.byField("Card", "number", dto.number());
     }
     if (!userRepository.existsById(userId)) {
-      throw new UserNotFoundException(userId);
+      throw ResourceNotFoundException.byField("User", "id", userId);
     }
     var card = cardMapper.toEntity(dto);
     card.setUser(userRepository.getReferenceById(userId));
@@ -46,10 +45,11 @@ public class UserCardService {
   @Transactional
   public void deleteCard(Long userId, Long cardId) {
     if (!userRepository.existsById(userId)) {
-      throw new UserNotFoundException(userId);
+      throw ResourceNotFoundException.byId("User", userId);
     }
     var card = cardRepository
-        .findById(cardId).orElseThrow(() -> new CardNotFoundException(cardId));
+        .findById(cardId)
+        .orElseThrow(() -> ResourceNotFoundException.byField("Card", "id", cardId));
 
     if (!card.getUser().getId().equals(userId)) {
       throw new UserNotOwnCardException(userId, cardId);
@@ -60,12 +60,12 @@ public class UserCardService {
   }
 
   public List<CardDto> findUserCards(Long userId) {
-    if (cacheHelper.isUserCardsCached(userId)) {
+    if (cacheHelper.isUserCached(userId)) {
       return cacheHelper.getCardsFromCache(userId);
     }
 
     if (!userRepository.existsById(userId)) {
-      throw new UserNotFoundException(userId);
+      throw ResourceNotFoundException.byId("User", userId);
     }
 
     return cardRepository.findUserCards(userId).stream()
@@ -73,6 +73,5 @@ public class UserCardService {
         .toList();
 
   }
-
 
 }

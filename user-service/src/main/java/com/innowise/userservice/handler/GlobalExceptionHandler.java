@@ -1,62 +1,61 @@
 package com.innowise.userservice.handler;
 
-import com.innowise.userservice.exception.CardAlreadyExistsException;
-import com.innowise.userservice.exception.CardNotFoundException;
-import com.innowise.userservice.exception.UserAlreadyExistsException;
-import com.innowise.userservice.exception.UserNotFoundException;
+import com.innowise.userservice.exception.ResourceAlreadyExistsException;
+import com.innowise.userservice.exception.ResourceNotFoundException;
 import com.innowise.userservice.exception.UserNotOwnCardException;
 import lombok.extern.slf4j.Slf4j;
+import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
-import org.springframework.data.crossstore.ChangeSetPersister.NotFoundException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.method.MethodValidationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 @Slf4j
-@ControllerAdvice
+@RestControllerAdvice
+@NullMarked
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
   @ExceptionHandler(value = {RuntimeException.class})
-  public ResponseEntity<Void> handleRuntimeException(RuntimeException ex) {
+  public ResponseEntity<?> handleRuntimeException(RuntimeException ex) {
     log.error(ex.getMessage(), ex);
     return ResponseEntity.internalServerError().build();
   }
 
-  @ExceptionHandler(value = {UserNotFoundException.class, CardNotFoundException.class})
-  public ResponseEntity<Void> handleNotFoundException(RuntimeException ex) {
-    return ResponseEntity.notFound().build();
+  @ExceptionHandler(value = {ResourceNotFoundException.class})
+  public ResponseEntity<?> handleNotFoundException(ResourceNotFoundException ex) {
+    return ResponseEntity.notFound()
+        .build();
   }
 
-  @ExceptionHandler(value = {UserAlreadyExistsException.class, CardAlreadyExistsException.class})
-  public ResponseEntity<String> handleAlreadyExistsExceptions(RuntimeException ex) {
+  @ExceptionHandler(value = {ResourceAlreadyExistsException.class})
+  public ResponseEntity<String> handleAlreadyExistsExceptions(
+      ResourceAlreadyExistsException ex) {
     return ResponseEntity.status(HttpStatus.CONFLICT)
         .body(ex.getMessage());
   }
 
   @ExceptionHandler(value = {UserNotOwnCardException.class})
-  public ResponseEntity<Void> handleNotOwnCardException(RuntimeException ex) {
+  public ResponseEntity<?> handleNotOwnCardException(RuntimeException ex) {
     return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
   }
 
   @Override
-  protected ResponseEntity<Object> handleMethodArgumentNotValid(
+  protected @Nullable ResponseEntity<Object> handleMethodArgumentNotValid(
       MethodArgumentNotValidException ex,
       HttpHeaders headers,
       HttpStatusCode status,
       WebRequest request) {
-    return ResponseEntity.unprocessableEntity()
-        .body(ex.getFieldErrors()
-            .stream()
-            .map(error -> error.getField() + " : " + error.getDefaultMessage())
-            .toList()
-        );
+    var errors = ex.getFieldErrors().stream()
+        .map(error -> error.getField() + ": " + error.getDefaultMessage())
+        .toList();
+    return ResponseEntity.unprocessableContent()
+        .body(errors);
   }
-
 }

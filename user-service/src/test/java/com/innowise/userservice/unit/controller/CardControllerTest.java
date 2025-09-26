@@ -6,7 +6,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.innowise.userservice.controller.CardController;
-import com.innowise.userservice.exception.CardNotFoundException;
+import com.innowise.userservice.exception.ResourceNotFoundException;
 import com.innowise.userservice.handler.GlobalExceptionHandler;
 import com.innowise.userservice.model.dto.card.CardUpdateRequestDto;
 import com.innowise.userservice.service.CardService;
@@ -46,7 +46,7 @@ class CardControllerTest {
 
   @Test
   void delete_whenCardNotFound_shouldThrownCardNotFoundException() throws Exception {
-    doThrow(new CardNotFoundException(1L))
+    doThrow(ResourceNotFoundException.byField("Card", "id", 1L))
         .when(cardService)
         .delete(1L);
     mockMvc.perform(delete(BASE_URL + "/1"))
@@ -69,7 +69,7 @@ class CardControllerTest {
     mockMvc.perform(put(BASE_URL + "/1")
             .contentType(MediaType.APPLICATION_JSON)
             .content(mapper.writeValueAsString(invalidDto)))
-        .andExpect(status().isUnprocessableEntity());
+        .andExpect(status().isUnprocessableContent());
   }
 
 }

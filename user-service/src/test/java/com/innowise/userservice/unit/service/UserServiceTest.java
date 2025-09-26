@@ -8,12 +8,11 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.innowise.userservice.cache.CacheHelper;
-import com.innowise.userservice.exception.UserNotFoundException;
-import com.innowise.userservice.exception.UserAlreadyExistsException;
+import com.innowise.userservice.exception.ResourceAlreadyExistsException;
+import com.innowise.userservice.exception.ResourceNotFoundException;
 import com.innowise.userservice.model.dto.user.UserCreateRequestDto;
 import com.innowise.userservice.model.dto.user.UserDto;
 import com.innowise.userservice.model.dto.user.UserUpdateRequestDto;
-import com.innowise.userservice.model.dto.user.UserWithCardsDto;
 import com.innowise.userservice.model.entity.User;
 import com.innowise.userservice.model.mapper.CardMapper;
 import com.innowise.userservice.model.mapper.CardMapperImpl;
@@ -80,7 +79,8 @@ class UserServiceTest {
     when(userRepository.existsByEmail("john@example.com")).thenReturn(true);
 
     assertThatThrownBy(() -> userService.create(createDto))
-        .isInstanceOf(UserAlreadyExistsException.class);
+        .isInstanceOf(ResourceAlreadyExistsException.class)
+        .hasMessageContaining("User", "email");
 
     verify(userRepository).existsByEmail("john@example.com");
     verify(userRepository, never()).save(any());
@@ -121,7 +121,8 @@ class UserServiceTest {
     when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
     assertThatThrownBy(() -> userService.update(userId, updateDto))
-        .isInstanceOf(UserNotFoundException.class);
+        .isInstanceOf(ResourceNotFoundException.class)
+        .hasMessageContaining("User", "id");
 
     verify(userRepository, never()).save(any());
   }
@@ -138,7 +139,8 @@ class UserServiceTest {
     when(userRepository.existsByEmail("jane@example.com")).thenReturn(true);
 
     assertThatThrownBy(() -> userService.update(userId, updateDto))
-        .isInstanceOf(UserAlreadyExistsException.class);
+        .isInstanceOf(ResourceAlreadyExistsException.class)
+        .hasMessageContaining("User", "email");
 
     verify(userRepository, never()).save(any());
   }
@@ -162,7 +164,8 @@ class UserServiceTest {
     when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
     assertThatThrownBy(() -> userService.delete(userId))
-        .isInstanceOf(UserNotFoundException.class);
+        .isInstanceOf(ResourceNotFoundException.class)
+        .hasMessageContaining("User", "id");
 
     verify(userRepository, never()).delete(any());
   }
@@ -172,14 +175,12 @@ class UserServiceTest {
     Long userId = 1L;
     User user = Users.buildWithId(userId, "John", "Doe", "john@example.com");
 
-    when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+    when(userRepository.findWithCardsById(userId)).thenReturn(Optional.of(user));
 
     UserDto result = userService.findById(userId);
 
-    assertThat(result.id()).isEqualTo(userId);
-    assertThat(result.name()).isEqualTo("John");
-    assertThat(result.surname()).isEqualTo("Doe");
-    assertThat(result.email()).isEqualTo("john@example.com");
+    assertThat(result).isEqualTo(userMapper.toDto(user));
+
   }
 
   @Test
@@ -190,34 +191,9 @@ class UserServiceTest {
         .thenReturn(Optional.empty());
 
     var id = user.getId();
-    assertThatThrownBy(() -> userService.findWithCardsById(id))
-        .isInstanceOf(UserNotFoundException.class);
-  }
-
-  @Test
-  void findWithCardsById_whenUserExists_shouldReturnUserWithCards() {
-    Long userId = 1L;
-    User user = Users.buildWithId(userId, "John", "Doe", "john@example.com");
-
-    when(userRepository.findWithCardsById(userId)).thenReturn(Optional.of(user));
-
-    UserWithCardsDto result = userService.findWithCardsById(userId);
-
-    assertThat(result.id()).isEqualTo(userId);
-    assertThat(result.name()).isEqualTo("John");
-    assertThat(result.surname()).isEqualTo("Doe");
-    assertThat(result.email()).isEqualTo("john@example.com");
-    assertThat(result.cards()).isNotNull();
-  }
-
-  @Test
-  void findWithCardsById_whenUserNotFound_shouldThrowUserNotFoundException() {
-    Long userId = 1L;
-
-    when(userRepository.findWithCardsById(userId)).thenReturn(Optional.empty());
-
-    assertThatThrownBy(() -> userService.findWithCardsById(userId))
-        .isInstanceOf(UserNotFoundException.class);
+    assertThatThrownBy(() -> userService.findById(id))
+        .isInstanceOf(ResourceNotFoundException.class)
+        .hasMessageContaining("User", "id");
   }
 
   @Test
@@ -241,7 +217,8 @@ class UserServiceTest {
     when(userRepository.findByEmail(email)).thenReturn(Optional.empty());
 
     assertThatThrownBy(() -> userService.findByEmail(email))
-        .isInstanceOf(UserNotFoundException.class);
+        .isInstanceOf(ResourceNotFoundException.class)
+        .hasMessageContaining("User", "email");
   }
 
   @Test
@@ -256,28 +233,9 @@ class UserServiceTest {
 
     List<UserDto> result = userService.findAllByIdIn(ids);
 
-    assertThat(result).hasSize(2);
-    assertThat(result.get(0).name()).isEqualTo("John");
-    assertThat(result.get(1).name()).isEqualTo("Jane");
-  }
-
-  @Test
-  void findAllByIdInWithCards_whenUsersExist_shouldReturnUsersWithCardsList() {
-    List<User> users = List.of(
-        Users.build(),
-        Users.build()
-    );
-
-    List<Long> ids = users.stream().map(User::getId).toList();
-
-    when(userRepository.findAllWithCardsByIdIn(ids))
-        .thenReturn(users);
-
-    List<UserWithCardsDto> result = userService.findWithCardsAllByIdIn(ids);
-
     assertThat(result)
         .containsExactlyInAnyOrderElementsOf(
-            users.stream().map(userMapper::toWithCardsDto).toList()
+            users.stream().map(userMapper::toDto).toList()
         );
   }
 }
