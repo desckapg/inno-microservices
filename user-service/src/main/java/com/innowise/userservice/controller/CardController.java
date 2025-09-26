@@ -5,6 +5,7 @@ import com.innowise.userservice.model.dto.card.CardUpdateRequestDto;
 import com.innowise.userservice.service.CardService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.jspecify.annotations.NullMarked;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("api/v1/cards/")
 @Validated
 @RequiredArgsConstructor
+@NullMarked
 public class CardController {
 
   private final CardService cardService;

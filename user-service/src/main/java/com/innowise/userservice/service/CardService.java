@@ -1,8 +1,8 @@
 package com.innowise.userservice.service;
 
 import com.innowise.userservice.cache.CacheHelper;
-import com.innowise.userservice.exception.CardNotFoundException;
-import com.innowise.userservice.exception.CardAlreadyExistsException;
+import com.innowise.userservice.exception.ResourceAlreadyExistsException;
+import com.innowise.userservice.exception.ResourceNotFoundException;
 import com.innowise.userservice.model.dto.card.CardDto;
 import com.innowise.userservice.model.dto.card.CardUpdateRequestDto;
 import com.innowise.userservice.model.entity.Card;
@@ -24,10 +24,10 @@ public class CardService {
   @Transactional
   public CardDto update(Long id, CardUpdateRequestDto dto) {
     Card card = cardRepository.findById(id)
-        .orElseThrow(() -> new CardNotFoundException(id));
+        .orElseThrow(() -> ResourceNotFoundException.byId("Card", id));
 
     if (!card.getNumber().equals(dto.number()) && cardRepository.existsByNumber(dto.number())) {
-      throw new CardAlreadyExistsException(dto.number());
+      throw ResourceAlreadyExistsException.byField("Card", "number", dto.number());
     }
 
     card.setHolder(dto.holder());
@@ -43,7 +43,7 @@ public class CardService {
   @Transactional
   public void delete(Long id) {
     var card = cardRepository.findById(id)
-        .orElseThrow(() -> new CardNotFoundException(id));
+        .orElseThrow(() -> ResourceNotFoundException.byId("Card", id));
     cardRepository.delete(card);
     cacheHelper.removeCardFromCache(card.getUser().getId(), id);
   }
@@ -51,7 +51,7 @@ public class CardService {
   public CardDto findById(Long id) {
     return cardRepository.findById(id)
         .map(cardMapper::toDto)
-        .orElseThrow(() -> new CardNotFoundException(id));
+        .orElseThrow(() -> ResourceNotFoundException.byId("Card", id));
   }
 
   public List<CardDto> findAllByIdIn(List<Long> ids) {

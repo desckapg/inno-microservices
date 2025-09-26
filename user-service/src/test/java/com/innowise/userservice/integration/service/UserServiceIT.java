@@ -6,8 +6,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import com.innowise.userservice.cache.CacheHelper;
-import com.innowise.userservice.exception.UserNotFoundException;
-import com.innowise.userservice.exception.UserAlreadyExistsException;
+import com.innowise.userservice.exception.ResourceAlreadyExistsException;
+import com.innowise.userservice.exception.ResourceNotFoundException;
 import com.innowise.userservice.integration.AbstractIntegrationTest;
 import com.innowise.userservice.integration.annotation.ServiceIT;
 import com.innowise.userservice.model.dto.user.UserCreateRequestDto;
@@ -90,27 +90,16 @@ class UserServiceIT extends AbstractIntegrationTest {
     userService.findById(userFixture.getId());
     var cachedUser = userService.findById(userFixture.getId());
 
-    verify(userRepository, times(1)).findById(userFixture.getId());
+    verify(userRepository, times(1)).findWithCardsById(userFixture.getId());
     assertThat(cachedUser).isEqualTo(userMapper.toDto(userFixture));
 
   }
 
   @Test
-  void findById_whenWithCardsAndUserExists_shouldReturnUserResponseDtoWithCards() {
-    assertThat(userService.findWithCardsById(userFixture.getId())).isEqualTo(
-        userMapper.toWithCardsDto(userFixture));
-  }
-
-  @Test
   void findById_whenWithoutCardsAndUserNotExists_shouldThrowUserNotFoundException() {
-    assertThatThrownBy(() -> userService.findById(Long.MAX_VALUE)).isInstanceOf(
-        UserNotFoundException.class);
-  }
-
-  @Test
-  void findById_whenWithCardsAndUserNotExists_shouldThrowUserNotFoundException() {
-    assertThatThrownBy(() -> userService.findWithCardsById(Long.MAX_VALUE)).isInstanceOf(
-        UserNotFoundException.class);
+    assertThatThrownBy(() -> userService.findById(Long.MAX_VALUE))
+        .isInstanceOf(ResourceNotFoundException.class)
+        .hasMessageContaining("User");
   }
 
   @Test
@@ -123,19 +112,14 @@ class UserServiceIT extends AbstractIntegrationTest {
   void findByEmail_whenUserNotExists_shouldThrowUserNotFoundException() {
     assertThatThrownBy(
         () -> userService.findByEmail("nonexisting@example.com")).isInstanceOf(
-        UserNotFoundException.class);
+        ResourceNotFoundException.class)
+        .hasMessageContaining("User", "email");
   }
 
   @Test
   void findAllByIdIn_whenUsersExist_shouldReturnListOfUserResponseDto() {
     assertThat(userService.findAllByIdIn(List.of(userFixture.getId(), Long.MAX_VALUE)))
         .containsExactly(userMapper.toDto(userFixture));
-  }
-
-  @Test
-  void findWithCardsAllByIdIn_whenUsersExist_shouldReturnListOfUserResponseDtoWithCards() {
-    assertThat(userService.findWithCardsAllByIdIn(List.of(userFixture.getId(), Long.MAX_VALUE)))
-        .containsExactly(userMapper.toWithCardsDto(userFixture));
   }
 
   @Test
@@ -160,7 +144,8 @@ class UserServiceIT extends AbstractIntegrationTest {
         userFixture.getEmail()
     );
     assertThatThrownBy(() -> userService.create(createDto))
-        .isInstanceOf(UserAlreadyExistsException.class);
+        .isInstanceOf(ResourceAlreadyExistsException.class)
+        .hasMessageContaining("User", "id");
   }
 
   @Test
@@ -183,7 +168,8 @@ class UserServiceIT extends AbstractIntegrationTest {
         userFixture.getBirthDate()
     );
     assertThatThrownBy(() -> userService.update(Long.MAX_VALUE, updateDto))
-        .isInstanceOf(UserNotFoundException.class);
+        .isInstanceOf(ResourceNotFoundException.class)
+        .hasMessageContaining("User", "id");
   }
 
   @Test
@@ -205,8 +191,9 @@ class UserServiceIT extends AbstractIntegrationTest {
   @Test
   @Transactional
   void delete_whenUserNotExist_shouldThrowUserNotFoundException() {
-    assertThatThrownBy(() -> userService.delete(Long.MAX_VALUE)).isInstanceOf(
-        UserNotFoundException.class);
+    assertThatThrownBy(() -> userService.delete(Long.MAX_VALUE))
+        .isInstanceOf(ResourceNotFoundException.class)
+        .hasMessageContaining("User", "id");
   }
 
   @Test

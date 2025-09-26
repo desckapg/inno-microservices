@@ -4,7 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import com.innowise.userservice.exception.CardNotFoundException;
+import com.innowise.userservice.exception.ResourceNotFoundException;
 import com.innowise.userservice.integration.AbstractIntegrationTest;
 import com.innowise.userservice.integration.annotation.ServiceIT;
 import com.innowise.userservice.model.dto.card.CardUpdateRequestDto;
@@ -68,7 +68,7 @@ class CardServiceIT extends AbstractIntegrationTest {
   @Test
   void findById_whenCardNotExists_shouldThrowCardNotFoundException() {
     assertThatThrownBy(() -> cardService.findById(Long.MAX_VALUE))
-        .isInstanceOf(CardNotFoundException.class);
+        .isInstanceOf(ResourceNotFoundException.class);
   }
 
   @Test
@@ -93,7 +93,7 @@ class CardServiceIT extends AbstractIntegrationTest {
         cardFixture.getExpirationDate()
     );
     assertThatThrownBy(() -> cardService.update(Long.MAX_VALUE, updateDto))
-        .isInstanceOf(CardNotFoundException.class);
+        .isInstanceOf(ResourceNotFoundException.class);
   }
 
   @Test
@@ -114,7 +114,8 @@ class CardServiceIT extends AbstractIntegrationTest {
   @Transactional
   void delete_whenCardNotExists_shouldThrowCardNotFoundException() {
     assertThatThrownBy(() -> cardService.delete(Long.MAX_VALUE))
-        .isInstanceOf(CardNotFoundException.class);
+        .isInstanceOf(ResourceNotFoundException.class)
+        .hasMessageContaining("Card");
   }
 
   @Test

@@ -52,6 +52,7 @@ class UserControllerIT extends AbstractIntegrationTest {
   private final ObjectMapper jsonMapper;
   private final UserMapper userMapper;
   private final CardMapper cardMapper;
+
   @Autowired
   private CacheHelper cacheHelper;
 
@@ -111,7 +112,7 @@ class UserControllerIT extends AbstractIntegrationTest {
         .andExpectAll(
             status().isOk(),
             content().contentType(MediaType.APPLICATION_JSON),
-            content().json(jsonMapper.writeValueAsString(userMapper.toWithCardsDto(userFixture)))
+            content().json(jsonMapper.writeValueAsString(userMapper.toDto(userFixture)))
         );
   }
 

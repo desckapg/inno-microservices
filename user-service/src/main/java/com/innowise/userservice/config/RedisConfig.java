@@ -1,8 +1,6 @@
 package com.innowise.userservice.config;
 
-import com.innowise.userservice.model.dto.card.CardDto;
-import com.innowise.userservice.model.dto.user.UserDto;
-import com.innowise.userservice.model.dto.user.UserWithCardsDto;
+import java.util.ArrayList;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -11,13 +9,23 @@ import org.springframework.data.redis.serializer.GenericJackson3JsonRedisSeriali
 import org.springframework.data.redis.serializer.RedisSerializationContext.SerializationPair;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import tools.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
+import tools.jackson.databind.jsontype.PolymorphicTypeValidator;
 
 @Configuration
 @EnableCaching
 public class RedisConfig {
 
   @Bean
-  public RedisCacheConfiguration redisCacheConfiguration() {
+  public PolymorphicTypeValidator polymorphicTypeValidator() {
+    return BasicPolymorphicTypeValidator.builder()
+        .allowIfBaseType("com.innowise.userservice.model.dto.")
+        .allowIfSubType("com.innowise.userservice.model.dto.")
+        .allowIfSubType(ArrayList.class)
+        .build();
+  }
+
+  @Bean
+  public RedisCacheConfiguration redisCacheConfiguration(PolymorphicTypeValidator validator) {
     return RedisCacheConfiguration.defaultCacheConfig()
         .disableCachingNullValues()
         .serializeKeysWith(
@@ -26,8 +34,7 @@ public class RedisConfig {
         .serializeValuesWith(
             SerializationPair.fromSerializer(
                 GenericJackson3JsonRedisSerializer.builder()
-                    .enableUnsafeDefaultTyping()
-
+                    .enableDefaultTyping(validator)
                     .build()
             )
         );

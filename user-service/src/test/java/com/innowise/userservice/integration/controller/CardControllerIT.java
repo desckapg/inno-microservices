@@ -57,16 +57,12 @@ class CardControllerIT extends AbstractIntegrationTest {
   void prepareFixtures() {
     userFixture = Users.buildWithoutId();
     cardFixture = Cards.buildWithoutId(userFixture);
-    transactionTemplate.executeWithoutResult(status -> {
-      entityManager.persist(userFixture);
-    });
+    transactionTemplate.executeWithoutResult(status -> entityManager.persist(userFixture));
   }
 
   @AfterAll
   void cleanupFixtures() {
-    transactionTemplate.executeWithoutResult(status -> {
-      entityManager.remove(entityManager.find(User.class, userFixture.getId()));
-    });
+    transactionTemplate.executeWithoutResult(status -> entityManager.remove(entityManager.find(User.class, userFixture.getId())));
   }
 
   @AfterEach
@@ -106,7 +102,7 @@ class CardControllerIT extends AbstractIntegrationTest {
     mockMvc.perform(put(BASE_URL + "/" + cardFixture.getId())
             .contentType(MediaType.APPLICATION_JSON)
             .content(jsonMapper.writeValueAsString(invalidDto)))
-        .andExpect(status().isUnprocessableEntity());
+        .andExpect(status().isUnprocessableContent());
   }
 
   @Test

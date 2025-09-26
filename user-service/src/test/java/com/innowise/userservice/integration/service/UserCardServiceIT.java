@@ -3,9 +3,8 @@ package com.innowise.userservice.integration.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import com.innowise.userservice.exception.CardAlreadyExistsException;
-import com.innowise.userservice.exception.CardNotFoundException;
-import com.innowise.userservice.exception.UserNotFoundException;
+import com.innowise.userservice.exception.ResourceAlreadyExistsException;
+import com.innowise.userservice.exception.ResourceNotFoundException;
 import com.innowise.userservice.exception.UserNotOwnCardException;
 import com.innowise.userservice.integration.AbstractIntegrationTest;
 import com.innowise.userservice.integration.annotation.ServiceIT;
@@ -69,7 +68,8 @@ class UserCardServiceIT extends AbstractIntegrationTest {
   @Test
   void findUserCards_whenUserDoesNotExist_shouldThrowUserNotFoundException() {
     assertThatThrownBy(() -> userCardService.findUserCards(Long.MAX_VALUE))
-        .isInstanceOf(com.innowise.userservice.exception.UserNotFoundException.class);
+        .isInstanceOf(ResourceNotFoundException.class)
+        .hasMessageContaining("User", "id");
   }
 
   @Test
@@ -97,7 +97,8 @@ class UserCardServiceIT extends AbstractIntegrationTest {
         cardFixture.getNumber(),
         newCard.getHolder(),
         newCard.getExpirationDate()
-    ))).isInstanceOf(CardAlreadyExistsException.class);
+    ))).isInstanceOf(ResourceAlreadyExistsException.class)
+        .hasMessageContaining("Card");
   }
 
   @Test
@@ -108,7 +109,8 @@ class UserCardServiceIT extends AbstractIntegrationTest {
         newCardDto.getNumber(),
         newCardDto.getHolder(),
         newCardDto.getExpirationDate()
-    ))).isInstanceOf(UserNotFoundException.class);
+    ))).isInstanceOf(ResourceNotFoundException.class)
+        .hasMessageContaining("User");
   }
 
   @Test
@@ -122,14 +124,14 @@ class UserCardServiceIT extends AbstractIntegrationTest {
   @Transactional
   void deleteCard_whenUserDoesNotExist_shouldThrowUserNotFoundException() {
     assertThatThrownBy(() -> userCardService.deleteCard(Long.MAX_VALUE, cardFixture.getId()))
-        .isInstanceOf(UserNotFoundException.class);
+        .isInstanceOf(ResourceNotFoundException.class);
   }
 
   @Test
   @Transactional
   void deleteCard_whenCardDoesNotExist_shouldThrowCardNotFoundException() {
     assertThatThrownBy(() -> userCardService.deleteCard(userFixture.getId(), Long.MAX_VALUE))
-        .isInstanceOf(CardNotFoundException.class);
+        .isInstanceOf(ResourceNotFoundException.class);
   }
 
   @Test

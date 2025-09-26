@@ -3,9 +3,7 @@ package com.innowise.userservice.model.mapper;
 import com.innowise.userservice.model.dto.user.UserCreateRequestDto;
 import com.innowise.userservice.model.dto.user.UserDto;
 import com.innowise.userservice.model.entity.User;
-import com.innowise.userservice.model.dto.user.UserWithCardsDto;
 import org.mapstruct.AfterMapping;
-import org.mapstruct.InheritInverseConfiguration;
 import org.mapstruct.InjectionStrategy;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -22,8 +20,6 @@ public interface UserMapper {
   User toEntity(UserCreateRequestDto dto);
 
   UserDto toDto(User user);
-
-  UserWithCardsDto toWithCardsDto(User user);
 
   @AfterMapping
   default void linkCards(@MappingTarget User user) {
