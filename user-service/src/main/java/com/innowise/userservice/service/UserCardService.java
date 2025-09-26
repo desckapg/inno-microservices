@@ -4,7 +4,6 @@ import com.innowise.userservice.cache.CacheHelper;
 import com.innowise.userservice.exception.ResourceAlreadyExistsException;
 import com.innowise.userservice.exception.ResourceNotFoundException;
 import com.innowise.userservice.exception.UserNotOwnCardException;
-import com.innowise.userservice.model.dto.card.CardCreateRequestDto;
 import com.innowise.userservice.model.dto.card.CardDto;
 import com.innowise.userservice.model.mapper.CardMapper;
 import com.innowise.userservice.repository.CardRepository;
@@ -24,7 +23,7 @@ public class UserCardService {
   private final CacheHelper cacheHelper;
 
   @Transactional
-  public CardDto createCard(Long userId, CardCreateRequestDto dto) {
+  public CardDto createCard(Long userId, CardDto dto) {
     if (cardRepository.existsByNumber(dto.number())) {
       throw ResourceAlreadyExistsException.byField("Card", "number", dto.number());
     }

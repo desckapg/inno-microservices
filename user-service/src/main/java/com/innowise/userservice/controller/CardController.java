@@ -1,7 +1,6 @@
 package com.innowise.userservice.controller;
 
 import com.innowise.userservice.model.dto.card.CardDto;
-import com.innowise.userservice.model.dto.card.CardUpdateRequestDto;
 import com.innowise.userservice.service.CardService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -29,7 +28,7 @@ public class CardController {
   @PutMapping("/{id}")
   public ResponseEntity<CardDto> update(
       @PathVariable Long id,
-      @RequestBody @Validated CardUpdateRequestDto dto
+      @RequestBody @Validated CardDto dto
   ) {
     return ResponseEntity.ok(cardService.update(id, dto));
   }

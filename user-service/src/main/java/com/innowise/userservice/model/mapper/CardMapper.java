@@ -1,6 +1,5 @@
 package com.innowise.userservice.model.mapper;
 
-import com.innowise.userservice.model.dto.card.CardCreateRequestDto;
 import com.innowise.userservice.model.dto.card.CardDto;
 import com.innowise.userservice.model.entity.Card;
 import org.mapstruct.InjectionStrategy;
@@ -17,7 +16,7 @@ public interface CardMapper {
   CardDto toDto(Card card);
 
   @Mapping(target = "user", ignore = true)
-  Card toEntity(CardCreateRequestDto dto);
+  //@Mapping(target = "id", ignore = true)
+  Card toEntity(CardDto dto);
 
-  Card toEntity(CardDto cardDto);
 }
