@@ -20,8 +20,6 @@ jobs:
       matrix: ${{ steps.changes.outputs.matrix }}
       has-changes: ${{ steps.changes.outputs.has-changes }}
     steps:
-      - name: 111
-        run: echo $SONAR_TOKEN
       - name: Checkout code
         uses: actions/checkout@ff7abcd0c3c05ccf6adc123a8cd1fd4fb30fb493
         with:
