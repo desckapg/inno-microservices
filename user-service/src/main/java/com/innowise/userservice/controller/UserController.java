@@ -25,6 +25,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
+/**
+ * REST controller for managing users and accessing their cards.
+ * Base path: /api/v1/users
+ */
 @RestController
 @RequestMapping("api/v1/users")
 @RequiredArgsConstructor
@@ -35,6 +39,16 @@ public class UserController {
   private final UserService userService;
   private final CardService cardService;
 
+  /**
+   * Searches users by optional filters:
+   * - email: exact match
+   * - ids: batch retrieval
+   * If no filters provided returns all users. Supplying both email and ids results in 400.
+   * @param email optional email
+   * @param ids optional list of user ids
+   * @return list of users
+   * @throws org.springframework.web.server.ResponseStatusException if both filters are used
+   */
   @GetMapping("/")
   public ResponseEntity<List<UserDto>> find(
       @Nullable @RequestParam(name = "email", required = false) @Email String email,
@@ -57,16 +71,32 @@ public class UserController {
     return ResponseEntity.ok(userService.findAll());
   }
 
+  /**
+   * Retrieves a user by id.
+   * @param id user identifier
+   * @return user data
+   */
   @GetMapping("/{id}")
   public ResponseEntity<UserDto> findById(@PathVariable Long id) {
     return ResponseEntity.ok(userService.findById(id));
   }
 
+  /**
+   * Creates a new user.
+   * @param dto user payload (create validation group)
+   * @return created user
+   */
   @PostMapping("/")
   public ResponseEntity<UserDto> create(@RequestBody @Validated(OnCreate.class) UserDto dto) {
     return ResponseEntity.status(HttpStatus.CREATED).body(userService.create(dto));
   }
 
+  /**
+   * Updates an existing user.
+   * @param id user identifier
+   * @param dto user payload (update validation group)
+   * @return updated user
+   */
   @PutMapping("/{id}")
   public ResponseEntity<UserDto> update(
       @PathVariable Long id,
@@ -74,12 +104,22 @@ public class UserController {
     return ResponseEntity.ok(userService.update(id, dto));
   }
 
+  /**
+   * Deletes a user by id.
+   * @param id user identifier
+   * @return 204 No Content on success
+   */
   @DeleteMapping("/{id}")
   public ResponseEntity<Void> delete(@PathVariable Long id) {
     userService.delete(id);
     return ResponseEntity.noContent().build();
   }
 
+  /**
+   * Returns all cards belonging to the specified user.
+   * @param userId user identifier
+   * @return list of user's cards
+   */
   @GetMapping("/{userId}/cards")
   public ResponseEntity<List<CardDto>> findUserCards(@PathVariable Long userId) {
     return ResponseEntity.ok(cardService.findUserCards(userId));
