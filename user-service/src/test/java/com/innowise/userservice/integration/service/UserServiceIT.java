@@ -14,7 +14,7 @@ import com.innowise.userservice.model.dto.user.UserDto;
 import com.innowise.userservice.model.entity.User;
 import com.innowise.userservice.model.mapper.UserMapper;
 import com.innowise.userservice.repository.UserRepository;
-import com.innowise.userservice.service.impl.UserServiceImpl;
+import com.innowise.userservice.service.UserService;
 import com.innowise.userservice.testutil.Cards;
 import com.innowise.userservice.testutil.Users;
 import jakarta.persistence.EntityManager;
@@ -24,8 +24,6 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
@@ -33,14 +31,10 @@ import org.springframework.transaction.support.TransactionTemplate;
 @RequiredArgsConstructor
 class UserServiceIT extends AbstractIntegrationTest {
 
-  private User userFixture;
+  private UserDto userDto;
 
-  @MockitoSpyBean
+  private final UserService userService;
   private final UserRepository userRepository;
-
-  @InjectMocks
-  private final UserServiceImpl userService;
-
   private final EntityManager entityManager;
   private final TransactionTemplate transactionTemplate;
 
@@ -50,16 +44,19 @@ class UserServiceIT extends AbstractIntegrationTest {
 
   @BeforeAll
   void prepareFixtures() {
-    userFixture = Users.buildWithoutId();
+    var userFixture = Users.buildWithoutId();
     Cards.buildWithoutId(userFixture);
     Cards.buildWithoutId(userFixture);
-    transactionTemplate.executeWithoutResult(status -> entityManager.persist(userFixture));
+    transactionTemplate.executeWithoutResult(status ->
+        entityManager.persist(userFixture));
+    userDto = userMapper.toDto(userFixture);
+    
   }
 
   @AfterAll
   void cleanupFixtures() {
     transactionTemplate.executeWithoutResult(status ->
-        entityManager.remove(entityManager.find(User.class, userFixture.getId())));
+        entityManager.remove(entityManager.find(User.class, userDto.id())));
   }
 
   @AfterEach
@@ -73,19 +70,49 @@ class UserServiceIT extends AbstractIntegrationTest {
   }
 
   @Test
-  void findById_whenUserExists_shouldReturnUserResponseDtoWithoutCards() {
-    assertThat(userService.findById(userFixture.getId()))
-        .isEqualTo(userMapper.toDto(userFixture));
+  void findById_whenUserExists_shouldReturnUserResponseDto() {
+    assertThat(userService.findById(userDto.id()))
+        .isEqualTo(userDto);
   }
 
   @Test
-  void findById_whenInvokedTwice_shouldExecuteOneSqlStatement() {
+  void findById_whenInvokedTwice_shouldInvokeOneRepoCallAndCache() {
 
-    userService.findById(userFixture.getId());
-    var cachedUser = userService.findById(userFixture.getId());
+    userService.findById(userDto.id());
+    var cachedUser = userService.findById(userDto.id());
 
-    verify(userRepository, times(1)).findWithCardsById(userFixture.getId());
-    assertThat(cachedUser).isEqualTo(userMapper.toDto(userFixture));
+    verify(userRepository, times(1)).findWithCardsById(userDto.id());
+    assertThat(cachedUser).isEqualTo(userDto);
+
+  }
+
+  @Test
+  @Transactional
+  void update_whenCachedValue_shouldUpdateCache() {
+
+    // Invoke caching
+    userService.findById(userDto.id());
+
+    var updatedUser = Users.buildWithId(userDto.id());
+
+    userService.update(userDto.id(), UserDto.builder()
+        .name(updatedUser.getName())
+        .surname(updatedUser.getSurname())
+        .birthDate(updatedUser.getBirthDate())
+        .email(updatedUser.getEmail())
+        .build());
+
+    assertThat(userService.findById(userDto.id()))
+        .satisfies(returnedUser -> {
+          assertThat(returnedUser)
+              .usingRecursiveComparison()
+              .ignoringFields("cards")
+              .isEqualTo(updatedUser);
+          assertThat(returnedUser.cards())
+              .containsExactlyElementsOf(userDto.cards());
+        });
+
+    verify(userRepository, times(1)).findWithCardsById(userDto.id());
 
   }
 
@@ -98,8 +125,8 @@ class UserServiceIT extends AbstractIntegrationTest {
 
   @Test
   void findByEmail_whenUserExists_shouldReturnUserResponseDtoWithoutCards() {
-    assertThat(userService.findByEmail(userFixture.getEmail()))
-        .isEqualTo(userMapper.toDto(userFixture));
+    assertThat(userService.findByEmail(userDto.email()))
+        .isEqualTo(userDto);
   }
 
   @Test
@@ -112,8 +139,8 @@ class UserServiceIT extends AbstractIntegrationTest {
 
   @Test
   void findAllByIdIn_whenUsersExist_shouldReturnListOfUserResponseDto() {
-    assertThat(userService.findAllByIdIn(List.of(userFixture.getId(), Long.MAX_VALUE)))
-        .containsExactly(userMapper.toDto(userFixture));
+    assertThat(userService.findAllByIdIn(List.of(userDto.id(), Long.MAX_VALUE)))
+        .containsExactlyInAnyOrder(userDto);
   }
 
   @Test
@@ -136,7 +163,7 @@ class UserServiceIT extends AbstractIntegrationTest {
         .name(creatingdUser.getName())
         .surname(creatingdUser.getSurname())
         .birthDate(creatingdUser.getBirthDate())
-        .email(userFixture.getEmail())
+        .email(userDto.email())
         .build();
 
     assertThatThrownBy(() -> userService.create(createDto))
@@ -164,14 +191,7 @@ class UserServiceIT extends AbstractIntegrationTest {
   @Test
   @Transactional
   void update_whenUserNotExist_shouldThrowUserNotFoundException() {
-    var updateDto = UserDto.builder()
-        .name(userFixture.getName())
-        .surname(userFixture.getSurname())
-        .birthDate(userFixture.getBirthDate())
-        .email(userFixture.getEmail())
-        .build();
-
-    assertThatThrownBy(() -> userService.update(Long.MAX_VALUE, updateDto))
+    assertThatThrownBy(() -> userService.update(Long.MAX_VALUE, userDto))
         .isInstanceOf(ResourceNotFoundException.class)
         .hasMessageContaining("User", "id");
   }
@@ -180,7 +200,7 @@ class UserServiceIT extends AbstractIntegrationTest {
   @Transactional
   void update_whenUserExists_shouldReturnUserResponseDto() {
     var newData = Users.build();
-    assertThat(userService.update(userFixture.getId(),
+    assertThat(userService.update(userDto.id(),
         UserDto.builder()
             .name(newData.getName())
             .surname(newData.getSurname())
@@ -203,8 +223,20 @@ class UserServiceIT extends AbstractIntegrationTest {
 
   @Test
   @Transactional
-  void delete_whenUserExists_shouldDeleteUser() {
-    userService.delete(userFixture.getId());
-    assertThat(entityManager.find(User.class, userFixture.getId())).isNull();
+  void delete_whenUserExistsAndNotCached_shouldDeleteUser() {
+    userService.delete(userDto.id());
+    assertThat(entityManager.find(User.class, userDto.id())).isNull();
+  }
+
+  @Test
+  @Transactional
+  void delete_whenUserExistsAndCached_shouldDeleteUser() {
+
+    // Invoke caching
+    userService.findById(userDto.id());
+
+    userService.delete(userDto.id());
+    assertThat(cacheHelper.isUserCached(userDto.id())).isFalse();
+    assertThat(entityManager.find(User.class, userDto.id())).isNull();
   }
 }

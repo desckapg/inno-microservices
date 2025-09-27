@@ -1,6 +1,6 @@
 package com.innowise.userservice.repository;
 
-import com.innowise.userservice.model.entity.User;
+import  com.innowise.userservice.model.entity.User;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.EntityGraph;
