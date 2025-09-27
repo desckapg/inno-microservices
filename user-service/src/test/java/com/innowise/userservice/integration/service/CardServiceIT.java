@@ -13,7 +13,7 @@ import com.innowise.userservice.model.dto.card.CardDto;
 import com.innowise.userservice.model.entity.Card;
 import com.innowise.userservice.model.entity.User;
 import com.innowise.userservice.model.mapper.CardMapper;
-import com.innowise.userservice.service.CardService;
+import com.innowise.userservice.service.impl.CardServiceImpl;
 import com.innowise.userservice.testutil.Cards;
 import com.innowise.userservice.testutil.Users;
 import jakarta.persistence.EntityManager;
@@ -33,7 +33,7 @@ class CardServiceIT extends AbstractIntegrationTest {
   private User userFixture;
   private Card cardFixture;
 
-  private final CardService cardService;
+  private final CardServiceImpl cardService;
   private final EntityManager entityManager;
   private final TransactionTemplate transactionTemplate;
   private final CardMapper cardMapper;

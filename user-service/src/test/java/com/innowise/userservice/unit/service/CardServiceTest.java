@@ -16,7 +16,7 @@ import com.innowise.userservice.model.entity.Card;
 import com.innowise.userservice.model.mapper.CardMapper;
 import com.innowise.userservice.repository.CardRepository;
 import com.innowise.userservice.repository.UserRepository;
-import com.innowise.userservice.service.CardService;
+import com.innowise.userservice.service.impl.CardServiceImpl;
 import com.innowise.userservice.testutil.Cards;
 import com.innowise.userservice.testutil.Users;
 import java.time.LocalDate;
@@ -45,11 +45,11 @@ class CardServiceTest {
   private final CardMapper cardMapper = Mappers.getMapper(CardMapper.class);
 
   @InjectMocks
-  private CardService cardService;
+  private CardServiceImpl cardService;
 
   @BeforeEach
   void prepare() {
-    cardService = new CardService(
+    cardService = new CardServiceImpl(
         cardMapper,
         cardRepository,
         userRepository,
