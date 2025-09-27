@@ -3,8 +3,10 @@ package com.innowise.userservice.integration.controller;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.innowise.userservice.cache.CacheHelper;
@@ -73,6 +75,39 @@ class CardControllerIT extends AbstractIntegrationTest {
   @Test
   void contextLoads() {
     assertThat(cardController).isNotNull();
+  }
+
+  @Test
+  @Transactional
+  void create_whenUserExists_shouldReturnCreatedStatusAndCardResponseDto() throws Exception {
+    var creatingCard = Cards.build();
+    creatingCard.setUser(entityManager.getReference(User.class, userFixture.getId()));
+    mockMvc.perform(
+        post(BASE_URL + "/")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(jsonMapper.writeValueAsString(cardMapper.toDto(creatingCard)))
+    ).andExpectAll(
+        status().isCreated(),
+        content().contentType(MediaType.APPLICATION_JSON),
+        jsonPath("$.number").value(creatingCard.getNumber()),
+        jsonPath("$.holder").value(creatingCard.getHolder()),
+        jsonPath("$.expirationDate").value(creatingCard.getExpirationDate().toString()),
+        jsonPath("$.userId").value(userFixture.getId()),
+        jsonPath("$.id").isNotEmpty()
+    );
+  }
+
+
+  @Test
+  @Transactional
+  void create_whenUserNotExists_shouldReturnNotFoundStatus() throws Exception {
+    var creatingCard = Cards.build();
+    creatingCard.setUser(entityManager.getReference(User.class, Long.MAX_VALUE));
+    mockMvc.perform(
+        post(BASE_URL + "/")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(jsonMapper.writeValueAsString(cardMapper.toDto(creatingCard)))
+    ).andExpect(status().isNotFound());
   }
 
   @Test
@@ -146,7 +181,7 @@ class CardControllerIT extends AbstractIntegrationTest {
   @Test
   void findAllByIdIn_whenNoOneFound_shouldReturnEmptyList() throws Exception {
     mockMvc.perform(
-            get(BASE_URL + "/all")
+            get(BASE_URL + "/")
                 .param("ids",
                     String.valueOf(Long.MAX_VALUE),
                     String.valueOf(Long.MAX_VALUE - 1)

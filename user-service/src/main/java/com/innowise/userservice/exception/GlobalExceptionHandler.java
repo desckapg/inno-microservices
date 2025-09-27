@@ -37,11 +37,6 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         .body(ex.getMessage());
   }
 
-  @ExceptionHandler(value = {UserNotOwnCardException.class})
-  public ResponseEntity<Void> handleNotOwnCardException(RuntimeException ex) {
-    return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-  }
-
   @Override
   protected @Nullable ResponseEntity<Object> handleMethodArgumentNotValid(
       MethodArgumentNotValidException ex,

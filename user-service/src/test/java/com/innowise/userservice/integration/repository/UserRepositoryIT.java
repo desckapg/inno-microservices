@@ -45,7 +45,7 @@ class UserRepositoryIT extends AbstractIntegrationTest {
   @AfterAll
   void cleanupFixtures() {
     transactionTemplate.executeWithoutResult(status -> {
-       var user = entityManager.find(User.class, userFixture.getId());
+      var user = entityManager.find(User.class, userFixture.getId());
       entityManager.remove(Objects.requireNonNull(user));
     });
   }
@@ -63,13 +63,12 @@ class UserRepositoryIT extends AbstractIntegrationTest {
   }
 
   @Test
-  void findAllWithCardsByIdIn_whenUsersExist_shouldReturnUsers() {
-    assertThat(userRepository.findAllWithCardsByIdIn(List.of(userFixture.getId())))
+  void findAllByIdIn_whenUsersExist_shouldReturnUsers() {
+    assertThat(userRepository.findAllByIdIn(List.of(userFixture.getId())))
         .containsExactly(userFixture)
-        .satisfiesExactly(user -> {
-          assertThat(Hibernate.isInitialized(user.getCards()))
-              .isTrue();
-        });
+        .satisfiesExactly(user ->
+            assertThat(Hibernate.isInitialized(user.getCards())
+            ).isTrue());
   }
 
   @Test

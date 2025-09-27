@@ -14,13 +14,13 @@ import com.innowise.userservice.controller.UserController;
 import com.innowise.userservice.integration.AbstractIntegrationTest;
 import com.innowise.userservice.integration.annotation.WebIT;
 import com.innowise.userservice.model.dto.user.UserDto;
-import com.innowise.userservice.model.entity.Card;
 import com.innowise.userservice.model.entity.User;
 import com.innowise.userservice.model.mapper.CardMapper;
 import com.innowise.userservice.model.mapper.UserMapper;
 import com.innowise.userservice.testutil.Cards;
 import com.innowise.userservice.testutil.Users;
 import jakarta.persistence.EntityManager;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -40,7 +40,6 @@ class UserControllerIT extends AbstractIntegrationTest {
   private static final String BASE_URL = "/api/v1/users";
 
   private User userFixture;
-  private Card cardFixture;
 
   private final UserController userController;
 
@@ -59,13 +58,15 @@ class UserControllerIT extends AbstractIntegrationTest {
   @BeforeAll
   void prepareFixtures() {
     userFixture = Users.buildWithoutId();
-    cardFixture = Cards.buildWithoutId(userFixture);
-    transactionTemplate.executeWithoutResult(status -> entityManager.persist(userFixture));
+    Cards.buildWithoutId(userFixture);
+    transactionTemplate.executeWithoutResult(status ->
+        entityManager.persist(userFixture));
   }
 
   @AfterAll
   void cleanupFixtures() {
-    transactionTemplate.executeWithoutResult(status -> entityManager.remove(entityManager.find(User.class, userFixture.getId())));
+    transactionTemplate.executeWithoutResult(status ->
+        entityManager.remove(entityManager.find(User.class, userFixture.getId())));
   }
 
   @BeforeEach
@@ -127,11 +128,12 @@ class UserControllerIT extends AbstractIntegrationTest {
 
   @Test
   void findByEmail_whenUserExists_shouldUserResponseDto() throws Exception {
-    mockMvc.perform(get(BASE_URL + "/email/" + userFixture.getEmail()))
+    mockMvc.perform(get(BASE_URL + "/")
+            .param("email", userFixture.getEmail()))
         .andExpectAll(
             status().isOk(),
             content().contentType(MediaType.APPLICATION_JSON),
-            content().json(jsonMapper.writeValueAsString(userMapper.toDto(userFixture)))
+            content().json(jsonMapper.writeValueAsString(List.of(userMapper.toDto(userFixture))))
         );
   }
 
@@ -160,7 +162,7 @@ class UserControllerIT extends AbstractIntegrationTest {
   void create_shouldReturnCreatedStatusAndUserResponseDto() throws Exception {
     var creatingUser = Users.build();
     mockMvc.perform(
-        post(BASE_URL + "/create")
+        post(BASE_URL + "/")
             .contentType(MediaType.APPLICATION_JSON)
             .content(jsonMapper.writeValueAsString(UserDto.builder()
                 .name(creatingUser.getName())
@@ -233,60 +235,5 @@ class UserControllerIT extends AbstractIntegrationTest {
     ).andExpect(status().isNoContent());
   }
 
-  @Test
-  @Transactional
-  void createCard_whenUserNotExists_shouldReturnNotFoundStatus() throws Exception {
-    var creatingCard = Cards.build();
-    creatingCard.setUser(entityManager.getReference(User.class, Long.MAX_VALUE));
-    mockMvc.perform(
-        post(BASE_URL + "/" + Long.MAX_VALUE + "/cards")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(jsonMapper.writeValueAsString(cardMapper.toDto(creatingCard)))
-    ).andExpect(status().isNotFound());
-  }
-
-  @Test
-  @Transactional
-  void createCard_whenUserExists_shouldReturnCreatedStatusAndCardResponseDto() throws Exception {
-    var creatingCard = Cards.build();
-    creatingCard.setUser(entityManager.getReference(User.class, userFixture.getId()));
-    mockMvc.perform(
-        post(BASE_URL + "/" + userFixture.getId() + "/cards")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(jsonMapper.writeValueAsString(cardMapper.toDto(creatingCard)))
-    ).andExpectAll(
-        status().isCreated(),
-        content().contentType(MediaType.APPLICATION_JSON),
-        jsonPath("$.number").value(creatingCard.getNumber()),
-        jsonPath("$.holder").value(creatingCard.getHolder()),
-        jsonPath("$.expirationDate").value(creatingCard.getExpirationDate().toString()),
-        jsonPath("$.userId").value(userFixture.getId()),
-        jsonPath("$.id").isNotEmpty()
-    );
-  }
-
-  @Test
-  @Transactional
-  void deleteCard_whenUserNotExists_shouldReturnNotFoundStatus() throws Exception {
-    mockMvc.perform(
-        delete(BASE_URL + "/" + Long.MAX_VALUE + "/cards/" + Long.MAX_VALUE)
-    ).andExpect(status().isNotFound());
-  }
-
-  @Test
-  @Transactional
-  void deleteCard_whenCardNotExists_shouldReturnNotFoundStatus() throws Exception {
-    mockMvc.perform(
-        delete(BASE_URL + "/" + userFixture.getId() + "/cards/" + Long.MAX_VALUE)
-    ).andExpect(status().isNotFound());
-  }
-
-  @Test
-  @Transactional
-  void deleteCard_whenCardExists_shouldReturnNoContentStatus() throws Exception {
-    mockMvc.perform(
-        delete(BASE_URL + "/" + userFixture.getId() + "/cards/" + cardFixture.getId())
-    ).andExpect(status().isNoContent());
-  }
 
 }
