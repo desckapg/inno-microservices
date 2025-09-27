@@ -3,6 +3,9 @@ package com.innowise.userservice.integration.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 import com.innowise.userservice.cache.CacheHelper;
 import com.innowise.userservice.exception.ResourceAlreadyExistsException;
@@ -13,7 +16,9 @@ import com.innowise.userservice.model.dto.card.CardDto;
 import com.innowise.userservice.model.entity.Card;
 import com.innowise.userservice.model.entity.User;
 import com.innowise.userservice.model.mapper.CardMapper;
-import com.innowise.userservice.service.impl.CardServiceImpl;
+import com.innowise.userservice.repository.CardRepository;
+import com.innowise.userservice.service.CardService;
+import com.innowise.userservice.service.UserService;
 import com.innowise.userservice.testutil.Cards;
 import com.innowise.userservice.testutil.Users;
 import jakarta.persistence.EntityManager;
@@ -33,11 +38,13 @@ class CardServiceIT extends AbstractIntegrationTest {
   private User userFixture;
   private Card cardFixture;
 
-  private final CardServiceImpl cardService;
+  private final CardService cardService;
+  private final UserService userService;
   private final EntityManager entityManager;
   private final TransactionTemplate transactionTemplate;
   private final CardMapper cardMapper;
   private final CacheHelper cacheHelper;
+  private final CardRepository cardRepository;
 
   @BeforeAll
   void prepareFixtures() {
@@ -103,18 +110,29 @@ class CardServiceIT extends AbstractIntegrationTest {
 
   @Test
   @Transactional
-  void update_whenCardExists_shouldReturnUpdatedCardResponseDto() {
+  void update_whenCardExists_shouldUpdateCardAndCache() {
+
+    // Invoke caching
+    userService.findById(userFixture.getId());
+
     var updateDto = CardDto.builder()
         .number(cardFixture.getNumber())
         .holder("Updated Holder")
         .expirationDate(cardFixture.getExpirationDate())
+        .userId(userFixture.getId())
         .build();
 
     var updatedCard = cardService.update(cardFixture.getId(), updateDto);
 
-    assertThat(updatedCard.number()).isEqualTo(updateDto.number());
-    assertThat(updatedCard.holder()).isEqualTo(updateDto.holder());
-    assertThat(updatedCard.expirationDate()).isEqualTo(updateDto.expirationDate());
+    assertThat(updatedCard)
+        .usingRecursiveComparison()
+        .ignoringFields("id", "user")
+        .isEqualTo(updateDto);
+
+    assertThat(cacheHelper.getCardsFromCache(userFixture.getId()))
+        .contains(updatedCard)
+        .doesNotContain(cardMapper.toDto(cardFixture));
+
   }
 
   @Test
@@ -127,19 +145,39 @@ class CardServiceIT extends AbstractIntegrationTest {
 
   @Test
   @Transactional
-  void delete_whenCardExists_shouldSuccessfullyDeleteCard() {
+  void delete_whenCardExists_shouldDeleteCardAndUpdateCache() {
     assertThatNoException().isThrownBy(() -> cardService.delete(cardFixture.getId()));
     assertThat(entityManager.find(Card.class, cardFixture.getId())).isNull();
+    assertThat(cacheHelper.getCardsFromCache(userFixture.getId()))
+        .doesNotContain(cardMapper.toDto(cardFixture));
   }
 
   @Test
-  void findUserCards_whenUserExists_shouldReturnListOfCardResponseDto() {
+  void findUserCards_whenUserExistsAndNotCached_shouldReturnListOfCardResponseDto() {
     assertThat(cardService.findUserCards(userFixture.getId()))
         .containsExactlyElementsOf(
             userFixture.getCards().stream()
                 .map(cardMapper::toDto)
                 .toList()
         );
+
+    verify(cardService, times(1)).findUserCards(userFixture.getId());
+  }
+
+  @Test
+  void findUserCards_whenUserExistsAndCached_shouldReturnListOfCardResponseDto() {
+
+    // Invoke caching
+    userService.findById(userFixture.getId());
+
+    assertThat(cardService.findUserCards(userFixture.getId()))
+        .containsExactlyInAnyOrderElementsOf(
+            userFixture.getCards().stream()
+                .map(cardMapper::toDto)
+                .toList()
+        );
+
+    verify(cardRepository, never()).findUserCards(userFixture.getId());
   }
 
   @Test
@@ -151,8 +189,13 @@ class CardServiceIT extends AbstractIntegrationTest {
 
   @Test
   @Transactional
-  void createCard_whenUserExistsAndCardNumberDoesNotExist_shouldReturnResponseDto() {
-    var newCardDto = Cards.build(userFixture);
+  void create_whenUserExistsAndCardNumberDoesNotExist_shouldReturnResponseAndUpdateCache() {
+
+    // Invoke caching
+    userService.findById(userFixture.getId());
+
+    var newCardDto = Cards.build();
+
     var createdCardDto = cardService.create(CardDto.builder()
         .number(newCardDto.getNumber())
         .holder(newCardDto.getHolder())
@@ -170,7 +213,7 @@ class CardServiceIT extends AbstractIntegrationTest {
 
   @Test
   @Transactional
-  void createCard_whenCardWithNumberExists_shouldAlreadyExistsException() {
+  void create_whenCardWithNumberExists_shouldAlreadyExistsException() {
     var newCard = Cards.build();
 
     var createDto = CardDto.builder()
