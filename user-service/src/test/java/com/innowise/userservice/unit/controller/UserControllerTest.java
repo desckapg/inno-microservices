@@ -9,7 +9,6 @@ import com.innowise.userservice.controller.UserController;
 import com.innowise.userservice.exception.GlobalExceptionHandler;
 import com.innowise.userservice.exception.ResourceNotFoundException;
 import com.innowise.userservice.model.dto.user.UserDto;
-import com.innowise.userservice.service.CardService;
 import com.innowise.userservice.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -27,9 +26,6 @@ import tools.jackson.databind.ObjectMapper;
 class UserControllerTest {
 
   private static final String BASE_URL = "/api/v1/users";
-
-  @Mock
-  private CardService cardService;
 
   @Mock
   private UserService userService;
