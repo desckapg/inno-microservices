@@ -1,0 +1,27 @@
+package com.innowise.userservice.model.mapper;
+
+import com.innowise.userservice.model.dto.user.UserDto;
+import com.innowise.userservice.model.entity.User;
+import org.mapstruct.AfterMapping;
+import org.mapstruct.InjectionStrategy;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
+
+@Mapper(
+    componentModel = "spring",
+    injectionStrategy = InjectionStrategy.CONSTRUCTOR,
+    uses = {CardMapper.class}
+)
+public interface UserMapper {
+
+  @Mapping(target = "cards", ignore = true)
+  User toEntity(UserDto dto);
+
+  UserDto toDto(User user);
+
+  @AfterMapping
+  default void linkCards(@MappingTarget User user) {
+    user.getCards().forEach(card -> card.setUser(user));
+  }
+}

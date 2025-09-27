@@ -1,0 +1,80 @@
+name: docker
+
+permissions:
+  contents: read
+  packages: write
+
+on:
+  workflow_run:
+    workflows: [ 'build-test-analyze' ]
+    types:
+      - completed
+
+jobs:
+  detect-services:
+    name: Detect Services
+    if: ${{ !github.event.act && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' }}
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.out.outputs.matrix }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@ff7abcd0c3c05ccf6adc123a8cd1fd4fb30fb493
+        with:
+          fetch-depth: 0
+
+      - name: Build services matrix
+        id: out
+        run: |
+          SERVICES_RAW=$(grep -E "include\(|project\(" settings.gradle.kts | sed -E 's/.*["\x27:]([^"\x27]+)["\x27].*/\1/g' | sed 's/^://g')
+          readarray -t SERVICES_ARRAY <<< "$SERVICES_RAW"
+          MATRIX_JSON=$(printf '%s\n' "${SERVICES_ARRAY[@]}" | jq -R . | jq -s . | jq -c .)
+          echo "matrix={\"service\":$MATRIX_JSON}" >> $GITHUB_OUTPUT
+  docker-build:
+    name: Build Docker Images
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: ${{ fromJson(needs.detect-services.outputs.matrix) }}
+      fail-fast: false
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@ff7abcd0c3c05ccf6adc123a8cd1fd4fb30fb493
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@4a24838f3d5601fd639834081e118c2995d51e1c
+        with:
+          name: ${{ matrix.service }}-build-artifacts
+          path: ${{ matrix.service }}/build/
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@1583c0f09d26c58c59d25b0eef29792b7ce99d9a
+
+      - name: Login to GHCR
+        uses: docker/login-action@5b7b28b1cc417bbd34cd8c225a957c9ce9adf7f2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@032a4b3bda1b716928481836ac5bfe36e1feaad6
+        with:
+          images: ghcr.io/${{ github.repository_owner }}/${{ matrix.service }}
+          tags: |
+            type=ref,event=branch
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@cb8fc7586f9ad9441b20c33e0f6e8b1b58d8b4c6
+        with:
+          context: ${{ matrix.service }}/
+          file: ${{ matrix.service }}/Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha,scope=${{ matrix.service }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.service }}
