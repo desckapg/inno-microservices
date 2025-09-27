@@ -16,10 +16,9 @@ replay_pid*
 bin/
 build/
 .gradle
-gradle/*
 .gradletasknamecache
 gradle-app.setting
-!gradle/libs.versions.toml
+!gradle/wrapper/gradle-wrapper.jar
 
 ##############################
 ## IntelliJ
