@@ -17,15 +17,24 @@ import lombok.Builder;
 @Builder
 public record UserDto(
 
-    @Null(groups = OnCreate.class, message = "Id must be null for new users")
+    @Null(groups = OnCreate.class,
+        message = "Id must be null for new users"
+    )
     Long id,
 
-    @NotBlank(message = "Name is required")
-    @Size(min = 3, message = "Name must be at least 3 characters long")
+    @NotBlank(groups = {OnCreate.class, OnUpdate.class},
+        message = "Name is required"
+    )
+    @Size(groups = {OnCreate.class, OnUpdate.class},
+        min = 3,
+        message = "Name must be at least 3 characters long"
+    )
     String name,
 
     @NotBlank(message = "Surname is required")
-    @Size(min = 3, message = "Surname must be at least 3 characters long")
+    @Size(min = 3,
+        message = "Surname must be at least 3 characters long"
+    )
     String surname,
 
     @NotNull(message = "Birth date is required")

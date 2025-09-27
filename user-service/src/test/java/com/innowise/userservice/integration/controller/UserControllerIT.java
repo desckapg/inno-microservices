@@ -179,6 +179,17 @@ class UserControllerIT extends AbstractIntegrationTest {
 
   @Test
   @Transactional
+  void update_whenInvalidDto_shouldThrowValidationException() throws Exception {
+    var updatingDto = UserDto.builder().build();
+    mockMvc.perform(
+        put(BASE_URL + "/" + Long.MAX_VALUE)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(jsonMapper.writeValueAsString(updatingDto))
+    ).andExpect(status().isUnprocessableEntity());
+  }
+
+  @Test
+  @Transactional
   void update_whenUserNotExists_shouldReturnNotFoundStatus() throws Exception {
     var updatingUser = Users.build();
     mockMvc.perform(

@@ -2,6 +2,8 @@ package com.innowise.userservice.controller;
 
 import com.innowise.userservice.model.dto.card.CardDto;
 import com.innowise.userservice.service.CardService;
+import com.innowise.userservice.validation.group.OnCreate;
+import com.innowise.userservice.validation.group.OnUpdate;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.NullMarked;
@@ -51,7 +53,7 @@ public class CardController {
    * @return created card with generated id
    */
   @PostMapping("/")
-  public ResponseEntity<CardDto> create(@RequestBody @Validated CardDto dto) {
+  public ResponseEntity<CardDto> create(@RequestBody @Validated({OnCreate.class}) CardDto dto) {
     return ResponseEntity.status(HttpStatus.CREATED)
         .body(cardService.create(dto));
   }
@@ -65,7 +67,7 @@ public class CardController {
   @PutMapping("/{id}")
   public ResponseEntity<CardDto> update(
       @PathVariable Long id,
-      @RequestBody @Validated CardDto dto
+      @RequestBody @Validated({OnUpdate.class}) CardDto dto
   ) {
     return ResponseEntity.ok(cardService.update(id, dto));
   }
