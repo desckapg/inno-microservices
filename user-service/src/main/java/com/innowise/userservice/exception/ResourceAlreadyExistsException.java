@@ -1,9 +1,13 @@
 package com.innowise.userservice.exception;
 
+import java.io.Serial;
 import lombok.Getter;
 
 @Getter
 public class ResourceAlreadyExistsException extends AppRuntimeException {
+
+  @Serial
+  private static final long serialVersionUID = -3075708126054361075L;
 
   private final String resource;
   private final String criteria;

@@ -1,9 +1,13 @@
 package com.innowise.userservice.exception;
 
+import java.io.Serial;
 import lombok.Getter;
 
 @Getter
 public class ResourceNotFoundException extends AppRuntimeException {
+
+  @Serial
+  private static final long serialVersionUID = -3166837044900038286L;
 
   private final String resource;
   private final String criteria;

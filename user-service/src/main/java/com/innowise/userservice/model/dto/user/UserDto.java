@@ -10,6 +10,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Null;
 import jakarta.validation.constraints.Past;
 import jakarta.validation.constraints.Size;
+import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.List;
 import lombok.Builder;
@@ -47,6 +48,6 @@ public record UserDto(
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     List<CardDto> cards
-) {
+) implements Serializable {
 
 }

@@ -8,6 +8,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Null;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+import java.io.Serializable;
 import java.time.LocalDate;
 import lombok.Builder;
 
@@ -46,6 +47,6 @@ public record CardDto(
     LocalDate expirationDate,
 
     Long userId
-) {
+) implements Serializable {
 
 }
