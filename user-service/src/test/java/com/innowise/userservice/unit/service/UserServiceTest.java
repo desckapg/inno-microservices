@@ -17,7 +17,7 @@ import com.innowise.userservice.model.mapper.CardMapperImpl;
 import com.innowise.userservice.model.mapper.UserMapper;
 import com.innowise.userservice.model.mapper.UserMapperImpl;
 import com.innowise.userservice.repository.UserRepository;
-import com.innowise.userservice.service.UserService;
+import com.innowise.userservice.service.impl.UserServiceImpl;
 import com.innowise.userservice.testutil.Users;
 import java.time.LocalDate;
 import java.util.List;
@@ -41,11 +41,11 @@ class UserServiceTest {
   private final CardMapper cardMapper = new CardMapperImpl();
   private final UserMapper userMapper = new UserMapperImpl(cardMapper);
 
-  private UserService userService;
+  private UserServiceImpl userService;
 
   @BeforeEach
   void setUp() {
-    userService = new UserService(userRepository, userMapper, cacheManager);
+    userService = new UserServiceImpl(userRepository, userMapper, cacheManager);
   }
 
   @Test

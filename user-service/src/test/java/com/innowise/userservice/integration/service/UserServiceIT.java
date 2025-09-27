@@ -14,7 +14,7 @@ import com.innowise.userservice.model.dto.user.UserDto;
 import com.innowise.userservice.model.entity.User;
 import com.innowise.userservice.model.mapper.UserMapper;
 import com.innowise.userservice.repository.UserRepository;
-import com.innowise.userservice.service.UserService;
+import com.innowise.userservice.service.impl.UserServiceImpl;
 import com.innowise.userservice.testutil.Cards;
 import com.innowise.userservice.testutil.Users;
 import jakarta.persistence.EntityManager;
@@ -39,7 +39,7 @@ class UserServiceIT extends AbstractIntegrationTest {
   private final UserRepository userRepository;
 
   @InjectMocks
-  private final UserService userService;
+  private final UserServiceImpl userService;
 
   private final EntityManager entityManager;
   private final TransactionTemplate transactionTemplate;

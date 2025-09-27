@@ -9,7 +9,7 @@ import com.innowise.userservice.controller.CardController;
 import com.innowise.userservice.exception.ResourceNotFoundException;
 import com.innowise.userservice.exception.GlobalExceptionHandler;
 import com.innowise.userservice.model.dto.card.CardDto;
-import com.innowise.userservice.service.CardService;
+import com.innowise.userservice.service.impl.CardServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -28,7 +28,7 @@ class CardControllerTest {
   private static final String BASE_URL = "/api/v1/cards";
 
   @Mock
-  private CardService cardService;
+  private CardServiceImpl cardService;
 
   @InjectMocks
   private CardController cardController;
