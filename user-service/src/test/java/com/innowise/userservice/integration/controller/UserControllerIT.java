@@ -185,7 +185,7 @@ class UserControllerIT extends AbstractIntegrationTest {
         put(BASE_URL + "/" + Long.MAX_VALUE)
             .contentType(MediaType.APPLICATION_JSON)
             .content(jsonMapper.writeValueAsString(updatingDto))
-    ).andExpect(status().isUnprocessableEntity());
+    ).andExpect(status().isUnprocessableContent());
   }
 
   @Test

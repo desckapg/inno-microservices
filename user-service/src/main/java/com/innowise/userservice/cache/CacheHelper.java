@@ -3,7 +3,6 @@ package com.innowise.userservice.cache;
 import com.innowise.userservice.model.dto.card.CardDto;
 import com.innowise.userservice.model.dto.user.UserDto;
 import com.innowise.userservice.model.entity.User;
-import com.innowise.userservice.model.mapper.UserMapper;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -20,13 +19,11 @@ public class CacheHelper {
   public static final String USER_CACHE = "users";
 
   private final CacheManager cacheManager;
-  private final UserMapper userMapper;
 
   public void updateUserCaches(User user) {
-    UserDto cached = getFromCache(USER_CACHE, user.getId());
+    UserDto cached = getFromCache(user.getId());
     if (cached != null) {
       putInCache(
-          USER_CACHE,
           user.getId(),
           new UserDto(
               user.getId(),
@@ -41,11 +38,11 @@ public class CacheHelper {
   }
 
   public void addCardToCache(Long userId, CardDto newCard) {
-    UserDto cached = getFromCache(USER_CACHE, userId);
+    UserDto cached = getFromCache(userId);
     if (cached != null) {
       List<CardDto> cards = new ArrayList<>(Optional.ofNullable(cached.cards()).orElse(List.of()));
       cards.add(newCard);
-      putInCache(USER_CACHE, userId, new UserDto(
+      putInCache(userId, new UserDto(
           cached.id(),
           cached.name(),
           cached.surname(),
@@ -57,7 +54,7 @@ public class CacheHelper {
   }
 
   public List<CardDto> getCardsFromCache(Long userId) {
-    UserDto cached = getFromCache(USER_CACHE, userId);
+    UserDto cached = getFromCache(userId);
     if (cached != null && cached.cards() != null) {
       return cached.cards();
     }
@@ -65,11 +62,11 @@ public class CacheHelper {
   }
 
   public void removeCardFromCache(Long userId, Long cardId) {
-    UserDto cached = getFromCache(USER_CACHE, userId);
+    UserDto cached = getFromCache(userId);
     if (cached != null && cached.cards() != null) {
       List<CardDto> cards = new ArrayList<>(cached.cards());
       cards.removeIf(card -> Objects.equals(card.id(), cardId));
-      putInCache(USER_CACHE, userId, new UserDto(
+      putInCache(userId, new UserDto(
           cached.id(),
           cached.name(),
           cached.surname(),
@@ -81,11 +78,11 @@ public class CacheHelper {
   }
 
   public boolean isUserCached(Long userId) {
-    return getFromCache(USER_CACHE, userId) != null;
+    return getFromCache(userId) != null;
   }
 
   public void updateCardInCache(Long userId, CardDto updatedCard) {
-    UserDto cached = getFromCache(USER_CACHE, userId);
+    UserDto cached = getFromCache(userId);
     if (cached != null) {
       List<CardDto> cards = new ArrayList<>(Optional.ofNullable(cached.cards()).orElse(List.of()));
       boolean replaced = false;
@@ -99,7 +96,7 @@ public class CacheHelper {
       if (!replaced) {
         cards.add(updatedCard);
       }
-      putInCache(USER_CACHE, userId, new UserDto(
+      putInCache(userId, new UserDto(
           cached.id(),
           cached.name(),
           cached.surname(),
@@ -119,17 +116,17 @@ public class CacheHelper {
     });
   }
 
-  private void putInCache(String cacheName, Object key, Object value) {
-    Cache cache = cacheManager.getCache(cacheName);
+  private void putInCache(Object key, Object value) {
+    Cache cache = cacheManager.getCache(CacheHelper.USER_CACHE);
     if (cache != null) {
       cache.put(key, value);
     }
   }
 
-  private <T> T getFromCache(String cacheName, Long key) {
-    Cache cache = cacheManager.getCache(cacheName);
+  private UserDto getFromCache(Long key) {
+    Cache cache = cacheManager.getCache(CacheHelper.USER_CACHE);
     if (cache != null) {
-      return cache.get(key, (Class<T>) UserDto.class);
+      return cache.get(key, UserDto.class);
     }
     return null;
   }

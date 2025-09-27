@@ -5,6 +5,7 @@ import com.innowise.userservice.exception.ResourceAlreadyExistsException;
 import com.innowise.userservice.exception.ResourceNotFoundException;
 import com.innowise.userservice.model.dto.user.UserDto;
 import com.innowise.userservice.model.entity.User;
+import com.innowise.userservice.model.entity.User.Fields;
 import com.innowise.userservice.model.mapper.UserMapper;
 import com.innowise.userservice.repository.UserRepository;
 import com.innowise.userservice.service.UserService;
@@ -26,7 +27,7 @@ public class UserServiceImpl implements UserService {
   @Transactional
   public UserDto create(UserDto dto) {
     if (userRepository.existsByEmail(dto.email())) {
-      throw ResourceAlreadyExistsException.byField("User", "email", dto.email());
+      throw ResourceAlreadyExistsException.byField("User", Fields.EMAIL, dto.email());
     }
     return userMapper.toDto(
         userRepository.save(
@@ -41,7 +42,7 @@ public class UserServiceImpl implements UserService {
         .orElseThrow(() -> ResourceNotFoundException.byId("User", id));
 
     if (!user.getEmail().equals(dto.email()) && userRepository.existsByEmail(dto.email())) {
-      throw ResourceAlreadyExistsException.byField("User", "email", dto.email());
+      throw ResourceAlreadyExistsException.byField("User", Fields.EMAIL, dto.email());
     }
 
     user.setName(dto.name());
@@ -75,7 +76,7 @@ public class UserServiceImpl implements UserService {
   public UserDto findByEmail(String email) {
     return userRepository.findByEmail(email)
         .map(userMapper::toDto)
-        .orElseThrow(() -> ResourceNotFoundException.byField("User", "email", email));
+        .orElseThrow(() -> ResourceNotFoundException.byField("User", Fields.EMAIL, email));
   }
 
   public List<UserDto> findAllByIdIn(List<Long> ids) {
