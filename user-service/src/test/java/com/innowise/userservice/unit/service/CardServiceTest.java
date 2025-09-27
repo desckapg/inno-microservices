@@ -15,6 +15,7 @@ import com.innowise.userservice.model.dto.card.CardDto;
 import com.innowise.userservice.model.entity.Card;
 import com.innowise.userservice.model.mapper.CardMapper;
 import com.innowise.userservice.repository.CardRepository;
+import com.innowise.userservice.repository.UserRepository;
 import com.innowise.userservice.service.CardService;
 import com.innowise.userservice.testutil.Cards;
 import com.innowise.userservice.testutil.Users;
@@ -36,6 +37,9 @@ class CardServiceTest {
   private CardRepository cardRepository;
 
   @Mock
+  private UserRepository userRepository;
+
+  @Mock
   private CacheHelper cacheHelper;
 
   private final CardMapper cardMapper = Mappers.getMapper(CardMapper.class);
@@ -48,6 +52,7 @@ class CardServiceTest {
     cardService = new CardService(
         cardMapper,
         cardRepository,
+        userRepository,
         cacheHelper
     );
   }

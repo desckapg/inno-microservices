@@ -15,7 +15,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
   List<User> findAllByIdIn(List<Long> ids);
 
   @EntityGraph(attributePaths = "cards")
-  List<User> findAllWithCardsByIdIn(List<Long> ids);
+  List<User> findAll();
 
   @EntityGraph(attributePaths = "cards")
   Optional<User> findByEmail(String email);

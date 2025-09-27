@@ -7,6 +7,7 @@ import com.innowise.userservice.model.dto.card.CardDto;
 import com.innowise.userservice.model.entity.Card;
 import com.innowise.userservice.model.mapper.CardMapper;
 import com.innowise.userservice.repository.CardRepository;
+import com.innowise.userservice.repository.UserRepository;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -18,7 +19,27 @@ public class CardService {
 
   private final CardMapper cardMapper;
   private final CardRepository cardRepository;
+  private final UserRepository userRepository;
   private final CacheHelper cacheHelper;
+
+  @Transactional
+  public CardDto create(CardDto dto) {
+    if (cardRepository.existsByNumber(dto.number())) {
+      throw ResourceAlreadyExistsException.byField("Card", "number", dto.number());
+    }
+    if (!userRepository.existsById(dto.userId())) {
+      throw ResourceNotFoundException.byField("User", "id", dto.userId());
+    }
+    var card = cardMapper.toEntity(dto);
+    card.setUser(userRepository.getReferenceById(dto.userId()));
+
+    var savedCard = cardRepository.save(card);
+    var cardResponseDto = cardMapper.toDto(savedCard);
+
+    cacheHelper.addCardToCache(dto.userId(), cardResponseDto);
+
+    return cardResponseDto;
+  }
 
   @Transactional
   public CardDto update(Long id, CardDto dto) {
@@ -60,4 +81,24 @@ public class CardService {
   }
 
 
+  public List<CardDto> findAll() {
+    return cardRepository.findAll().stream()
+        .map(cardMapper::toDto)
+        .toList();
+  }
+
+  public List<CardDto> findUserCards(Long userId) {
+    if (cacheHelper.isUserCached(userId)) {
+      return cacheHelper.getCardsFromCache(userId);
+    }
+
+    if (!userRepository.existsById(userId)) {
+      throw ResourceNotFoundException.byId("User", userId);
+    }
+
+    return cardRepository.findUserCards(userId).stream()
+        .map(cardMapper::toDto)
+        .toList();
+
+  }
 }

@@ -2,15 +2,15 @@ package com.innowise.userservice.controller;
 
 import com.innowise.userservice.model.dto.card.CardDto;
 import com.innowise.userservice.model.dto.user.UserDto;
-import com.innowise.userservice.service.UserCardService;
+import com.innowise.userservice.service.CardService;
 import com.innowise.userservice.service.UserService;
 import com.innowise.userservice.validation.group.OnCreate;
 import com.innowise.userservice.validation.group.OnUpdate;
 import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotNull;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -21,30 +21,48 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 @RestController
-@RequestMapping("api/v1/users/")
+@RequestMapping("api/v1/users")
 @RequiredArgsConstructor
 @Validated
 @NullMarked
 public class UserController {
 
   private final UserService userService;
-  private final UserCardService userCardService;
+  private final CardService cardService;
 
+  @GetMapping("/")
+  public ResponseEntity<List<UserDto>> find(
+      @Nullable @RequestParam(name = "email", required = false) @Email String email,
+      @Nullable @RequestParam(name = "ids", required = false) List<Long> ids) {
+
+    boolean hasEmail = email != null && !email.isBlank();
+    boolean hasIds = ids != null && !ids.isEmpty();
+
+    if (hasEmail && hasIds) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "Cannot filter by both email and ids simultaneously"
+      );
+    }
+    if (hasEmail) {
+      return ResponseEntity.ok(List.of(userService.findByEmail(email)));
+    }
+    if (hasIds) {
+      return ResponseEntity.ok(userService.findAllByIdIn(ids));
+    }
+    return ResponseEntity.ok(userService.findAll());
+  }
 
   @GetMapping("/{id}")
   public ResponseEntity<UserDto> findById(@PathVariable Long id) {
     return ResponseEntity.ok(userService.findById(id));
   }
 
-  @GetMapping("/email/{email}")
-  public ResponseEntity<UserDto> findByEmail(@PathVariable @NotNull @Email String email) {
-    return ResponseEntity.ok(userService.findByEmail(email));
-  }
-
-  @PostMapping("/create")
+  @PostMapping("/")
   public ResponseEntity<UserDto> create(@RequestBody @Validated(OnCreate.class) UserDto dto) {
     return ResponseEntity.status(HttpStatus.CREATED).body(userService.create(dto));
   }
@@ -62,28 +80,9 @@ public class UserController {
     return ResponseEntity.noContent().build();
   }
 
-
-  @PostMapping("/{userId}/cards")
-  public ResponseEntity<CardDto> createCard(
-      @PathVariable Long userId,
-      @RequestBody @Validated(OnCreate.class) CardDto dto
-  ) {
-    return ResponseEntity.status(HttpStatus.CREATED)
-        .body(userCardService.createCard(userId, dto));
-  }
-
-  @DeleteMapping("/{userId}/cards/{cardId}")
-  public ResponseEntity<Void> deleteCard(
-      @PathVariable Long userId,
-      @PathVariable Long cardId
-  ) {
-    userCardService.deleteCard(userId, cardId);
-    return ResponseEntity.noContent().build();
-  }
-
   @GetMapping("/{userId}/cards")
   public ResponseEntity<List<CardDto>> findUserCards(@PathVariable Long userId) {
-    return ResponseEntity.ok(userCardService.findUserCards(userId));
+    return ResponseEntity.ok(cardService.findUserCards(userId));
   }
 
 }

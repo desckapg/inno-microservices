@@ -16,7 +16,6 @@ public interface CardMapper {
   CardDto toDto(Card card);
 
   @Mapping(target = "user", ignore = true)
-  //@Mapping(target = "id", ignore = true)
   Card toEntity(CardDto dto);
 
 }
