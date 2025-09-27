@@ -8,6 +8,7 @@ allprojects {
     group = "com.innowise"
     repositories {
         mavenCentral()
+
     }
 }
 
