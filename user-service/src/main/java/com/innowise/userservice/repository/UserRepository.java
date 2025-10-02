@@ -1,19 +1,27 @@
 package com.innowise.userservice.repository;
 
-import com.innowise.userservice.model.entity.User;
-import java.util.Collection;
+import  com.innowise.userservice.model.entity.User;
 import java.util.List;
 import java.util.Optional;
+import org.jspecify.annotations.NullMarked;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.Repository;
-import org.springframework.data.repository.query.Param;
 
+@NullMarked
 public interface UserRepository extends JpaRepository<User, Long> {
 
-  @Query("SELECT u FROM User u WHERE u.id IN (:ids)")
+  @EntityGraph(attributePaths = "cards")
+  Optional<User> findWithCardsById(Long id);
+
+  @EntityGraph(attributePaths = "cards")
   List<User> findAllByIdIn(List<Long> ids);
 
+  @EntityGraph(attributePaths = "cards")
+  List<User> findAll();
+
+  @EntityGraph(attributePaths = "cards")
   Optional<User> findByEmail(String email);
+
+  boolean existsByEmail(String email);
 
 }
