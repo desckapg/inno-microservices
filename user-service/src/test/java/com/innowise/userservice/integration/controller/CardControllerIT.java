@@ -194,4 +194,16 @@ class CardControllerIT extends AbstractIntegrationTest {
         );
   }
 
+  @Test
+  void findAll_whenNoIdsProvided_shouldReturnAllUsers() throws Exception {
+    mockMvc.perform(
+            get(BASE_URL + "/")
+        )
+        .andExpectAll(
+            status().isOk(),
+            content().contentType(MediaType.APPLICATION_JSON),
+            content().json(jsonMapper.writeValueAsString(List.of(cardMapper.toDto(cardFixture))))
+        );
+  }
+
 }

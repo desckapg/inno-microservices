@@ -39,7 +39,7 @@ public class CardController {
    * @return list of cards
    */
   @GetMapping("/")
-  public ResponseEntity<List<CardDto>> findAll(@RequestParam(name = "ids", required = false) List<Long> ids) {
+  public ResponseEntity<List<CardDto>> findAll(@RequestParam(name = "ids", defaultValue = "") List<Long> ids) {
     if (ids.isEmpty()) {
       return ResponseEntity.ok(cardService.findAll());
     } else {
