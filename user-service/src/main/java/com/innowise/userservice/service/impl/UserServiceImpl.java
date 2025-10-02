@@ -50,10 +50,10 @@ public class UserServiceImpl implements UserService {
     user.setEmail(dto.email());
     user.setBirthDate(dto.birthDate());
 
-    var savedUser = userRepository.save(user);
+    var savedUser = userMapper.toDto(userRepository.save(user));
     cacheHelper.updateUserCaches(savedUser);
 
-    return userMapper.toDto(savedUser);
+    return savedUser;
 
   }
 

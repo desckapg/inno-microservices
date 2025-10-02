@@ -2,7 +2,6 @@ package com.innowise.userservice.cache;
 
 import com.innowise.userservice.model.dto.card.CardDto;
 import com.innowise.userservice.model.dto.user.UserDto;
-import com.innowise.userservice.model.entity.User;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -20,20 +19,10 @@ public class CacheHelper {
 
   private final CacheManager cacheManager;
 
-  public void updateUserCaches(User user) {
-    UserDto cached = getFromCache(user.getId());
+  public void updateUserCaches(UserDto userDto) {
+    UserDto cached = getFromCache(userDto.id());
     if (cached != null) {
-      putInCache(
-          user.getId(),
-          new UserDto(
-              user.getId(),
-              user.getName(),
-              user.getSurname(),
-              user.getBirthDate(),
-              user.getEmail(),
-              cached.cards()
-          )
-      );
+      putInCache(userDto.id(), createUserDtoWithCards(userDto, cached.cards()));
     }
   }
 
@@ -42,16 +31,20 @@ public class CacheHelper {
     if (cached != null) {
       List<CardDto> cards = new ArrayList<>(Optional.ofNullable(cached.cards()).orElse(List.of()));
       cards.add(newCard);
-      putInCache(userId, new UserDto(
-          cached.id(),
-          cached.name(),
-          cached.surname(),
-          cached.birthDate(),
-          cached.email(),
-          cards
-      ));
+      putInCache(userId, createUserDtoWithCards(cached, cards));
     }
   }
+
+  private UserDto createUserDtoWithCards(UserDto source, List<CardDto> cards) {
+    return new UserDto(
+        source.id(),
+        source.name(),
+        source.surname(),
+        source.birthDate(),
+        source.email(),
+        cards
+    );
+}
 
   public List<CardDto> getCardsFromCache(Long userId) {
     UserDto cached = getFromCache(userId);
@@ -96,14 +89,7 @@ public class CacheHelper {
       if (!replaced) {
         cards.add(updatedCard);
       }
-      putInCache(userId, new UserDto(
-          cached.id(),
-          cached.name(),
-          cached.surname(),
-          cached.birthDate(),
-          cached.email(),
-          cards
-      ));
+      putInCache(userId, createUserDtoWithCards(cached, cards));
     }
   }
 
@@ -116,7 +102,7 @@ public class CacheHelper {
     });
   }
 
-  private void putInCache(Object key, Object value) {
+  private void putInCache(Long key, UserDto value) {
     Cache cache = cacheManager.getCache(CacheHelper.USER_CACHE);
     if (cache != null) {
       cache.put(key, value);
