@@ -128,7 +128,7 @@ class UserControllerIT extends AbstractIntegrationTest {
 
   @Test
   void findByEmail_whenUserExists_shouldUserResponseDto() throws Exception {
-    mockMvc.perform(get(BASE_URL + "/")
+    mockMvc.perform(get(BASE_URL)
             .param("email", userFixture.getEmail()))
         .andExpectAll(
             status().isOk(),
@@ -162,7 +162,7 @@ class UserControllerIT extends AbstractIntegrationTest {
   void create_shouldReturnCreatedStatusAndUserResponseDto() throws Exception {
     var creatingUser = Users.build();
     mockMvc.perform(
-        post(BASE_URL + "/")
+        post(BASE_URL)
             .contentType(MediaType.APPLICATION_JSON)
             .content(jsonMapper.writeValueAsString(UserDto.builder()
                 .name(creatingUser.getName())

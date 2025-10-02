@@ -38,7 +38,7 @@ public class CardController {
    * @param ids optional list of card identifiers to filter (if empty or null returns all)
    * @return list of cards
    */
-  @GetMapping("/")
+  @GetMapping
   public ResponseEntity<List<CardDto>> findAll(@RequestParam(name = "ids", defaultValue = "") List<Long> ids) {
     if (ids.isEmpty()) {
       return ResponseEntity.ok(cardService.findAll());
@@ -52,7 +52,7 @@ public class CardController {
    * @param dto card payload
    * @return created card with generated id
    */
-  @PostMapping("/")
+  @PostMapping
   public ResponseEntity<CardDto> create(@RequestBody @Validated({OnCreate.class}) CardDto dto) {
     return ResponseEntity.status(HttpStatus.CREATED)
         .body(cardService.create(dto));

@@ -83,7 +83,7 @@ class CardControllerIT extends AbstractIntegrationTest {
     var creatingCard = Cards.build();
     creatingCard.setUser(entityManager.getReference(User.class, userFixture.getId()));
     mockMvc.perform(
-        post(BASE_URL + "/")
+        post(BASE_URL)
             .contentType(MediaType.APPLICATION_JSON)
             .content(jsonMapper.writeValueAsString(cardMapper.toDto(creatingCard)))
     ).andExpectAll(
@@ -104,7 +104,7 @@ class CardControllerIT extends AbstractIntegrationTest {
     var creatingCard = Cards.build();
     creatingCard.setUser(entityManager.getReference(User.class, Long.MAX_VALUE));
     mockMvc.perform(
-        post(BASE_URL + "/")
+        post(BASE_URL)
             .contentType(MediaType.APPLICATION_JSON)
             .content(jsonMapper.writeValueAsString(cardMapper.toDto(creatingCard)))
     ).andExpect(status().isNotFound());
@@ -181,7 +181,7 @@ class CardControllerIT extends AbstractIntegrationTest {
   @Test
   void findAllByIdIn_whenNoOneFound_shouldReturnEmptyList() throws Exception {
     mockMvc.perform(
-            get(BASE_URL + "/")
+            get(BASE_URL)
                 .param("ids",
                     String.valueOf(Long.MAX_VALUE),
                     String.valueOf(Long.MAX_VALUE - 1)
@@ -197,7 +197,7 @@ class CardControllerIT extends AbstractIntegrationTest {
   @Test
   void findAll_whenNoIdsProvided_shouldReturnAllUsers() throws Exception {
     mockMvc.perform(
-            get(BASE_URL + "/")
+            get(BASE_URL)
         )
         .andExpectAll(
             status().isOk(),

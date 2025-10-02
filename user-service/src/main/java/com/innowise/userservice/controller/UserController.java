@@ -49,7 +49,7 @@ public class UserController {
    * @return list of users
    * @throws org.springframework.web.server.ResponseStatusException if both filters are used
    */
-  @GetMapping("/")
+  @GetMapping
   public ResponseEntity<List<UserDto>> find(
       @Nullable @RequestParam(name = "email", required = false) @Email String email,
       @Nullable @RequestParam(name = "ids", required = false) List<Long> ids) {
@@ -86,7 +86,7 @@ public class UserController {
    * @param dto user payload (create validation group)
    * @return created user
    */
-  @PostMapping("/")
+  @PostMapping
   public ResponseEntity<UserDto> create(@RequestBody @Validated(OnCreate.class) UserDto dto) {
     return ResponseEntity.status(HttpStatus.CREATED).body(userService.create(dto));
   }
