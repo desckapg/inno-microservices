@@ -4,7 +4,7 @@ import java.io.Serial;
 import lombok.Getter;
 
 @Getter
-public class ResourceAlreadyExistsException extends AppRuntimeException {
+public class ResourceAlreadyExistsException extends RuntimeException {
 
   @Serial
   private static final long serialVersionUID = -3075708126054361075L;

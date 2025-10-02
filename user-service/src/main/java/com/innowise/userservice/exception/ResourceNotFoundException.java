@@ -4,7 +4,7 @@ import java.io.Serial;
 import lombok.Getter;
 
 @Getter
-public class ResourceNotFoundException extends AppRuntimeException {
+public class ResourceNotFoundException extends RuntimeException {
 
   @Serial
   private static final long serialVersionUID = -3166837044900038286L;
