@@ -36,7 +36,7 @@ public class Card extends BaseEntity {
   private LocalDate expirationDate;
 
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
-  @JoinColumn(name = "userId")
+  @JoinColumn(name = "user_id")
   private User user;
 
   @Override
