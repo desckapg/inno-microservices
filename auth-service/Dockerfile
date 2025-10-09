@@ -1,9 +1,9 @@
-FROM bellsoft/liberica-openjre-alpine:21-cds AS layers
+FROM bellsoft/liberica-openjre-alpine:25-cds AS layers
 WORKDIR /application
 COPY auth-service/build/libs/*.jar app.jar
 RUN java -Djarmode=tools -jar app.jar extract --layers --destination extracted
 
-FROM bellsoft/liberica-openjre-alpine:21-cds
+FROM bellsoft/liberica-openjre-alpine:25-cds
 VOLUME /tmp
 RUN adduser -S spring-user
 USER spring-user

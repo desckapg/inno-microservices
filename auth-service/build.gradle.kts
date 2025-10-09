@@ -6,30 +6,47 @@ plugins {
 version = "0.0.1-SNAPSHOT"
 description = "auth-service"
 
+val mockitoAgent = configurations.create("mockitoAgent")
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.springframework.boot:spring-boot-starter-liquibase")
-    implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.boot:spring-boot-starter-web")
+    implementation("org.springframework.boot:spring-boot-starter-validation")
+    implementation("org.springframework.boot:spring-boot-configuration-processor")
+    implementation("org.springframework.boot:spring-boot-starter-actuator")
+    implementation("org.springframework.boot:spring-boot-starter-security")
+    implementation(libs.java.jwt)
+    implementation(libs.bcrypt)
+
     compileOnly("org.projectlombok:lombok")
+    compileOnly(libs.mapstruct)
+
     developmentOnly("org.springframework.boot:spring-boot-devtools")
     developmentOnly("org.springframework.boot:spring-boot-docker-compose")
+
     runtimeOnly("org.postgresql:postgresql")
+
     annotationProcessor("org.projectlombok:lombok")
-    testImplementation("org.springframework.boot:spring-boot-starter-test")
+    annotationProcessor(libs.mapstruct.processor)
+
+    testImplementation("org.springframework.boot:spring-boot-starter-test") {
+        exclude(group = "org.mockito:mockito-core")
+    }
+    testImplementation(libs.mockito)
+    mockitoAgent(libs.mockito) { isTransitive = false }
     testImplementation("org.springframework.boot:spring-boot-testcontainers")
     testImplementation("org.springframework.security:spring-security-test")
     testImplementation("org.testcontainers:junit-jupiter")
     testImplementation("org.testcontainers:postgresql")
+    testImplementation(libs.system.stubs.jupiter)
+    testImplementation(libs.fixture.monkey.starter)
+    testImplementation(libs.fixture.monkey.datafaker)
+    testImplementation(libs.datafaker)
+
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-}
+    testCompileOnly("org.projectlombok:lombok")
 
-
-sonar {
-    properties {
-        property("sonar.exclusions", "**/model/**,**/exception/**,com.innowise.authservice.UserServiceApplication")
-        property("sonar.coverage.exclusions", "**/model/**,com.innowise.authservice.UserServiceApplication")
-    }
+    testAnnotationProcessor("org.projectlombok:lombok")
 }
 
 tasks.jacocoTestReport {
@@ -53,4 +70,13 @@ tasks.jacocoTestCoverageVerification {
             }
         }
     }
+}
+
+tasks.withType<Test> {
+    jvmArgs = listOf(
+        "-javaagent:${mockitoAgent.asPath}",
+        "--add-opens=java.base/java.time=ALL-UNNAMED",
+        "--add-opens=java.base/java.lang=ALL-UNNAMED",
+        "-XX:+EnableDynamicAgentLoading"
+    )
 }
