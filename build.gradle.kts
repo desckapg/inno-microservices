@@ -31,7 +31,7 @@ subprojects {
 
     java {
         toolchain {
-            languageVersion = JavaLanguageVersion.of(21)
+            languageVersion = JavaLanguageVersion.of(25)
         }
     }
 
@@ -55,6 +55,7 @@ subprojects {
 
     tasks.jacocoTestReport {
         reports {
+            html.required.set(true)
             xml.required.set(true)
         }
     }
