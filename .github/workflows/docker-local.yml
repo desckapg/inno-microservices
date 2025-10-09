@@ -1,0 +1,75 @@
+name: docker-local
+
+permissions:
+  contents: read
+  packages: write
+
+on:
+  workflow_run:
+    workflows: ['build-test-analyze-local']
+    types:
+      - completed
+
+jobs:
+  detect-services:
+    name: Detect Services
+    runs-on: ubuntu-latest
+    if: ${{ github.event.act }}
+    outputs:
+      matrix: ${{ steps.out.outputs.matrix }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@ff7abcd0c3c05ccf6adc123a8cd1fd4fb30fb493
+        with:
+          fetch-depth: 0
+
+      - name: Ensure jq
+        run: |
+          if ! command -v jq >/dev/null 2>&1; then
+            sudo apt-get update && sudo apt-get install -y jq
+          fi
+
+      - name: Build services matrix
+        id: out
+        shell: bash
+        run: |
+          SERVICES_RAW=$(grep -E "include\(|project\(" settings.gradle.kts | sed -E 's/.*["\x27:]([^"\x27]+)["\x27].*/\1/g' | sed 's/^://g' | sed '/^\s*$/d')
+          readarray -t SERVICES_ARRAY <<< "$SERVICES_RAW"
+          MATRIX_JSON=$(printf '%s\n' "${SERVICES_ARRAY[@]}" | jq -R . | jq -s . | jq -c .)
+          echo "matrix={\"service\":$MATRIX_JSON}" >> "$GITHUB_OUTPUT"
+
+  docker-build-local:
+    name: Build Docker images locally
+    needs: detect-services
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: ${{ fromJson(needs.detect-services.outputs.matrix) }}
+      fail-fast: false
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@ff7abcd0c3c05ccf6adc123a8cd1fd4fb30fb493
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@1583c0f09d26c58c59d25b0eef29792b7ce99d9a
+        with:
+          install: true
+
+      - name: Set local tag
+        id: tag
+        shell: bash
+        run: |
+          echo "tags=local/${{ matrix.service }}:local" >> "$GITHUB_OUTPUT"
+
+      - name: Build image and load to local Docker
+        uses: docker/build-push-action@cb8fc7586f9ad9441b20c33e0f6e8b1b58d8b4c6
+        with:
+          context: ${{ matrix.service }}/
+          file: ${{ matrix.service }}/Dockerfile
+          platforms: linux/amd64
+          push: false
+          load: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+      - name: Verify image exists
+        run: docker images | grep "local/${{ matrix.service }}"

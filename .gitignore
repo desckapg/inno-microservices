@@ -16,9 +16,9 @@ replay_pid*
 bin/
 build/
 .gradle
-gradle/
 .gradletasknamecache
 gradle-app.setting
+!gradle/wrapper/gradle-wrapper.jar
 
 ##############################
 ## IntelliJ
@@ -45,3 +45,4 @@ out/
 ## Other
 ##############################
 *HELP.md*
+.artifacts

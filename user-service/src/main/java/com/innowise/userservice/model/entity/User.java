@@ -82,5 +82,13 @@ public class User extends BaseEntity {
         .getPersistentClass().hashCode() : getClass().hashCode();
   }
 
+  public static final class Fields {
+
+    private Fields() {
+    }
+
+    public static final String EMAIL = "email";
+  }
+
 }
 

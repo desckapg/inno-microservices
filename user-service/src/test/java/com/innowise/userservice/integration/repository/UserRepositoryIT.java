@@ -4,10 +4,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.innowise.userservice.integration.AbstractIntegrationTest;
 import com.innowise.userservice.integration.annotation.JpaRepositoryIT;
+import com.innowise.userservice.model.entity.Card;
 import com.innowise.userservice.model.entity.User;
 import com.innowise.userservice.repository.UserRepository;
+import com.innowise.userservice.testutil.Cards;
+import com.innowise.userservice.testutil.Users;
 import java.util.List;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.Hibernate;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -19,10 +24,10 @@ import org.springframework.transaction.support.TransactionTemplate;
 @JpaRepositoryIT
 @RequiredArgsConstructor
 @TestInstance(Lifecycle.PER_CLASS)
-public class UserRepositoryIT extends AbstractIntegrationTest {
+class UserRepositoryIT extends AbstractIntegrationTest {
 
-  private Long userFixtureId;
-  private String userFixtureEmail;
+  private User userFixture;
+  private Card cardFixture;
 
   private final TestEntityManager entityManager;
   private final UserRepository userRepository;
@@ -30,21 +35,46 @@ public class UserRepositoryIT extends AbstractIntegrationTest {
 
   @BeforeAll
   void prepareFixtures() {
-    var userFixture = userWithoutCardsBuilder.build();
-    transactionTemplate.executeWithoutResult(status ->
-        entityManager.persistAndFlush(userFixture));
-    userFixtureId = userFixture.getId();
-    userFixtureEmail = userFixture.getEmail();
+    userFixture = Users.buildWithoutId();
+    cardFixture = Cards.buildWithoutId(userFixture);
+    transactionTemplate.executeWithoutResult(status -> {
+      entityManager.persistAndFlush(userFixture);
+    });
   }
 
   @AfterAll
   void cleanupFixtures() {
     transactionTemplate.executeWithoutResult(status -> {
-      var user = entityManager.find(User.class, userFixtureId);
-      if (user != null) {
-        entityManager.remove(user);
-      }
+      var user = entityManager.find(User.class, userFixture.getId());
+      entityManager.remove(Objects.requireNonNull(user));
     });
+  }
+
+  @Test
+  void findWithCardsById_whenUserExists_shouldReturnUserWithCards() {
+    assertThat(userRepository.findWithCardsById(userFixture.getId()))
+        .hasValueSatisfying(user -> {
+          assertThat(user).isEqualTo(userFixture);
+          assertThat(Hibernate.isInitialized(user.getCards()))
+              .isTrue();
+          assertThat(user.getCards())
+              .containsExactly(cardFixture);
+        });
+  }
+
+  @Test
+  void findAllByIdIn_whenUsersExist_shouldReturnUsers() {
+    assertThat(userRepository.findAllByIdIn(List.of(userFixture.getId())))
+        .containsExactly(userFixture)
+        .satisfiesExactly(user ->
+            assertThat(Hibernate.isInitialized(user.getCards())
+            ).isTrue());
+  }
+
+  @Test
+  void findUserWithCardsById_whenUserNotExists_shouldEmptyOptional() {
+    assertThat(userRepository.findWithCardsById(Long.MAX_VALUE))
+        .isEmpty();
   }
 
   @Test
@@ -57,20 +87,30 @@ public class UserRepositoryIT extends AbstractIntegrationTest {
 
   @Test
   void findByEmail_whenEmailExists_shouldReturnUserWithEmail() {
-    assertThat(userRepository.findByEmail(userFixtureEmail))
+    assertThat(userRepository.findByEmail(userFixture.getEmail()))
         .isPresent()
         .hasValueSatisfying(user -> {
-          assertThat(user.getEmail()).isEqualTo(userFixtureEmail);
-          assertThat(user.getId()).isEqualTo(userFixtureId);
+          assertThat(user).isEqualTo(userFixture);
+        });
+  }
+
+  @Test
+  void findWithCardsByEmail_whenEmailExists_shouldReturnUserWithEmail() {
+    assertThat(userRepository.findByEmail(userFixture.getEmail()))
+        .isPresent()
+        .hasValueSatisfying(user -> {
+          assertThat(Hibernate.isInitialized(user.getCards()));
+          assertThat(user).isEqualTo(userFixture);
+          assertThat(user.getCards())
+              .containsExactly(cardFixture);
         });
   }
 
   @Test
   void findAllByIdIn_whenIdsExist_shouldReturnMatchingUsers() {
-    assertThat(userRepository.findAllByIdIn(List.of(userFixtureId)))
+    assertThat(userRepository.findAllByIdIn(List.of(userFixture.getId())))
         .hasSize(1)
-        .extracting(User::getId)
-        .containsExactly(userFixtureId);
+        .containsExactly(userFixture);
   }
 
   @Test
@@ -89,12 +129,11 @@ public class UserRepositoryIT extends AbstractIntegrationTest {
 
   @Test
   void findAllByIdIn_whenMixedIds_shouldReturnOnlyExistingUsers() {
-    var mixedIds = List.of(userFixtureId, 999L);
+    var mixedIds = List.of(userFixture.getId(), 999L);
 
     assertThat(userRepository.findAllByIdIn(mixedIds))
         .hasSize(1)
-        .extracting(User::getId)
-        .containsExactlyInAnyOrder(userFixtureId);
+        .containsExactly(userFixture);
 
   }
 }
