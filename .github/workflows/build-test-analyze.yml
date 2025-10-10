@@ -27,7 +27,7 @@ jobs:
         run: |
           SERVICES_RAW=$(grep -E "include\(|project\(" settings.gradle.kts | sed -E 's/.*["\x27:]([^"\x27]+)["\x27].*/\1/g' | sed 's/^://g' | sed '/^\s*$/d')
           # Exclude modules that must not be built into Docker images
-          SERVICES_FILTERED=$(printf '%s\n' "$SERVICES_RAW" | grep -v -E '^(auth-spring-boot-starter)$' || true)
+          SERVICES_FILTERED=$(printf '%s\n' "$SERVICES_RAW" | grep -v -E '^(auth-spring-boot-starter)|(common)$' || true)
           
           readarray -t SERVICES_ARRAY <<< "$SERVICES_FILTERED"
           
@@ -178,7 +178,7 @@ jobs:
       - name: Download all test results
         uses: actions/download-artifact@4a24838f3d5601fd639834081e118c2995d51e1c
         with:
-          pattern: "*-build-artifacts"
+          pattern: "*-test-results"
           path: .
           merge-multiple: true
 

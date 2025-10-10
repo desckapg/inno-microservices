@@ -13,10 +13,6 @@ configurations {
     }
 }
 
-repositories {
-    mavenCentral()
-}
-
 dependencyManagement {
     imports {
         mavenBom("org.springframework.boot:spring-boot-dependencies:4.0.0-M3")
@@ -41,11 +37,9 @@ tasks.withType<Test> {
     useJUnitPlatform()
 }
 
-// Отключаем задачу bootJar если она есть
 tasks.findByName("bootJar")?.enabled = false
 
-// Включаем обычный jar
 tasks.jar {
     enabled = true
-    archiveClassifier.set("") // Убираем classifier
+    archiveClassifier.set("")
 }

@@ -4,3 +4,9 @@ dependencies {
     compileOnly(libs.lombok)
     annotationProcessor(libs.lombok)
 }
+
+sonar {
+    properties {
+        property("sonar.sources", "src/main/java")
+    }
+}
