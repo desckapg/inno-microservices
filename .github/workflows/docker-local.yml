@@ -34,7 +34,11 @@ jobs:
         shell: bash
         run: |
           SERVICES_RAW=$(grep -E "include\(|project\(" settings.gradle.kts | sed -E 's/.*["\x27:]([^"\x27]+)["\x27].*/\1/g' | sed 's/^://g' | sed '/^\s*$/d')
-          readarray -t SERVICES_ARRAY <<< "$SERVICES_RAW"
+          # Exclude modules that must not be built into Docker images
+          SERVICES_FILTERED=$(printf '%s\n' "$SERVICES_RAW" | grep -v -E '^(auth-spring-boot-starter)$' || true)
+          readarray -t SERVICES_ARRAY <<< "$SERVICES_FILTERED"
+          echo "All services to build (filtered):"
+          printf '%s\n' "${SERVICES_ARRAY[@]}"
           MATRIX_JSON=$(printf '%s\n' "${SERVICES_ARRAY[@]}" | jq -R . | jq -s . | jq -c .)
           echo "matrix={\"service\":$MATRIX_JSON}" >> "$GITHUB_OUTPUT"
 

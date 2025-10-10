@@ -1,17 +1,11 @@
 plugins {
-    java
-    id("org.springframework.boot") version "4.0.0-M3"
+    `java-library`
     id("io.spring.dependency-management") version "1.1.7"
+
 }
 
 version = "0.0.1-SNAPSHOT"
 description = "auth-spring-boot-starter"
-
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(25)
-    }
-}
 
 configurations {
     compileOnly {
@@ -23,19 +17,35 @@ repositories {
     mavenCentral()
 }
 
+dependencyManagement {
+    imports {
+        mavenBom("org.springframework.boot:spring-boot-dependencies:4.0.0-M3")
+    }
+}
+
 dependencies {
-    implementation("org.springframework.boot:spring-boot-starter-security")
-    implementation("org.springframework.boot:spring-boot-starter-webmvc")
+    compileOnly("org.springframework.boot:spring-boot-starter")
+    compileOnly("org.springframework.boot:spring-boot-starter-security")
+    compileOnly("org.springframework.boot:spring-boot-starter-web")
+    compileOnly("org.springframework.boot:spring-boot-autoconfigure")
+    compileOnly("org.projectlombok:lombok")
+
     implementation(libs.java.jwt)
-    implementation("org.projectlombok:lombok")
 
     annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
+    annotationProcessor("org.projectlombok:lombok")
 
-    testImplementation("org.springframework.boot:spring-boot-starter-test")
-    testImplementation("org.springframework.security:spring-security-test")
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
 tasks.withType<Test> {
     useJUnitPlatform()
+}
+
+// Отключаем задачу bootJar если она есть
+tasks.findByName("bootJar")?.enabled = false
+
+// Включаем обычный jar
+tasks.jar {
+    enabled = true
+    archiveClassifier.set("") // Убираем classifier
 }

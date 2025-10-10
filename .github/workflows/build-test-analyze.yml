@@ -5,7 +5,7 @@ on:
     branches: [ '**' ]
 
 env:
-  JAVA_VERSION: '21'
+  JAVA_VERSION: '25'
   SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
 jobs:
@@ -25,7 +25,7 @@ jobs:
       - name: Detect changed services
         id: changes
         run: |
-          SERVICES_RAW=$(grep -E "include\(|project\(" settings.gradle.kts | sed -E 's/.*["\x27:]([^"\x27]+)["\x27].*/\1/g' | sed 's/^://g')
+          SERVICES_RAW=$(grep -E "include\(|project\(" settings.gradle.kts | sed -E 's/.*["\x27:]([^"\x27]+)["\x27].*/\1/g' | sed 's/^://g' | sed '/^\s*$/d')
           
           readarray -t SERVICES_ARRAY <<< "$SERVICES_RAW"
           

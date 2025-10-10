@@ -14,11 +14,14 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-cache")
     implementation("org.springframework.boot:spring-boot-starter-data-redis")
     implementation("org.springframework.boot:spring-boot-starter-liquibase")
+    implementation("org.springframework.boot:spring-boot-starter-security")
+    implementation(project(":auth-spring-boot-starter"))
     implementation(libs.mapstruct)
 
     // Jackson 2 dependency due to the GenericJackson3JsonRedisSerializer requirement
     // For some reason spring-data-redis 4.0.0-M6 don't provide it as transitive dependency
     implementation(libs.jackson2.core)
+    implementation("org.springframework.boot:spring-boot-starter-actuator")
 
     compileOnly("org.projectlombok:lombok")
 

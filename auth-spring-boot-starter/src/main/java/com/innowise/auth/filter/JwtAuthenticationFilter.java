@@ -13,7 +13,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import org.jspecify.annotations.NullMarked;
@@ -25,7 +24,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 @NullMarked
-public class JwtExtractorFilter extends OncePerRequestFilter {
+public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
   private static final String USER_SERVICE_ID_CLAIM = "userId";
   private static final String USER_ROLES_CLAIM = "roles";
@@ -91,10 +90,9 @@ public class JwtExtractorFilter extends OncePerRequestFilter {
   }
 
   private Collection<GrantedAuthority> extractAuthorities(DecodedJWT jwt) {
-    Object rolesClaim = jwt.getClaims().get(USER_ROLES_CLAIM);
-    if (rolesClaim instanceof Collection<?> c) {
-      return c.stream()
-          .filter(Objects::nonNull)
+    var rolesClaim = jwt.getClaims().get(USER_ROLES_CLAIM).asList(String.class);
+    if (rolesClaim != null) {
+      return rolesClaim.stream()
           .map(Object::toString)
           .map(String::trim)
           .filter(s -> !s.isEmpty())

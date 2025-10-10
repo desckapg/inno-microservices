@@ -5,7 +5,7 @@ on:
     branches: [ '**' ]
 
 env:
-  JAVA_VERSION: '21'
+  JAVA_VERSION: '25'
   GRADLE_VERSION: '8.14.3'
   TESTCONTAINERS_RYUK_DISABLED: true
   TESTCONTAINERS_HOST_OVERRIDE: host.docker.internal
@@ -28,7 +28,7 @@ jobs:
       - name: Detect changed services
         id: changes
         run: |
-          SERVICES_RAW=$(grep -E "include\(|project\(" settings.gradle.kts | sed -E 's/.*["\x27:]([^"\x27]+)["\x27].*/\1/g' | sed 's/^://g')
+          SERVICES_RAW=$(grep -E "include\(|project\(" settings.gradle.kts | sed -E 's/.*["\x27:]([^"\x27]+)["\x27].*/\1/g' | sed 's/^://g' | sed '/^\s*$/d')
           
           readarray -t SERVICES_ARRAY <<< "$SERVICES_RAW"
           
@@ -60,7 +60,7 @@ jobs:
             fi
           fi
           
-          echo 'matrix={"service":["user-service"]}' >> $GITHUB_OUTPUT
+          echo 'matrix={"service":["user-service", "auth-service"]}' >> $GITHUB_OUTPUT
           echo 'has-changed=true' >> $GITHUB_OUTPUT
   #          if [ ${#CHANGED_SERVICES[@]} -gt 0 ]; then
   #            MATRIX_JSON=$(printf '%s\n' "${CHANGED_SERVICES[@]}" | jq -R . | jq -s . | jq -c .)

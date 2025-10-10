@@ -13,6 +13,7 @@ import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -77,6 +78,10 @@ public class UserController {
    * @return user data
    */
   @GetMapping("/{id}")
+  @PreAuthorize(
+      "hasAuthority(T(com.innowise.auth.model.Role).USER.getAuthority()) and #id == authentication.principal.id or " +
+      "hasAuthority(T(com.innowise.auth.model.Role).MANAGER.getAuthority())"
+  )
   public ResponseEntity<UserDto> findById(@PathVariable Long id) {
     return ResponseEntity.ok(userService.findById(id));
   }
@@ -87,6 +92,7 @@ public class UserController {
    * @return created user
    */
   @PostMapping
+  @PreAuthorize("hasAuthority(T(com.innowise.auth.model.Role).MANAGER.getAuthority())")
   public ResponseEntity<UserDto> create(@RequestBody @Validated(OnCreate.class) UserDto dto) {
     return ResponseEntity.status(HttpStatus.CREATED).body(userService.create(dto));
   }
@@ -98,6 +104,7 @@ public class UserController {
    * @return updated user
    */
   @PutMapping("/{id}")
+  @PreAuthorize("hasAuthority(T(com.innowise.auth.model.Role).MANAGER.getAuthority())")
   public ResponseEntity<UserDto> update(
       @PathVariable Long id,
       @RequestBody @Validated(OnUpdate.class) UserDto dto) {
@@ -110,6 +117,7 @@ public class UserController {
    * @return 204 No Content on success
    */
   @DeleteMapping("/{id}")
+  @PreAuthorize("hasAuthority(T(com.innowise.auth.model.Role).MANAGER.getAuthority())")
   public ResponseEntity<Void> delete(@PathVariable Long id) {
     userService.delete(id);
     return ResponseEntity.noContent().build();
@@ -121,6 +129,10 @@ public class UserController {
    * @return list of user's cards
    */
   @GetMapping("/{userId}/cards")
+  @PreAuthorize(
+      "hasAuthority(T(com.innowise.auth.model.Role).USER.getAuthority()) and #userId == authentication.principal.id or " +
+      "hasAuthority(T(com.innowise.auth.model.Role).MANAGER.getAuthority())"
+  )
   public ResponseEntity<List<CardDto>> findUserCards(@PathVariable Long userId) {
     return ResponseEntity.ok(cardService.findUserCards(userId));
   }

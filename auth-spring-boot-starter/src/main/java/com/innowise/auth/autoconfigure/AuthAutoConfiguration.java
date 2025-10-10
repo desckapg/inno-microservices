@@ -1,6 +1,6 @@
 package com.innowise.auth.autoconfigure;
 
-import com.innowise.auth.filter.JwtExtractorFilter;
+import com.innowise.auth.filter.JwtAuthenticationFilter;
 import com.innowise.auth.model.Role;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -11,6 +11,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.context.SecurityContextHolderFilter;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -20,7 +22,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 @ConditionalOnClass({
     OncePerRequestFilter.class,
     SecurityFilterChain.class,
-    JwtExtractorFilter.class
+    JwtAuthenticationFilter.class
 })
 @ConditionalOnBean({
     HttpSecurity.class,
@@ -38,14 +40,19 @@ public class AuthAutoConfiguration {
   }
 
   @Bean
-  @ConditionalOnMissingBean
-  public JwtExtractorFilter jwtExtractorFilter() {
-    return new JwtExtractorFilter();
+  public UserDetailsService userDetailsService() {
+    return new InMemoryUserDetailsManager();
   }
 
   @Bean
   @ConditionalOnMissingBean
-  public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http, JwtExtractorFilter filter) throws Exception {
+  public JwtAuthenticationFilter jwtExtractorFilter() {
+    return new JwtAuthenticationFilter();
+  }
+
+  @Bean
+  @ConditionalOnMissingBean
+  public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http, JwtAuthenticationFilter filter) throws Exception {
     http.addFilterBefore(filter, SecurityContextHolderFilter.class);
     return http.build();
   }
