@@ -6,8 +6,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-import com.innowise.authservice.exception.ResourceAlreadyExistsException;
-import com.innowise.authservice.exception.ResourceNotFoundException;
 import com.innowise.authservice.integration.AbstractIntegrationTest;
 import com.innowise.authservice.integration.annotation.IT;
 import com.innowise.authservice.model.dto.credential.CredentialDto;
@@ -17,6 +15,8 @@ import com.innowise.authservice.model.entity.User;
 import com.innowise.authservice.model.mapper.UserMapper;
 import com.innowise.authservice.repository.UserRepository;
 import com.innowise.authservice.service.UserService;
+import com.innowise.common.exception.ResourceAlreadyExistsException;
+import com.innowise.common.exception.ResourceNotFoundException;
 import com.navercorp.fixturemonkey.FixtureMonkey;
 import com.navercorp.fixturemonkey.api.introspector.BuilderArbitraryIntrospector;
 import com.navercorp.fixturemonkey.api.introspector.FailoverIntrospector;

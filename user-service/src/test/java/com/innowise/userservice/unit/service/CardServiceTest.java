@@ -9,8 +9,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.innowise.userservice.cache.CacheHelper;
-import com.innowise.userservice.exception.ResourceAlreadyExistsException;
-import com.innowise.userservice.exception.ResourceNotFoundException;
+import com.innowise.common.exception.ResourceAlreadyExistsException;
+import com.innowise.common.exception.ResourceNotFoundException;
 import com.innowise.userservice.model.dto.card.CardDto;
 import com.innowise.userservice.model.entity.Card;
 import com.innowise.userservice.model.mapper.CardMapper;

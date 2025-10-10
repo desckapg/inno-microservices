@@ -2,7 +2,6 @@ package com.innowise.authservice.service;
 
 import com.innowise.authservice.model.dto.credential.CredentialDto;
 import com.innowise.authservice.model.dto.token.TokenDto;
-import org.jspecify.annotations.NullMarked;
 
 /**
  * Provides operations for issuing, refreshing, and validating tokens.

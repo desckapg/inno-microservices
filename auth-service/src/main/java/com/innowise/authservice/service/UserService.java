@@ -1,8 +1,8 @@
 package com.innowise.authservice.service;
 
-import com.innowise.authservice.exception.ResourceNotFoundException;
 import com.innowise.authservice.model.dto.credential.CredentialDto;
 import com.innowise.authservice.model.dto.user.UserDto;
+import com.innowise.common.exception.ResourceNotFoundException;
 import org.jspecify.annotations.NullMarked;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;

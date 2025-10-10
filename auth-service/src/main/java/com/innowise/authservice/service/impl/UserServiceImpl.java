@@ -1,8 +1,6 @@
 package com.innowise.authservice.service.impl;
 
 import com.innowise.authservice.exception.AuthFailedException;
-import com.innowise.authservice.exception.ResourceAlreadyExistsException;
-import com.innowise.authservice.exception.ResourceNotFoundException;
 import com.innowise.authservice.model.dto.credential.CredentialDto;
 import com.innowise.authservice.model.dto.user.UserDto;
 import com.innowise.authservice.model.entity.Credentials;
@@ -11,6 +9,8 @@ import com.innowise.authservice.model.entity.User;
 import com.innowise.authservice.model.mapper.UserMapper;
 import com.innowise.authservice.repository.UserRepository;
 import com.innowise.authservice.service.UserService;
+import com.innowise.common.exception.ResourceAlreadyExistsException;
+import com.innowise.common.exception.ResourceNotFoundException;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.NullMarked;

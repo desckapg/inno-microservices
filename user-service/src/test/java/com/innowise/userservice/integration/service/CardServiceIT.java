@@ -8,8 +8,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import com.innowise.userservice.cache.CacheHelper;
-import com.innowise.userservice.exception.ResourceAlreadyExistsException;
-import com.innowise.userservice.exception.ResourceNotFoundException;
+import com.innowise.common.exception.ResourceAlreadyExistsException;
+import com.innowise.common.exception.ResourceNotFoundException;
 import com.innowise.userservice.integration.AbstractIntegrationTest;
 import com.innowise.userservice.integration.annotation.ServiceIT;
 import com.innowise.userservice.model.dto.card.CardDto;

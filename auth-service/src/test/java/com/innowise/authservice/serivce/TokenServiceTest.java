@@ -9,13 +9,13 @@ import static org.mockito.Mockito.when;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.innowise.authservice.exception.AuthFailedException;
-import com.innowise.authservice.exception.ResourceNotFoundException;
 import com.innowise.authservice.exception.TokenException;
 import com.innowise.authservice.exception.TokenException.TokenErrorCode;
 import com.innowise.authservice.model.dto.credential.CredentialDto;
 import com.innowise.authservice.model.dto.user.UserDto;
 import com.innowise.authservice.service.impl.TokenServiceImpl;
 import com.innowise.authservice.service.impl.UserServiceImpl;
+import com.innowise.common.exception.ResourceNotFoundException;
 import com.navercorp.fixturemonkey.FixtureMonkey;
 import com.navercorp.fixturemonkey.api.introspector.ConstructorPropertiesArbitraryIntrospector;
 import com.navercorp.fixturemonkey.api.jqwik.JavaTypeArbitraryGenerator;
@@ -47,15 +47,18 @@ class TokenServiceTest {
   private static final int TEST_ACCESS_EXPIRATION = 900;
   private static final int TEST_REFRESH_EXPIRATION = 604800;
 
-  private static final FixtureMonkey sut = FixtureMonkey.builder()
+  private static final FixtureMonkey SUT = FixtureMonkey.builder()
       .plugin(new JqwikPlugin().javaTypeArbitraryGenerator(new JavaTypeArbitraryGenerator() {
         @Override
         public LongArbitrary longs() {
           return Arbitraries.longs().greaterOrEqual(1);
         }
-      })).objectIntrospector(ConstructorPropertiesArbitraryIntrospector.INSTANCE)
-      .defaultNotNull(true).nullableContainer(false).nullableElement(false)
-      .defaultNullInjectGenerator(_ -> 0.0).build();
+      }))
+      .objectIntrospector(ConstructorPropertiesArbitraryIntrospector.INSTANCE)
+      .defaultNotNull(true)
+      .nullableContainer(false)
+      .nullableElement(false)
+      .build();
 
   @SystemStub
   private final EnvironmentVariables envVariables = new EnvironmentVariables();
@@ -91,8 +94,8 @@ class TokenServiceTest {
 
   @Test
   void createTokens_whenUserValid_shouldReturnPairsOfTokens() {
-    var credentialDto = sut.giveMeOne(CredentialDto.class);
-    var userDto = sut.giveMeBuilder(UserDto.class).set("login", credentialDto.login())
+    var credentialDto = SUT.giveMeOne(CredentialDto.class);
+    var userDto = SUT.giveMeBuilder(UserDto.class).set("login", credentialDto.login())
         .set("password", credentialDto.password()).sample();
 
     when(userService.findByLoginAndPassword(credentialDto.login(),
@@ -114,7 +117,7 @@ class TokenServiceTest {
 
   @Test
   void createTokens_whenUserInvalid_shouldReturnPairsOfTokens() {
-    var credentialDto = sut.giveMeOne(CredentialDto.class);
+    var credentialDto = SUT.giveMeOne(CredentialDto.class);
 
     when(userService.findByLoginAndPassword(credentialDto.login(),
         credentialDto.password())).thenThrow(new AuthFailedException());
@@ -126,7 +129,7 @@ class TokenServiceTest {
 
   @Test
   void refreshAccessToken_whenTokenSignedByAnotherKey_shouldThrowTokenException() {
-    var userDto = sut.giveMeOne(UserDto.class);
+    var userDto = SUT.giveMeOne(UserDto.class);
 
     String refreshToken = createRefreshToken(userDto.id());
 
@@ -137,12 +140,12 @@ class TokenServiceTest {
 
   @Test
   void refreshAccessToken_whenTokenValidAndUserNotExists_shouldThrowAuthFailedException() {
-    var userDto = sut.giveMeOne(UserDto.class);
+    var userDto = SUT.giveMeOne(UserDto.class);
 
     String refreshToken = createRefreshToken(userDto.id());
 
-    when(userService.findById(userDto.id())).thenThrow(
-        sut.giveMeOne(ResourceNotFoundException.class));
+    when(userService.findById(userDto.id()))
+        .thenThrow(ResourceNotFoundException.byId("User", userDto.id()));
 
     assertThatException().isThrownBy(() -> tokenService.refreshAccessToken(refreshToken))
         .isInstanceOf(AuthFailedException.class);
@@ -150,7 +153,7 @@ class TokenServiceTest {
 
   @Test
   void refreshAccessToken_whenTokenExpired_shouldThrowTokenException() {
-    var userDto = sut.giveMeOne(UserDto.class);
+    var userDto = SUT.giveMeOne(UserDto.class);
 
     envVariables.set("JWT_REFRESH_EXPIRATION", 0);
 
@@ -162,7 +165,7 @@ class TokenServiceTest {
 
   @Test
   void refreshAccessToken_whenTokenValidAndUserExists_shouldReturnNewAccessToken() {
-    var userDto = sut.giveMeOne(UserDto.class);
+    var userDto = SUT.giveMeOne(UserDto.class);
 
     String refreshToken = createRefreshToken(userDto.id());
 
@@ -181,7 +184,7 @@ class TokenServiceTest {
   @Test
   void validateAccessToken_whenTokenValid_shouldThrowNoExceptions() {
 
-    var userDto = sut.giveMeOne(UserDto.class);
+    var userDto = SUT.giveMeOne(UserDto.class);
     String accessToken = createAccessToken(userDto.id(), userDto.userId(), userDto.roles());
 
     assertThatNoException().isThrownBy(() -> tokenService.validateAccessToken(accessToken));
@@ -190,7 +193,7 @@ class TokenServiceTest {
   @Test
   void validateAccessToken_whenTokenSignedByAnotherKey_shouldThrowNoExceptions() {
 
-    var userDto = sut.giveMeOne(UserDto.class);
+    var userDto = SUT.giveMeOne(UserDto.class);
 
     envVariables.set("JWT_ACCESS_KEY", TEST_ANOTHER_ACCESS_KEY);
     String accessToken = createAccessToken(userDto.id(), userDto.userId(), userDto.roles());
@@ -204,7 +207,7 @@ class TokenServiceTest {
   @Test
   void validateAccessToken_whenTokenExpired_shouldThrowNoExceptions() {
 
-    var userDto = sut.giveMeOne(UserDto.class);
+    var userDto = SUT.giveMeOne(UserDto.class);
 
     envVariables.set("JWT_EXPIRATION", 0);
 

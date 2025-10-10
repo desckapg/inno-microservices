@@ -1,5 +1,7 @@
 package com.innowise.userservice.exception;
 
+import com.innowise.common.exception.ResourceAlreadyExistsException;
+import com.innowise.common.exception.ResourceNotFoundException;
 import com.innowise.userservice.model.dto.ErrorDto;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.Comparator;

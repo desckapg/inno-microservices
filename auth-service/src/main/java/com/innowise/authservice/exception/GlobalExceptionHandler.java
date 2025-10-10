@@ -1,6 +1,8 @@
 package com.innowise.authservice.exception;
 
 import com.innowise.authservice.model.dto.ErrorDto;
+import com.innowise.common.exception.ResourceAlreadyExistsException;
+import com.innowise.common.exception.ResourceNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.Comparator;
 import java.util.List;

@@ -8,6 +8,7 @@ description = "auth-service"
 
 val mockitoAgent = configurations.create("mockitoAgent")
 dependencies {
+    implementation(project(":common"))
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.springframework.boot:spring-boot-starter-liquibase")
     implementation("org.springframework.boot:spring-boot-starter-web")
@@ -48,6 +49,18 @@ dependencies {
 
     testAnnotationProcessor("org.projectlombok:lombok")
 }
+
+sonar {
+        properties {
+            property("sonar.sources", "src/main/java")
+            property("sonar.tests", "src/test/java")
+            property(
+                "sonar.coverage.jacoco.xmlReportPaths",
+                "build/reports/jacoco/test/jacocoTestReport.xml"
+            )
+            property("sonar.projectKey", "desckapg_inno-microservices_${project.name}")
+        }
+    }
 
 tasks.jacocoTestReport {
     classDirectories.setFrom(
