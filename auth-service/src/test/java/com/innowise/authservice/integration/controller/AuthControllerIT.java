@@ -1,8 +1,7 @@
 package com.innowise.authservice.integration.controller;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.head;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -36,9 +35,9 @@ import tools.jackson.databind.ObjectMapper;
 @IT
 @RequiredArgsConstructor
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class TokenControllerIT extends AbstractIntegrationTest {
+class AuthControllerIT extends AbstractIntegrationTest {
 
-  private static final String BASE_URL = "/api/v1/auth/tokens";
+  private static final String BASE_URL = "/api/v1/auth";
 
   private static final Faker FAKER = new Faker();
 
@@ -130,12 +129,12 @@ class TokenControllerIT extends AbstractIntegrationTest {
 
   @ParameterizedTest(name = "{index}: {2}")
   @MethodSource("invalidCredentialDtos")
-  void create_invalidCredentials_returnUnprocessableStatus(CredentialDto credentials, String field,
+  void login_invalidCredentials_returnUnprocessableStatus(CredentialDto credentials, String field,
       String expectedError)
       throws Exception {
 
     String body = objectMapper.writeValueAsString(credentials);
-    mockMvc.perform(post(BASE_URL)
+    mockMvc.perform(post(BASE_URL + "/login")
             .contentType("application/json")
             .content(body))
         .andExpect(status().isUnprocessableContent())
@@ -144,7 +143,7 @@ class TokenControllerIT extends AbstractIntegrationTest {
   }
 
   @Test
-  void create_validCredentialsButUserNotExists_returnUnauthorizedStatus() throws Exception {
+  void login_validCredentialsButUserNotExists_returnUnauthorizedStatus() throws Exception {
 
     var user = sut.giveMeOne(User.class);
     em.persistAndFlush(user);
@@ -156,7 +155,7 @@ class TokenControllerIT extends AbstractIntegrationTest {
         .build();
 
     String body = objectMapper.writeValueAsString(credentialDto);
-    mockMvc.perform(post(BASE_URL)
+    mockMvc.perform(post(BASE_URL + "/login")
             .contentType("application/json")
             .content(body))
         .andExpect(status().isUnauthorized());
@@ -164,7 +163,7 @@ class TokenControllerIT extends AbstractIntegrationTest {
   }
 
   @Test
-  void create_validCredentialsAndUserExists_returnTokens() throws Exception {
+  void login_validCredentialsAndUserExists_returnTokens() throws Exception {
 
     var password = FAKER.credentials().password();
 
@@ -185,7 +184,7 @@ class TokenControllerIT extends AbstractIntegrationTest {
         .build();
 
     String body = objectMapper.writeValueAsString(credentialDto);
-    mockMvc.perform(post(BASE_URL)
+    mockMvc.perform(post(BASE_URL + "/login")
             .contentType("application/json")
             .content(body))
         .andExpect(status().isOk())
@@ -195,7 +194,7 @@ class TokenControllerIT extends AbstractIntegrationTest {
 
   @Test
   void refresh_refreshTokenNotProvided_returnBadRequest() throws Exception {
-    mockMvc.perform(put(BASE_URL))
+    mockMvc.perform(post(BASE_URL + "/refresh"))
         .andExpect(status().isBadRequest());
   }
 
@@ -222,7 +221,7 @@ class TokenControllerIT extends AbstractIntegrationTest {
 
     var tokens = tokenService.createTokens(credentialDto);
 
-    mockMvc.perform(put(BASE_URL)
+    mockMvc.perform(post(BASE_URL + "/refresh")
             .header("X-Refresh-Token", tokens.refreshToken()))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.accessToken").exists());
@@ -230,7 +229,7 @@ class TokenControllerIT extends AbstractIntegrationTest {
 
   @Test
   void validate_accessNotProvided_returnBadRequest() throws Exception {
-    mockMvc.perform(head(BASE_URL))
+    mockMvc.perform(get(BASE_URL + "/validate"))
         .andExpect(status().isBadRequest());
   }
 
@@ -257,7 +256,7 @@ class TokenControllerIT extends AbstractIntegrationTest {
 
     var tokens = tokenService.createTokens(credentialDto);
 
-    mockMvc.perform(head(BASE_URL)
+    mockMvc.perform(get(BASE_URL + "/validate")
             .header(HttpHeaders.AUTHORIZATION, "Bearer " + tokens.accessToken()))
         .andExpect(status().isOk());
   }
