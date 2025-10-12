@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.NullMarked;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -39,6 +40,7 @@ public class CardController {
    * @return list of cards
    */
   @GetMapping
+  @PreAuthorize("hasAuthority(T(com.innowise.auth.model.Role).MANAGER.getAuthority())")
   public ResponseEntity<List<CardDto>> findAll(@RequestParam(name = "ids", defaultValue = "") List<Long> ids) {
     if (ids.isEmpty()) {
       return ResponseEntity.ok(cardService.findAll());
@@ -53,6 +55,7 @@ public class CardController {
    * @return created card with generated id
    */
   @PostMapping
+  @PreAuthorize("hasAuthority(T(com.innowise.auth.model.Role).MANAGER.getAuthority())")
   public ResponseEntity<CardDto> create(@RequestBody @Validated({OnCreate.class}) CardDto dto) {
     return ResponseEntity.status(HttpStatus.CREATED)
         .body(cardService.create(dto));
@@ -65,6 +68,7 @@ public class CardController {
    * @return updated card
    */
   @PutMapping("/{id}")
+  @PreAuthorize("hasAuthority(T(com.innowise.auth.model.Role).MANAGER.getAuthority())")
   public ResponseEntity<CardDto> update(
       @PathVariable Long id,
       @RequestBody @Validated({OnUpdate.class}) CardDto dto
@@ -78,6 +82,7 @@ public class CardController {
    * @return 204 No Content on success
    */
   @DeleteMapping("/{id}")
+  @PreAuthorize("hasAuthority(T(com.innowise.auth.model.Role).MANAGER.getAuthority())")
   public ResponseEntity<Void> delete(@PathVariable Long id) {
     cardService.delete(id);
     return ResponseEntity.noContent().build();
@@ -89,6 +94,7 @@ public class CardController {
    * @return card data
    */
   @GetMapping("/{id}")
+  @PreAuthorize("hasAuthority(T(com.innowise.auth.model.Role).MANAGER.getAuthority())")
   public ResponseEntity<CardDto> findById(@PathVariable Long id) {
     return ResponseEntity.ok(cardService.findById(id));
   }

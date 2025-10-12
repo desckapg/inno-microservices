@@ -1,4 +1,4 @@
-package com.innowise.userservice.exception;
+package com.innowise.common.exception;
 
 import java.io.Serial;
 import lombok.Getter;

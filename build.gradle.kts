@@ -19,19 +19,13 @@ subprojects {
 
     sonar {
         properties {
-            property("sonar.sources", "src/main/java")
-            property("sonar.tests", "src/test/java")
-            property(
-                "sonar.coverage.jacoco.xmlReportPaths",
-                "build/reports/jacoco/test/jacocoTestReport.xml"
-            )
             property("sonar.projectKey", "desckapg_inno-microservices_${project.name}")
         }
     }
 
     java {
         toolchain {
-            languageVersion = JavaLanguageVersion.of(21)
+            languageVersion = JavaLanguageVersion.of(25)
         }
     }
 
@@ -55,6 +49,7 @@ subprojects {
 
     tasks.jacocoTestReport {
         reports {
+            html.required.set(true)
             xml.required.set(true)
         }
     }
@@ -64,13 +59,12 @@ sonar {
     properties {
         property("sonar.projectKey", "desckapg_inno-microservices")
         property("sonar.organization", "desckapg")
-        property("sonar.scm.disabled", "true")
-
     }
 }
 
 tasks.sonar {
     dependsOn(":user-service:build")
+    dependsOn(":auth-service:build")
 }
 
 tasks.withType<Wrapper> {

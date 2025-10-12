@@ -1,5 +1,7 @@
 package com.innowise.userservice.exception;
 
+import com.innowise.common.exception.ResourceAlreadyExistsException;
+import com.innowise.common.exception.ResourceNotFoundException;
 import com.innowise.userservice.model.dto.ErrorDto;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.Comparator;
@@ -11,6 +13,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -51,6 +54,12 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
       ResourceAlreadyExistsException ex, HttpServletRequest request) {
     return ResponseEntity.status(HttpStatus.CONFLICT)
         .body(ErrorDto.alreadyExists(ex.getMessage(), request.getRequestURI()));
+  }
+
+  @ExceptionHandler(value = {AuthorizationDeniedException.class})
+  public ResponseEntity<Void> handeAuthorizationDeniedException(
+      AuthorizationDeniedException ex, HttpServletRequest request) {
+    return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
   }
 
   @Override

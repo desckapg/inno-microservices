@@ -2,9 +2,23 @@
 mapstruct="1.6.3"
 mockito="5.19.0"
 jackson2-core="2.20.0-rc1"
+java-jwt="4.5.0"
+sytstem-stubs-jupiter="2.1.8"
+fixture-monkey-starter="1.1.15"
+fixture-monkey-datafaker="1.1.15"
+datafaker="2.5.1"
+bcrypt="0.10.2"
+lombok="1.18.42"
 
 [libraries]
 mockito = {module = "org.mockito:mockito-core", version.ref = "mockito"}
 mapstruct = { module = "org.mapstruct:mapstruct", version.ref = "mapstruct" }
 mapstruct-processor = { module = "org.mapstruct:mapstruct-processor", version.ref = "mapstruct" }
 jackson2-core = { module = "com.fasterxml.jackson.core:jackson-core", version.ref = "jackson2-core" }
+java-jwt = { module = "com.auth0:java-jwt", version.ref = "java-jwt" }
+system-stubs-jupiter = { module = "uk.org.webcompere:system-stubs-jupiter", version.ref = "sytstem-stubs-jupiter" }
+fixture-monkey-starter = { module = "com.navercorp.fixturemonkey:fixture-monkey-starter", version.ref = "fixture-monkey-starter" }
+fixture-monkey-datafaker = { module = "com.navercorp.fixturemonkey:fixture-monkey-datafaker", version.ref = "fixture-monkey-datafaker" }
+datafaker = {module = "net.datafaker:datafaker", version.ref = "datafaker"}
+bcrypt = {module = "at.favre.lib:bcrypt", version.ref = "bcrypt"}
+lombok = {module = "org.projectlombok:lombok", version.ref = "lombok"}

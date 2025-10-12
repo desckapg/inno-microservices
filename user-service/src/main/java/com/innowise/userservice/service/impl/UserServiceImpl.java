@@ -1,8 +1,8 @@
 package com.innowise.userservice.service.impl;
 
 import com.innowise.userservice.cache.CacheHelper;
-import com.innowise.userservice.exception.ResourceAlreadyExistsException;
-import com.innowise.userservice.exception.ResourceNotFoundException;
+import com.innowise.common.exception.ResourceAlreadyExistsException;
+import com.innowise.common.exception.ResourceNotFoundException;
 import com.innowise.userservice.model.dto.user.UserDto;
 import com.innowise.userservice.model.entity.User;
 import com.innowise.userservice.model.entity.User.Fields;

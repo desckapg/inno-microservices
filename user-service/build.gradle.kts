@@ -4,9 +4,9 @@ plugins {
 }
 
 version = "0.0.1-SNAPSHOT"
-description = "user-service"
 
 dependencies {
+    implementation(project(":common"))
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-json")
@@ -14,6 +14,9 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-cache")
     implementation("org.springframework.boot:spring-boot-starter-data-redis")
     implementation("org.springframework.boot:spring-boot-starter-liquibase")
+    implementation("org.springframework.boot:spring-boot-starter-security")
+    implementation("org.springframework.boot:spring-boot-starter-actuator")
+    implementation(project(":auth-spring-boot-starter"))
     implementation(libs.mapstruct)
 
     // Jackson 2 dependency due to the GenericJackson3JsonRedisSerializer requirement
@@ -43,10 +46,15 @@ dependencies {
 
 sonar {
     properties {
-        property("sonar.exclusions", "**/model/**,**/exception/**,com.innowise.userservice.UserServiceApplication*")
-        property("sonar.coverage.exclusions", "**/model/**, com.innowise.userservice.UserServiceApplication*")
+        property("sonar.sources", "src/main/java")
+        property("sonar.tests", "src/test/java")
+        property(
+            "sonar.coverage.jacoco.xmlReportPaths",
+            "build/reports/jacoco/test/jacocoTestReport.xml"
+        )
     }
 }
+
 
 tasks.jacocoTestReport {
     classDirectories.setFrom(

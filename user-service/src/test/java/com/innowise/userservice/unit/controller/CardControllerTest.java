@@ -6,7 +6,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.innowise.userservice.controller.CardController;
-import com.innowise.userservice.exception.ResourceNotFoundException;
+import com.innowise.common.exception.ResourceNotFoundException;
 import com.innowise.userservice.exception.GlobalExceptionHandler;
 import com.innowise.userservice.model.dto.card.CardDto;
 import com.innowise.userservice.service.impl.CardServiceImpl;
