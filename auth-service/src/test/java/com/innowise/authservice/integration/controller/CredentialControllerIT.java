@@ -155,7 +155,7 @@ class CredentialControllerIT extends AbstractIntegrationTest {
     mockMvc.perform(post(BASE_URL)
             .contentType("application/json")
             .content(body))
-        .andExpect(status().isConflict());
+        .andExpect(status().isBadRequest());
 
   }
 

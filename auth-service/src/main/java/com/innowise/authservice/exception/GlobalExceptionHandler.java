@@ -51,7 +51,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
   @ExceptionHandler(value = {ResourceAlreadyExistsException.class})
   public ResponseEntity<ErrorDto> handleAlreadyExistsException(
       ResourceAlreadyExistsException ex, HttpServletRequest request) {
-    return ResponseEntity.status(HttpStatus.CONFLICT)
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
         .body(ErrorDto.alreadyExists(ex.getMessage(), request.getRequestURI()));
   }
 
