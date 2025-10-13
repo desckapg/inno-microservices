@@ -1,10 +1,10 @@
-package com.innowise.orderservice;
+package com.innowise.orderservice.integration;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class OrderServiceApplicationTests {
+class OrderServiceApplicationIT extends AbstractIntegrationTest {
 
   @Test
   void contextLoads() {
