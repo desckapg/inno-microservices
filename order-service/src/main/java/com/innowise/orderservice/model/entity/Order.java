@@ -50,6 +50,14 @@ public class Order extends BaseEntity {
   )
   private List<Item> items = new ArrayList<>();
 
+  public void addItem(Item item) {
+    this.items.add(item);
+  }
+
+  public void removeItem(Item item) {
+    this.items.remove(item);
+  }
+
   public enum Status {
     NEW,
     CANCELLED,
