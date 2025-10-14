@@ -3,6 +3,8 @@ plugins {
     id("io.spring.dependency-management") version "1.1.7"
 }
 
+val springCloudVersion by extra("2025.1.0-M3")
+
 version = "0.0.1-SNAPSHOT"
 description = "auth-service"
 
@@ -16,6 +18,9 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-configuration-processor")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-security")
+    implementation("org.springframework.cloud:spring-cloud-starter-netflix-eureka-client")
+    implementation("org.springframework.boot:spring-boot-starter-webmvc")
+    implementation("org.springframework.boot:spring-boot-starter-restclient")
     implementation(libs.java.jwt)
     implementation(libs.bcrypt)
 
@@ -48,6 +53,12 @@ dependencies {
     testCompileOnly("org.projectlombok:lombok")
 
     testAnnotationProcessor("org.projectlombok:lombok")
+}
+
+dependencyManagement {
+    imports {
+        mavenBom("org.springframework.cloud:spring-cloud-dependencies:$springCloudVersion")
+    }
 }
 
 sonar {
