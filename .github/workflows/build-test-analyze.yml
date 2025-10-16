@@ -134,7 +134,7 @@ jobs:
           name: ${{ matrix.service }}-test-results
           path: |
             ${{ matrix.service }}/build/test-results/
-            ${{ matrix.service }}/build/reports/tests/
+            ${{ matrix.service }}/build/reports/
           retention-days: 7
 
   sonarqube:
