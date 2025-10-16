@@ -200,4 +200,6 @@ jobs:
           done
 
       - name: Analyze
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: ./gradlew :sonar --info
