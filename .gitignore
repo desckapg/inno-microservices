@@ -47,3 +47,4 @@ out/
 *HELP.md*
 .artifacts
 .sonarlint
+.github/workflows/*-local.yml
