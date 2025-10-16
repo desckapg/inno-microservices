@@ -1,7 +1,8 @@
-package com.innowise.auth.security;
+package com.innowise.auth.security.token;
 
 import com.innowise.auth.model.JwtUserDetails;
 import java.io.Serial;
+import lombok.Getter;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
@@ -13,11 +14,14 @@ public class LoginRolesJwtAuthenticationToken extends AbstractAuthenticationToke
   @Serial
   private static final long serialVersionUID = 7689798587912944809L;
 
+  @Getter
+  private final String jwtToken;
   private final JwtUserDetails user;
 
-  public LoginRolesJwtAuthenticationToken(JwtUserDetails user) {
+  public LoginRolesJwtAuthenticationToken(JwtUserDetails user, String jwtToken) {
     super(user.getAuthorities());
     this.user = user;
+    this.jwtToken = jwtToken;
     super.setAuthenticated(true);
   }
 
@@ -40,10 +44,12 @@ public class LoginRolesJwtAuthenticationToken extends AbstractAuthenticationToke
       AbstractAuthenticationBuilder<@NonNull B> {
 
     private JwtUserDetails user;
+    private final String jwtToken;
 
     protected Builder(LoginRolesJwtAuthenticationToken token) {
       super(token);
       this.user = token.user;
+      this.jwtToken = token.jwtToken;
     }
 
     @Override
@@ -61,7 +67,7 @@ public class LoginRolesJwtAuthenticationToken extends AbstractAuthenticationToke
 
     @Override
     public @NonNull LoginRolesJwtAuthenticationToken build() {
-      return new LoginRolesJwtAuthenticationToken(user);
+      return new LoginRolesJwtAuthenticationToken(user, jwtToken);
     }
 
   }

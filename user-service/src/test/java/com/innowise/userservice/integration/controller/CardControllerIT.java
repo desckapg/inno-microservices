@@ -9,10 +9,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.innowise.auth.test.annotation.WithMockCustomUser;
 import com.innowise.userservice.cache.CacheHelper;
 import com.innowise.userservice.controller.CardController;
 import com.innowise.userservice.integration.AbstractIntegrationTest;
-import com.innowise.userservice.integration.annotation.WebIT;
+import com.innowise.userservice.integration.annotation.IT;
 import com.innowise.userservice.model.dto.card.CardDto;
 import com.innowise.userservice.model.entity.Card;
 import com.innowise.userservice.model.entity.User;
@@ -26,6 +27,7 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
@@ -33,8 +35,14 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 import tools.jackson.databind.ObjectMapper;
 
-@WebIT
+@IT
 @RequiredArgsConstructor
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@WithMockCustomUser(
+    roles = {
+        "ADMIN"
+    }
+)
 class CardControllerIT extends AbstractIntegrationTest {
 
   private static final String BASE_URL = "/api/v1/cards";
@@ -51,6 +59,7 @@ class CardControllerIT extends AbstractIntegrationTest {
   private final CardMapper cardMapper;
 
   private final MockMvc mockMvc;
+
   @Autowired
   private CacheHelper cacheHelper;
 

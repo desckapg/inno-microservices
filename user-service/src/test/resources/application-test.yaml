@@ -6,8 +6,20 @@ spring:
       hibernate:
         show_sql: true
         format_sql: true
+  cloud:
+    discovery:
+      enabled: false
   data:
     redis:
       username:
       password:
 
+eureka:
+  client:
+    enabled: false
+    register-with-eureka: false
+    fetch-registry: false
+
+logging:
+  level:
+    org.springframework.security.*: DEBUG
