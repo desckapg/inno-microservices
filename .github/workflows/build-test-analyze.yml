@@ -4,10 +4,6 @@ on:
   push:
     branches: [ '**' ]
 
-env:
-  JAVA_VERSION: '25'
-  SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-
 jobs:
   detect-changes:
     name: Detect Changes
@@ -85,25 +81,27 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@ff7abcd0c3c05ccf6adc123a8cd1fd4fb30fb493
 
-      - name: Set up JDK 21
+      - name: Set up JDK 25
         uses: actions/setup-java@ead9eaa3cfe0b0fc2fa749519ae09c3d4f4080b0
         with:
-          java-version: ${{ env.JAVA_VERSION }}
+          java-version: 25
           distribution: 'temurin'
+          cache: gradle
+
+      - run: chmod +x gradlew
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@748248ddd2a24f49513d8f472f81c3a07d4d50e1
         with:
-          gradle-version: wrapper
           build-scan-publish: true
           build-scan-terms-of-use-url: "https://gradle.com/terms-of-service"
           build-scan-terms-of-use-agree: "yes"
 
       - name: Build service
-        run: gradle :${{ matrix.service }}:build -x test
+        run: ./gradlew :${{ matrix.service }}:build -x test
 
       - name: Run unit tests
-        run: gradle :${{ matrix.service }}:test
+        run: ./gradlew :${{ matrix.service }}:test
         env:
           TESTCONTAINERS_RYUK_DISABLED: false
 
@@ -151,36 +149,55 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Make gradle executable
-        run: chmod +x ./gradlew
+      - name: Set up JDK 25
+        uses: actions/setup-java@ead9eaa3cfe0b0fc2fa749519ae09c3d4f4080b0
+        with:
+          java-version: 25
+          distribution: 'temurin'
+          cache: gradle
+
+      - run: chmod +x ./gradlew
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@748248ddd2a24f49513d8f472f81c3a07d4d50e1
         with:
-          gradle-version: wrapper
           build-scan-publish: true
           build-scan-terms-of-use-url: "https://gradle.com/terms-of-service"
           build-scan-terms-of-use-agree: "yes"
-
-      - name: Set up JDK 21
-        uses: actions/setup-java@ead9eaa3cfe0b0fc2fa749519ae09c3d4f4080b0
-        with:
-          java-version: ${{ env.JAVA_VERSION }}
-          distribution: 'temurin'
 
       - name: Download all build artifacts
         uses: actions/download-artifact@4a24838f3d5601fd639834081e118c2995d51e1c
         with:
           pattern: "*-build-artifacts"
-          path: .
-          merge-multiple: true
+          path: ./artifacts
+          merge-multiple: false
 
       - name: Download all test results
         uses: actions/download-artifact@4a24838f3d5601fd639834081e118c2995d51e1c
         with:
           pattern: "*-test-results"
-          path: .
-          merge-multiple: true
+          path: ./test-results
+          merge-multiple: false
+
+      - name: Restore build artifacts to service directories
+        run: |
+          for artifact_dir in ./artifacts/*/; do
+            artifact_name=$(basename "$artifact_dir")
+            service_name="${artifact_name%-build-artifacts}"
+
+            mkdir -p "$service_name/build"
+            cp -r "$artifact_dir"* "$service_name/build/" 2>/dev/null || true
+            echo "Restored artifacts for service: $service_name"
+          done
+
+          for test_dir in ./test-results/*/; do
+            test_name=$(basename "$test_dir")
+            service_name="${test_name%-test-results}"
+
+            mkdir -p "$service_name/build"
+            cp -r "$test_dir"* "$service_name/build/" 2>/dev/null || true
+            echo "Restored test results for service: $service_name"
+          done
 
       - name: Analyze
         run: ./gradlew :sonar --info
