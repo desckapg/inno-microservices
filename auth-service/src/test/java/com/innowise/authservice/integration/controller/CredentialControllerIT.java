@@ -185,7 +185,7 @@ class CredentialControllerIT extends AbstractIntegrationTest {
 
   @Test
   void delete_userNotExists_returnNotFound() throws Exception {
-    mockMvc.perform(delete(BASE_URL + "/{id}", 1L)
+    mockMvc.perform(delete(BASE_URL + "/{id}", Long.MAX_VALUE)
             .contentType("application/json"))
         .andExpect(status().isNotFound());
   }
