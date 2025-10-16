@@ -12,7 +12,10 @@ configurations {
     }
 }
 
+val mockitoAgent = configurations.create("mockitoAgent")
 dependencies {
+    implementation(project(":auth-spring-boot-starter"))
+    implementation(project(":common"))
     implementation("org.springframework.boot:spring-boot-starter-liquibase")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.springframework.boot:spring-boot-starter-web")
@@ -20,6 +23,9 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-webmvc")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-restclient")
+    implementation("org.springframework.cloud:spring-cloud-starter-openfeign")
+    implementation("org.springframework.boot:spring-boot-starter-security")
+    testImplementation("org.springframework.security:spring-security-test")
 
 
     compileOnly("org.projectlombok:lombok")
@@ -32,6 +38,11 @@ dependencies {
     annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
     annotationProcessor("org.projectlombok:lombok")
 
+    testImplementation("org.springframework.boot:spring-boot-starter-test") {
+        exclude(group = "org.mockito:mockito-core")
+    }
+    testImplementation(libs.mockito)
+    mockitoAgent(libs.mockito) { isTransitive = false }
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.testcontainers:junit-jupiter")
     testImplementation("org.springframework.boot:spring-boot-testcontainers")
@@ -40,6 +51,7 @@ dependencies {
     testImplementation(libs.fixture.monkey.starter)
     testImplementation(libs.fixture.monkey.datafaker)
     testImplementation(libs.datafaker)
+    testImplementation(libs.system.stubs.jupiter)
 
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 

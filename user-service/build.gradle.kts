@@ -9,6 +9,7 @@ version = "0.0.1-SNAPSHOT"
 dependencies {
     implementation(project(":common"))
     implementation(project(":auth-spring-boot-starter"))
+
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-json")
@@ -38,6 +39,7 @@ dependencies {
     annotationProcessor(libs.mapstruct.processor)
     annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
 
+    testImplementation("org.springframework.security:spring-security-test")
     testImplementation("org.springframework.boot:spring-boot-testcontainers")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.testcontainers:postgresql")

@@ -5,10 +5,6 @@ plugins {
 
 version = "0.0.1-SNAPSHOT"
 
-repositories {
-    mavenCentral()
-}
-
 extra["springCloudVersion"] = "2025.1.0-M3"
 
 dependencies {
@@ -27,6 +23,13 @@ dependencyManagement {
     }
 }
 
-tasks.withType<Test> {
-    useJUnitPlatform()
+sonar {
+    properties {
+        property("sonar.sources", "src/main/java")
+        property("sonar.tests", "src/test/java")
+        property(
+            "sonar.coverage.jacoco.xmlReportPaths",
+            "build/reports/jacoco/test/jacocoTestReport.xml"
+        )
+    }
 }
