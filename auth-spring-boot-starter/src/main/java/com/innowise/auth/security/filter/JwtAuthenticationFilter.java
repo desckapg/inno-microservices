@@ -1,11 +1,11 @@
-package com.innowise.auth.filter;
+package com.innowise.auth.security.filter;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.Claim;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.innowise.auth.model.JwtUserDetails;
-import com.innowise.auth.security.LoginRolesJwtAuthenticationToken;
+import com.innowise.auth.security.token.LoginRolesJwtAuthenticationToken;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -33,7 +33,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
   private static final String BEARER_PREFIX = "Bearer ";
 
   @Override
-  protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
+  protected void doFilterInternal(
+      HttpServletRequest request,
+      HttpServletResponse response,
       FilterChain filterChain)
       throws ServletException, IOException {
 
@@ -61,7 +63,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
           return;
         }
 
-        var authentication = new LoginRolesJwtAuthenticationToken(userDetails);
+        var authentication = new LoginRolesJwtAuthenticationToken(userDetails, token);
         SecurityContextHolder.getContext().setAuthentication(authentication);
       } catch (JWTVerificationException _) {
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
