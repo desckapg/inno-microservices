@@ -8,6 +8,7 @@ import com.innowise.orderservice.service.ItemService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -38,20 +39,23 @@ public class ItemServiceImpl implements ItemService {
   }
 
   @Override
+  @Transactional
   public ItemDto create(ItemDto itemDto) {
     return itemMapper.toDto(itemRepository.save(itemMapper.toEntity(itemDto)));
   }
 
   @Override
-  public void update(Long id, ItemDto itemDto) {
+  @Transactional
+  public ItemDto update(Long id, ItemDto itemDto) {
     var item = itemRepository.findById(id)
         .orElseThrow(() -> ResourceNotFoundException.byId("Item", id));
     item.setName(itemDto.name());
     item.setPrice(itemDto.price());
-    itemRepository.save(item);
+    return itemMapper.toDto(itemRepository.save(item));
   }
 
   @Override
+  @Transactional
   public void delete(Long id) {
     itemRepository.deleteById(id);
   }

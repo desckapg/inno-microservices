@@ -5,9 +5,9 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.ManyToMany;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import java.util.ArrayList;
 import java.util.List;
@@ -18,14 +18,17 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import lombok.experimental.SuperBuilder;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 import org.hibernate.proxy.HibernateProxy;
 
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
 @Setter
-@ToString(exclude = {"items"})
-@Builder
+@ToString(exclude = {"orderItems"})
+@SuperBuilder
 @Table(name = "orders")
 @Entity
 public class Order extends BaseEntity {
@@ -38,24 +41,23 @@ public class Order extends BaseEntity {
   private Status status;
 
   @Builder.Default
-  @ManyToMany(cascade = {
-      CascadeType.DETACH,
-      CascadeType.MERGE,
-      CascadeType.PERSIST,
-      CascadeType.REFRESH
-  })
-  @JoinTable(
-      joinColumns = @JoinColumn(name = "item_id", table = "order_items"),
-      inverseJoinColumns = @JoinColumn(name = "order_id", table = "order_items")
+  @OneToMany(
+      cascade = CascadeType.ALL,
+      orphanRemoval = true,
+      fetch = FetchType.EAGER
   )
-  private List<Item> items = new ArrayList<>();
+  @JoinColumn(name = "order_id")
+  @Fetch(FetchMode.JOIN)
+  private List<OrderItem> orderItems = new ArrayList<>();
 
-  public void addItem(Item item) {
-    this.items.add(item);
+  public void addItem(OrderItem item) {
+    item.setOrder(this);
+    this.orderItems.add(item);
   }
 
-  public void removeItem(Item item) {
-    this.items.remove(item);
+  public void removeItem(OrderItem item) {
+    item.setOrder(null);
+    this.orderItems.remove(item);
   }
 
   public enum Status {

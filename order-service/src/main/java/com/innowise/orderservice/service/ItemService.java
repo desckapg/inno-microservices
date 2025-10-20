@@ -4,7 +4,7 @@ import com.innowise.orderservice.model.dto.item.ItemDto;
 import java.util.List;
 
 /**
- * Service contract for managing items in the order domain.
+ * Service contract for managing orderItems in the order domain.
  * Provides CRUD operations and batch retrieval via DTOs.
  */
 public interface ItemService {
@@ -18,14 +18,14 @@ public interface ItemService {
   ItemDto findById(Long id);
 
   /**
-   * Retrieves all items.
+   * Retrieves all orderItems.
    *
    * @return list of all item DTOs
    */
   List<ItemDto> findAll();
 
   /**
-   * Retrieves items by a list of identifiers.
+   * Retrieves orderItems by a list of identifiers.
    *
    * @param ids list of item identifiers
    * @return list of matching item DTOs (may be empty)
@@ -45,8 +45,9 @@ public interface ItemService {
    *
    * @param id the identifier of the item to update
    * @param itemDto the new item data
+   * @return the updated item DTO
    */
-  void update(Long id, ItemDto itemDto);
+  ItemDto update(Long id, ItemDto itemDto);
 
   /**
    * Deletes an item by its identifier.

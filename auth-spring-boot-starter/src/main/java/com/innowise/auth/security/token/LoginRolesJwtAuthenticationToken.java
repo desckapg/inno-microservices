@@ -3,12 +3,12 @@ package com.innowise.auth.security.token;
 import com.innowise.auth.model.JwtUserDetails;
 import java.io.Serial;
 import lombok.Getter;
-import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.util.Assert;
 
+@NullMarked
 public class LoginRolesJwtAuthenticationToken extends AbstractAuthenticationToken {
 
   @Serial
@@ -31,17 +31,17 @@ public class LoginRolesJwtAuthenticationToken extends AbstractAuthenticationToke
   }
 
   @Override
-  public @Nullable UserDetails getPrincipal() {
+  public JwtUserDetails getPrincipal() {
     return user;
   }
 
   @Override
-  public @NonNull Builder<?> toBuilder() {
+  public Builder<?> toBuilder() {
     return new Builder<>(this);
   }
 
   public static class Builder<B extends LoginRolesJwtAuthenticationToken.Builder<B>> extends
-      AbstractAuthenticationBuilder<@NonNull B> {
+      AbstractAuthenticationBuilder<B> {
 
     private JwtUserDetails user;
     private final String jwtToken;
@@ -61,12 +61,12 @@ public class LoginRolesJwtAuthenticationToken extends AbstractAuthenticationToke
     }
 
     @Override
-    public B credentials(@Nullable Object credentials) {
+    public @Nullable B credentials(@Nullable Object credentials) {
       return null;
     }
 
     @Override
-    public @NonNull LoginRolesJwtAuthenticationToken build() {
+    public LoginRolesJwtAuthenticationToken build() {
       return new LoginRolesJwtAuthenticationToken(user, jwtToken);
     }
 

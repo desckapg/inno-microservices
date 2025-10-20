@@ -18,6 +18,6 @@ public @interface WithMockCustomUser {
 
   String login() default "";
 
-  String[] roles() default {};
+  String[] roles() default {"USER"};
 
 }

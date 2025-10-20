@@ -4,6 +4,8 @@ plugins {
 }
 
 dependencies {
+    implementation("tools.jackson.core:jackson-databind")
+    implementation("org.springframework:spring-web")
     implementation("jakarta.validation:jakarta.validation-api")
 
     compileOnly("org.projectlombok:lombok")

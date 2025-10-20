@@ -1,4 +1,4 @@
-package com.innowise.userservice.model.dto;
+package com.innowise.common.model.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -11,10 +11,10 @@ import org.springframework.http.HttpStatus;
 @Builder
 public record ErrorDto(
     OffsetDateTime timestamp,
-    int httpStatus,
-    HttpStatus code,
-    String message,
-    String path,
+    int status,
+    String detail,
+    String instance,
+    String title,
     String field,
     String fieldViolation
 ) implements Serializable {
@@ -22,50 +22,48 @@ public record ErrorDto(
   public static ErrorDto validation(String field, String fieldViolation) {
     return builder()
         .timestamp(OffsetDateTime.now())
-        .httpStatus(400)
-        .code(HttpStatus.UNPROCESSABLE_CONTENT)
+        .status(HttpStatus.UNPROCESSABLE_CONTENT.value())
+        .title(HttpStatus.UNPROCESSABLE_CONTENT.getReasonPhrase())
         .field(field)
         .fieldViolation(fieldViolation)
         .build();
   }
 
-  public static ErrorDto notFound(String message, String path) {
+  public static ErrorDto notFound(String detail, String instance) {
     return builder()
         .timestamp(OffsetDateTime.now())
-        .httpStatus(404)
-        .code(HttpStatus.NOT_FOUND)
-        .message(message)
-        .path(path)
+        .status(HttpStatus.NOT_FOUND.value())
+        .title(HttpStatus.NOT_FOUND.getReasonPhrase())
+        .detail(detail)
+        .instance(instance)
         .build();
   }
 
-  public static ErrorDto alreadyExists(String message, String path) {
+  public static ErrorDto alreadyExists(String detail, String path) {
     return builder()
         .timestamp(OffsetDateTime.now())
-        .httpStatus(409)
-        .code(HttpStatus.CONFLICT)
-        .message(message)
-        .path(path)
+        .status(HttpStatus.CONFLICT.value())
+        .title(HttpStatus.CONTINUE.getReasonPhrase())
+        .detail(detail)
+        .instance(path)
         .build();
   }
 
-  public static ErrorDto badRequest(String message, String path) {
+  public static ErrorDto authFailed(String detail) {
     return builder()
         .timestamp(OffsetDateTime.now())
-        .httpStatus(400)
-        .code(HttpStatus.BAD_REQUEST)
-        .message(message)
-        .path(path)
+        .status(HttpStatus.UNAUTHORIZED.value())
+        .title(HttpStatus.UNAUTHORIZED.getReasonPhrase())
+        .detail(detail)
         .build();
   }
 
   public static ErrorDto internal(String path) {
     return builder()
         .timestamp(OffsetDateTime.now())
-        .httpStatus(500)
-        .code(HttpStatus.INTERNAL_SERVER_ERROR)
-        .message("Internal server error")
-        .path(path)
+        .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
+        .title(HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase())
+        .instance(path)
         .build();
   }
 }

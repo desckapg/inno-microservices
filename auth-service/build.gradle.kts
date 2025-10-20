@@ -69,7 +69,6 @@ sonar {
                 "sonar.coverage.jacoco.xmlReportPaths",
                 "build/reports/jacoco/test/jacocoTestReport.xml"
             )
-            property("sonar.projectKey", "desckapg_inno-microservices_${project.name}")
         }
     }
 

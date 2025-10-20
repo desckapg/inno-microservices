@@ -5,9 +5,6 @@ plugins {
 }
 val springCloudVersion by extra("2025.1.0-M3")
 
-version = "0.0.1-SNAPSHOT"
-description = "auth-spring-boot-starter"
-
 configurations {
     compileOnly {
         extendsFrom(configurations.annotationProcessor.get())
@@ -36,10 +33,6 @@ dependencies {
     annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
     annotationProcessor("org.projectlombok:lombok")
 
-}
-
-tasks.withType<Test> {
-    useJUnitPlatform()
 }
 
 tasks.findByName("bootJar")?.enabled = false

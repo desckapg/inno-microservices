@@ -23,7 +23,7 @@ CREATE TABLE items (
     updated_at TIMESTAMP WITH TIME ZONE NULL DEFAULT CURRENT_TIMESTAMP
 );
 
--- rollback DROP TABLE items;
+-- rollback DROP TABLE orderItems;
 
 -- changeset desckapg:3
 

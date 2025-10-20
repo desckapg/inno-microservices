@@ -2,6 +2,8 @@ package com.innowise.auth.autoconfigure;
 
 import com.innowise.auth.model.Role;
 import com.innowise.auth.security.filter.JwtAuthenticationFilter;
+import com.innowise.auth.security.provider.AuthTokenProvider;
+import com.innowise.auth.security.provider.AuthTokenProviderInterceptor;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -16,6 +18,8 @@ import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.web.servlet.config.annotation.EnableWebMvc;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @AutoConfiguration
 @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
@@ -24,7 +28,8 @@ import org.springframework.web.filter.OncePerRequestFilter;
     SecurityFilterChain.class,
     HttpSecurity.class
 })
-public class AuthAutoConfiguration {
+@EnableWebMvc
+public class AuthAutoConfiguration implements WebMvcConfigurer {
 
   @Bean
   @ConditionalOnMissingBean
@@ -43,8 +48,20 @@ public class AuthAutoConfiguration {
 
   @Bean
   @ConditionalOnMissingBean
-  public JwtAuthenticationFilter jwtExtractorFilter() {
-    return new JwtAuthenticationFilter();
+  public JwtAuthenticationFilter jwtExtractorFilter(AuthTokenProvider authTokenProvider) {
+    return new JwtAuthenticationFilter(authTokenProvider);
+  }
+
+  @Bean
+  @ConditionalOnMissingBean
+  public AuthTokenProvider authTokenProvider() {
+    return new AuthTokenProvider();
+  }
+
+  @Bean
+  @ConditionalOnMissingBean
+  public AuthTokenProviderInterceptor authTokenProviderInterceptor(AuthTokenProvider authTokenProvider) {
+    return new AuthTokenProviderInterceptor(authTokenProvider);
   }
 
   @Bean
@@ -56,5 +73,7 @@ public class AuthAutoConfiguration {
     http.addFilterBefore(filter, BasicAuthenticationFilter.class);
     return http.build();
   }
+
+
 
 }

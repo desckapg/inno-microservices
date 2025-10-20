@@ -11,6 +11,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import lombok.experimental.SuperBuilder;
 import org.hibernate.proxy.HibernateProxy;
 
 @AllArgsConstructor
@@ -18,7 +19,7 @@ import org.hibernate.proxy.HibernateProxy;
 @Getter
 @Setter
 @ToString
-@Builder
+@SuperBuilder
 @Table(name = "items")
 @Entity
 public class Item extends BaseEntity {
