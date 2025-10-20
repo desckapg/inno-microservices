@@ -1,9 +1,10 @@
 package com.innowise.orderservice.integration;
 
+import com.innowise.orderservice.integration.annotation.IT;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
-@SpringBootTest
+@IT
 class OrderServiceApplicationIT extends AbstractIntegrationTest {
 
   @Test

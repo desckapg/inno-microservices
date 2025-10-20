@@ -1,6 +1,7 @@
 package com.innowise.userservice.config;
 
 import com.innowise.auth.security.filter.JwtAuthenticationFilter;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -11,7 +12,10 @@ import org.springframework.security.web.authentication.AuthenticationFilter;
 
 @Configuration
 @EnableMethodSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
+
+  private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
   @Bean
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -21,7 +25,7 @@ public class SecurityConfig {
         .authorizeHttpRequests(authz ->
         authz.anyRequest().permitAll()
     );
-    http.addFilterBefore(new JwtAuthenticationFilter(), AuthenticationFilter.class);
+    http.addFilterBefore(jwtAuthenticationFilter, AuthenticationFilter.class);
     return http.build();
   }
 
