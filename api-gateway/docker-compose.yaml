@@ -1,0 +1,11 @@
+services:
+  api-gateway:
+    image: api-gateway:latest
+    build:
+      context: ..
+      dockerfile: api-gateway/Dockerfile
+      args:
+        DOCKER_BUILDKIT: 1
+    restart: "no"
+#    ports:
+#      - "8090:8090"
