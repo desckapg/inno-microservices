@@ -122,9 +122,7 @@ jobs:
         uses: actions/upload-artifact@2848b2cda0e5190984587ec6bb1f36730ca78d50
         with:
           name: ${{ matrix.service }}-build-artifacts
-          path: |
-            ${{ matrix.service }}/build/libs/*.jar
-            ${{ matrix.service }}/build/classes/
+          path: ${{ matrix.service }}/build/
           retention-days: 7
 
       - name: Upload test results
@@ -132,9 +130,7 @@ jobs:
         if: always()
         with:
           name: ${{ matrix.service }}-test-results
-          path: |
-            ${{ matrix.service }}/build/test-results/
-            ${{ matrix.service }}/build/reports/
+          path: ${{ matrix.service }}/build/
           retention-days: 7
 
   sonarqube:
@@ -172,31 +168,23 @@ jobs:
           path: ./artifacts
           merge-multiple: false
 
-      - name: Download all test results
-        uses: actions/download-artifact@4a24838f3d5601fd639834081e118c2995d51e1c
-        with:
-          pattern: "*-test-results"
-          path: ./test-results
-          merge-multiple: false
-
       - name: Restore build artifacts to service directories
         run: |
-          for artifact_dir in ./artifacts/*/; do
-            artifact_name=$(basename "$artifact_dir")
-            service_name="${artifact_name%-build-artifacts}"
-
-            mkdir -p "$service_name/build"
-            cp -r "$artifact_dir"* "$service_name/build/" 2>/dev/null || true
-            echo "Restored artifacts for service: $service_name"
-          done
-
-          for test_dir in ./test-results/*/; do
-            test_name=$(basename "$test_dir")
-            service_name="${test_name%-test-results}"
-
-            mkdir -p "$service_name/build"
-            cp -r "$test_dir"* "$service_name/build/" 2>/dev/null || true
-            echo "Restored test results for service: $service_name"
+          for artifact_dir in ./artifacts/*-build-artifacts/; do
+            if [ -d "$artifact_dir" ]; then
+              artifact_name=$(basename "$artifact_dir")
+              service_name="${artifact_name%-build-artifacts}"
+              
+              echo "Processing artifact: $artifact_name"
+              echo "Service name: $service_name"
+              
+              if [ -n "$service_name" ] && [ "$service_name" != "*" ]; then
+                mkdir -p "$service_name/build"
+                cp -r "$artifact_dir"* "$service_name/build/" 2>/dev/null || true
+                echo "Restored artifacts for service: $service_name"
+                ls -la "$service_name/build/" || true
+              fi
+            fi
           done
 
       - name: Analyze
