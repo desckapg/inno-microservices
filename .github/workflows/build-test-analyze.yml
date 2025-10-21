@@ -118,18 +118,10 @@ jobs:
             ${{ matrix.service }}/build/test-results/test/*.xml
           reporter: java-junit
 
-      - name: Upload build artifacts
+      - name: Upload build & test artifacts
         uses: actions/upload-artifact@2848b2cda0e5190984587ec6bb1f36730ca78d50
         with:
           name: ${{ matrix.service }}-build-artifacts
-          path: ${{ matrix.service }}/build/
-          retention-days: 7
-
-      - name: Upload test results
-        uses: actions/upload-artifact@2848b2cda0e5190984587ec6bb1f36730ca78d50
-        if: always()
-        with:
-          name: ${{ matrix.service }}-test-results
           path: ${{ matrix.service }}/build/
           retention-days: 7
 
