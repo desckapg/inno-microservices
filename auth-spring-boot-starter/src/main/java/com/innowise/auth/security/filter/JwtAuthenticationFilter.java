@@ -42,7 +42,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     String authHeader = request.getHeader(AuthConstants.AUTH_HEADER);
 
     if (authHeader == null || !authHeader.startsWith(AuthConstants.BEARER_PREFIX)) {
-      filterChain.doFilter(request, response);
+      response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
       return;
     }
 

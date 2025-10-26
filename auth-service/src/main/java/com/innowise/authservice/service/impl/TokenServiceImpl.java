@@ -16,6 +16,7 @@ import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NullMarked;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -23,6 +24,7 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 @NullMarked
+@Slf4j
 public class TokenServiceImpl implements TokenService {
 
   private final UserService userService;
@@ -112,6 +114,7 @@ public class TokenServiceImpl implements TokenService {
     try {
       createAccessTokenJwtVerifier().verify(accessToken);
     } catch (JWTVerificationException e) {
+      log.warn("JWT access token verification failed", e);
       throw TokenException.fromJwtException(e);
     }
   }

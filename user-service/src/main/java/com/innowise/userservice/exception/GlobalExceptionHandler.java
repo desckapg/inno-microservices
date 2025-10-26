@@ -59,6 +59,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
   @ExceptionHandler(value = {AuthorizationDeniedException.class})
   public ResponseEntity<ErrorDto> handeAuthorizationDeniedException(
       AuthorizationDeniedException ex, HttpServletRequest request) {
+    log.warn("Authorization denied", ex);
     return ResponseEntity.status(HttpStatus.FORBIDDEN)
         .body(ErrorDto.forbidden(ex.getMessage()));
   }

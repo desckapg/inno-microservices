@@ -13,13 +13,17 @@ configurations {
     }
 }
 
-extra["springCloudVersion"] = "2025.1.0-M4"
+extra["springCloudVersion"] = "2025.1.0-M3"
 
 dependencies {
+    implementation(project(":common"))
     implementation("org.springframework.boot:spring-boot-starter-webflux")
     implementation("org.springframework.cloud:spring-cloud-starter-gateway-server-webflux")
     implementation("org.springframework.cloud:spring-cloud-starter-netflix-eureka-client")
     implementation("org.springframework.boot:spring-boot-starter-restclient")
+    implementation(libs.spring.boot.starter.aop)
+    implementation("org.springframework.boot:spring-boot-starter-actuator")
+    implementation("org.springframework.cloud:spring-cloud-starter-circuitbreaker-reactor-resilience4j")
 
     compileOnly("org.projectlombok:lombok")
 
