@@ -17,7 +17,6 @@ import com.innowise.auth.test.annotation.WithMockCustomUser;
 import com.innowise.orderservice.integration.AbstractIntegrationTest;
 import com.innowise.orderservice.integration.annotation.IT;
 import com.innowise.orderservice.model.dto.order.OrderDto;
-import com.innowise.orderservice.model.dto.order.OrderSpecsDto;
 import com.innowise.orderservice.model.dto.user.UserDto;
 import com.innowise.orderservice.model.entity.Item;
 import com.innowise.orderservice.model.entity.Order;
@@ -32,6 +31,7 @@ import java.net.URI;
 import java.time.LocalDate;
 import lombok.RequiredArgsConstructor;
 import net.jqwik.api.Arbitraries;
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -266,7 +266,8 @@ class OrderControllerIT extends AbstractIntegrationTest {
 
     var orders = ordersSut.giveMeBuilder(Order.class)
         .set("userId", ownedUserDto.id())
-        .sampleList(5);
+        .sampleList(10);
+
     orders.forEach(order -> order.getOrderItems().forEach(item -> item.setOrder(order)));
 
     orders.forEach(em::persist);
@@ -279,17 +280,20 @@ class OrderControllerIT extends AbstractIntegrationTest {
         )
     ).thenReturn(ownedUserDto);
 
-    var orderSpecsDto = OrderSpecsDto.builder()
-        .ids(orders.stream().map(Order::getId).toList())
-        .build();
+    var requestIds = Arbitraries.of(orders.stream().map(Order::getId).toList())
+        .list()
+        .uniqueElements()
+        .ofMinSize(1)
+        .ofMaxSize(5)
+        .sample();
 
     mockMvc.perform(
         get(URI.create("/api/v1/orders"))
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(jsonMapper.writeValueAsString(orderSpecsDto))
+            .param("ids", requestIds.stream().map(String::valueOf).toArray(String[]::new))
     ).andExpectAll(
         status().isOk(),
-        jsonPath("$").isArray()
+        jsonPath("$").isArray(),
+        jsonPath("$").value(Matchers.hasSize(requestIds.size()))
     );
   }
 

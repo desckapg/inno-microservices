@@ -14,7 +14,6 @@ import com.innowise.orderservice.service.client.UserServiceClient;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.NullMarked;
-import org.jspecify.annotations.Nullable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -53,13 +52,8 @@ public class OrderServiceImpl implements OrderService {
       )
     )
   \s""")
-  public List<OrderDto> findAll(@Nullable OrderSpecsDto orderSpecsDto) {
-    Specification<Order> specification;
-    if (orderSpecsDto != null) {
-      specification = orderSpecsDto.convertToSpecification();
-    } else {
-      specification = Specification.unrestricted();
-    }
+  public List<OrderDto> findAll(OrderSpecsDto orderSpecsDto) {
+    Specification<Order> specification = orderSpecsDto.convertToSpecification();
     return orderRepository.findAll(specification).stream()
         .map(order -> orderMapper.toDto(order,
             userServiceClient.findById(order.getUserId(),

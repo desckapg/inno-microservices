@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonView;
 import com.innowise.orderservice.model.dto.OrdersConstraints;
 import com.innowise.orderservice.model.dto.order.OrderDto;
 import com.innowise.orderservice.model.dto.order.OrderSpecsDto;
+import com.innowise.orderservice.model.entity.Order;
 import com.innowise.orderservice.service.OrderService;
 import java.net.URI;
 import java.util.List;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RequiredArgsConstructor
@@ -35,8 +37,17 @@ public class OrderController {
   }
 
   @GetMapping
-  public ResponseEntity<List<OrderDto>> findAll(@RequestBody(required = false) OrderSpecsDto orderSpecsDto) {
-    return ResponseEntity.ok(orderService.findAll(orderSpecsDto));
+  public ResponseEntity<List<OrderDto>> findAll(
+      @RequestParam(required = false) Long userId,
+      @RequestParam(required = false) List<Long> ids,
+      @RequestParam(required = false) List<Order.Status> statuses
+  ) {
+    return ResponseEntity.ok(orderService.findAll(OrderSpecsDto.builder()
+        .userId(userId)
+        .ids(ids)
+        .statuses(statuses)
+        .build())
+    );
   }
 
   @PostMapping
