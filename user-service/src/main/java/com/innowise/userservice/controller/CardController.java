@@ -26,7 +26,7 @@ import org.springframework.web.bind.annotation.RestController;
  * Base path: /api/v1/cards
  */
 @RestController
-@RequestMapping("api/v1/cards")
+@RequestMapping("/api/v1/cards")
 @Validated
 @RequiredArgsConstructor
 @NullMarked
