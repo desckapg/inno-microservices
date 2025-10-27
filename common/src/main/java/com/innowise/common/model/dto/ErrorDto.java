@@ -58,6 +58,15 @@ public record ErrorDto(
         .build();
   }
 
+  public static ErrorDto forbidden(String detail) {
+    return builder()
+        .timestamp(OffsetDateTime.now())
+        .status(HttpStatus.FORBIDDEN.value())
+        .title(HttpStatus.FORBIDDEN.getReasonPhrase())
+        .detail(detail)
+        .build();
+  }
+
   public static ErrorDto internal(String path) {
     return builder()
         .timestamp(OffsetDateTime.now())
