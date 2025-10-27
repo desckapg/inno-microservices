@@ -8,6 +8,7 @@ import com.innowise.orderservice.model.dto.order.OrderSpecsDto;
 import com.innowise.orderservice.model.entity.Order;
 import com.innowise.orderservice.model.entity.Order.Status;
 import com.innowise.orderservice.model.mapper.OrderMapper;
+import com.innowise.orderservice.repository.ItemRepository;
 import com.innowise.orderservice.repository.OrderRepository;
 import com.innowise.orderservice.service.OrderService;
 import com.innowise.orderservice.service.client.UserServiceClient;
@@ -25,6 +26,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class OrderServiceImpl implements OrderService {
 
   private final OrderRepository orderRepository;
+  private final ItemRepository itemRepository;
+
   private final OrderMapper orderMapper;
   private final UserServiceClient userServiceClient;
   private final AuthTokenProvider authTokenProvider;
@@ -36,7 +39,7 @@ public class OrderServiceImpl implements OrderService {
   """)
   public OrderDto findById(Long id) {
     var order = orderRepository.findById(id)
-        .orElseThrow(() -> ResourceNotFoundException.byId("Order", id));
+        .orElseThrow(() -> generateNotFoundException(id));
     return orderMapper.toDto(order,
         userServiceClient.findById(order.getUserId(),
             AuthConstants.BEARER_PREFIX + authTokenProvider.get().getJwtToken())
@@ -65,6 +68,10 @@ public class OrderServiceImpl implements OrderService {
   @Transactional
   public OrderDto create(OrderDto orderDto) {
     var orderEntity = orderMapper.toEntity(orderDto);
+
+    orderEntity.getOrderItems().forEach(orderItem ->
+        orderItem.setItem(itemRepository.getReferenceById(orderItem.getItem().getId())));
+
     var userId = authTokenProvider.get().getPrincipal().userId();
     var user = userServiceClient.findById(userId,
             AuthConstants.  BEARER_PREFIX + authTokenProvider.get().getJwtToken());
@@ -77,7 +84,7 @@ public class OrderServiceImpl implements OrderService {
   @Transactional
   public OrderDto update(Long id, OrderDto orderDto) {
     var order = orderRepository.findById(id)
-        .orElseThrow(() -> ResourceNotFoundException.byId("Order", id));
+        .orElseThrow(() -> generateNotFoundException(id));
     order.setStatus(Order.Status.valueOf(orderDto.status().name()));
     return orderMapper.toDto(
         orderRepository.save(order),
@@ -91,9 +98,14 @@ public class OrderServiceImpl implements OrderService {
     orderRepository.deleteById(id);
   }
 
+  @SuppressWarnings("unused")
   public Long findOrderUserId(Long id) {
     return orderRepository.findUserIdById(id)
-        .orElseThrow(() -> ResourceNotFoundException.byId("Order", id));
+        .orElseThrow(() -> generateNotFoundException(id));
+  }
+
+  private ResourceNotFoundException generateNotFoundException(Long id) {
+    return ResourceNotFoundException.byId("Order", id);
   }
 
 }

@@ -1,7 +1,6 @@
 package com.innowise.orderservice.controller;
 
 import com.innowise.orderservice.model.dto.ItemsConstraints;
-import com.innowise.orderservice.model.dto.OrdersConstraints;
 import com.innowise.orderservice.model.dto.item.ItemDto;
 import com.innowise.orderservice.service.ItemService;
 import java.net.URI;
