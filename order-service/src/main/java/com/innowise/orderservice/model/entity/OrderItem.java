@@ -13,8 +13,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-import org.hibernate.annotations.Fetch;
-import org.hibernate.annotations.FetchMode;
 import org.hibernate.proxy.HibernateProxy;
 
 @AllArgsConstructor
@@ -31,14 +29,24 @@ public class OrderItem extends BaseEntity {
 
   @ManyToOne(
       fetch = FetchType.LAZY,
-      cascade = CascadeType.ALL
+      cascade = {
+          CascadeType.PERSIST,
+          CascadeType.MERGE,
+          CascadeType.REFRESH,
+          CascadeType.DETACH
+      }
   )
   @JoinColumn(name = "order_id")
   private Order order;
 
   @ManyToOne(
       fetch = FetchType.LAZY,
-      cascade = CascadeType.ALL
+      cascade = {
+          CascadeType.PERSIST,
+          CascadeType.MERGE,
+          CascadeType.REFRESH,
+          CascadeType.DETACH
+      }
   )
   @JoinColumn(name = "item_id")
   private Item item;
