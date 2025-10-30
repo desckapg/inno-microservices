@@ -11,7 +11,7 @@ import com.innowise.userservice.cache.CacheHelper;
 import com.innowise.common.exception.ResourceAlreadyExistsException;
 import com.innowise.common.exception.ResourceNotFoundException;
 import com.innowise.userservice.integration.AbstractIntegrationTest;
-import com.innowise.userservice.integration.annotation.ServiceIT;
+import com.innowise.userservice.integration.annotation.IT;
 import com.innowise.userservice.model.dto.card.CardDto;
 import com.innowise.userservice.model.entity.Card;
 import com.innowise.userservice.model.entity.User;
@@ -28,11 +28,13 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
-@ServiceIT
+@IT
 @RequiredArgsConstructor
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class CardServiceIT extends AbstractIntegrationTest {
 
   private User userFixture;

@@ -2,7 +2,7 @@ package com.innowise.userservice.exception;
 
 import com.innowise.common.exception.ResourceAlreadyExistsException;
 import com.innowise.common.exception.ResourceNotFoundException;
-import com.innowise.userservice.model.dto.ErrorDto;
+import com.innowise.common.model.dto.ErrorDto;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.Comparator;
 import java.util.List;
@@ -57,9 +57,10 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
   }
 
   @ExceptionHandler(value = {AuthorizationDeniedException.class})
-  public ResponseEntity<Void> handeAuthorizationDeniedException(
+  public ResponseEntity<ErrorDto> handeAuthorizationDeniedException(
       AuthorizationDeniedException ex, HttpServletRequest request) {
-    return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+    return ResponseEntity.status(HttpStatus.FORBIDDEN)
+        .body(ErrorDto.forbidden(ex.getMessage()));
   }
 
   @Override

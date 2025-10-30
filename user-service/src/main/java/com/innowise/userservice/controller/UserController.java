@@ -31,7 +31,7 @@ import org.springframework.web.server.ResponseStatusException;
  * Base path: /api/v1/users
  */
 @RestController
-@RequestMapping("api/v1/users")
+@RequestMapping("/api/v1/users")
 @RequiredArgsConstructor
 @Validated
 @NullMarked

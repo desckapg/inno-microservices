@@ -3,7 +3,7 @@ package com.innowise.userservice.integration.repository;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.innowise.userservice.integration.AbstractIntegrationTest;
-import com.innowise.userservice.integration.annotation.JpaRepositoryIT;
+import com.innowise.userservice.integration.annotation.IT;
 import com.innowise.userservice.model.entity.Card;
 import com.innowise.userservice.model.entity.User;
 import com.innowise.userservice.repository.CardRepository;
@@ -19,7 +19,7 @@ import org.junit.jupiter.api.TestInstance;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
-@JpaRepositoryIT
+@IT
 @RequiredArgsConstructor
 @TestInstance(value = TestInstance.Lifecycle.PER_CLASS)
 class CardRepositoryIT extends AbstractIntegrationTest {
@@ -43,7 +43,7 @@ class CardRepositoryIT extends AbstractIntegrationTest {
 
   @AfterAll
   void cleanupFixtures() {
-    transactionTemplate.executeWithoutResult(status -> {
+    transactionTemplate.executeWithoutResult(_ -> {
       var user = entityManager.find(User.class, userFixture.getId());
       if (user != null) {
         entityManager.remove(user);
@@ -53,7 +53,7 @@ class CardRepositoryIT extends AbstractIntegrationTest {
 
   @AfterEach
   void clearPersistenceContext() {
-    entityManager.clear();
+    transactionTemplate.executeWithoutResult(_ -> entityManager.clear());
   }
 
   @Test

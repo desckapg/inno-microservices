@@ -97,7 +97,7 @@ class UserServiceIT extends AbstractIntegrationTest {
 
   @Test
   void deleteCredentials_whenUserNotExists_shouldThrowResourceNotFoundException() {
-    assertThatThrownBy(() -> userService.deleteCredentials(1L))
+    assertThatThrownBy(() -> userService.deleteCredentials(Long.MAX_VALUE))
         .isInstanceOf(ResourceNotFoundException.class);
   }
 

@@ -1,8 +1,8 @@
 package com.innowise.authservice.exception;
 
-import com.innowise.authservice.model.dto.ErrorDto;
 import com.innowise.common.exception.ResourceAlreadyExistsException;
 import com.innowise.common.exception.ResourceNotFoundException;
+import com.innowise.common.model.dto.ErrorDto;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.Comparator;
 import java.util.List;
@@ -92,6 +92,5 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     }
     return 0;
   }
-
 
 }

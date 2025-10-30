@@ -1,0 +1,64 @@
+spring:
+  application:
+    name: 'order-service'
+  datasource:
+    url: '${DB_URL}'
+    username: '${DB_USERNAME}'
+    password: '${DB_PASSWORD}'
+  cloud:
+    openfeign:
+      circuitbreaker:
+        enabled: true
+        group:
+          enabled: true
+
+server:
+  port: 8082
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://${EUREKA_HOST}:${EUREKA_PORT}/eureka
+    fetchRegistry: true
+    healthcheck:
+      enabled: true
+    jersey:
+      enabled: false
+    restclient:
+      enabled: true
+  instance:
+    preferIpAddress: true
+    leaseRenewalIntervalInSeconds: 10
+
+resilience4j:
+  timelimiter:
+    configs:
+      UserServiceClient:
+        timeoutDuration: 3s
+        cancelRunningFuture:
+  retry:
+    configs:
+      UserServiceClient:
+        maxAttempts: 3
+        waitDuration: 1s
+
+  circuitbreaker:
+    configs:
+      UserServiceClient:
+        registerHealthIndicator: true
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10s
+        permittedNumberOfCallsInHalfOpenState: 3
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,circuitbreakers,timelimiters,retries
+        exclude: errors
+
+logging:
+  level:
+    com.innowise.orderservice.service.client.UserServiceClient: DEBUG

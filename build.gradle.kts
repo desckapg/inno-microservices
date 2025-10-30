@@ -1,7 +1,7 @@
 plugins {
     java
     jacoco
-    id("org.sonarqube") version "6.3.1.5724"
+    id("org.sonarqube") version "7.0.0.6105"
 }
 
 allprojects {
@@ -60,11 +60,6 @@ sonar {
         property("sonar.projectKey", "desckapg_inno-microservices")
         property("sonar.organization", "desckapg")
     }
-}
-
-tasks.sonar {
-    dependsOn(":user-service:build")
-    dependsOn(":auth-service:build")
 }
 
 tasks.withType<Wrapper> {
