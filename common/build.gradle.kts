@@ -9,6 +9,8 @@ dependencies {
     implementation("jakarta.validation:jakarta.validation-api")
 
     compileOnly("org.projectlombok:lombok")
+    compileOnly(libs.wiremock.standalone)
+    compileOnly("org.junit.jupiter:junit-jupiter-engine")
 
     annotationProcessor("org.projectlombok:lombok")
 }

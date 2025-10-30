@@ -3,3 +3,20 @@ eureka:
     enabled: false
     register-with-eureka: false
     fetch-registry: false
+
+spring:
+  main:
+    allow-bean-definition-overriding: true
+  jpa:
+    properties:
+      hibernate:
+        show_sql: true
+        format_sql: true
+  cloud:
+    discovery:
+      enabled: false
+
+logging:
+  level:
+    org.springframework.transaction.*: TRACE
+    org.hibernate.engine.transaction.*: TRACE

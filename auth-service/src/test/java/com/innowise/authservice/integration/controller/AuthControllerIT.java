@@ -5,9 +5,15 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.github.tomakehurst.wiremock.client.WireMock;
+import com.github.tomakehurst.wiremock.http.Body;
 import com.innowise.authservice.integration.AbstractIntegrationTest;
 import com.innowise.authservice.integration.annotation.IT;
+import com.innowise.authservice.model.dto.UserConstraints;
 import com.innowise.authservice.model.dto.credential.CredentialDto;
+import com.innowise.authservice.model.dto.user.UserAuthDto;
+import com.innowise.authservice.model.dto.user.UserAuthInfoDto;
+import com.innowise.authservice.model.dto.user.UserInfoDto;
 import com.innowise.authservice.model.entity.Credentials;
 import com.innowise.authservice.model.entity.Role;
 import com.innowise.authservice.model.entity.User;
@@ -16,10 +22,10 @@ import com.navercorp.fixturemonkey.FixtureMonkey;
 import com.navercorp.fixturemonkey.api.introspector.BuilderArbitraryIntrospector;
 import com.navercorp.fixturemonkey.api.introspector.FailoverIntrospector;
 import com.navercorp.fixturemonkey.datafaker.plugin.DataFakerPlugin;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
-import net.datafaker.Faker;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -28,6 +34,8 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import tools.jackson.databind.ObjectMapper;
@@ -38,8 +46,6 @@ import tools.jackson.databind.ObjectMapper;
 class AuthControllerIT extends AbstractIntegrationTest {
 
   private static final String BASE_URL = "/api/v1/auth";
-
-  private static final Faker FAKER = new Faker();
 
   private final MockMvc mockMvc;
   private final ObjectMapper objectMapper;
@@ -65,13 +71,24 @@ class AuthControllerIT extends AbstractIntegrationTest {
         )
         .register(User.class, fm -> fm.giveMeBuilder(User.class)
             .setNull("id")
-            .setNull("userId")
+            .setNull("id")
             .size("roles", 1)
             .set("roles[0]", Role.USER)
         )
         .register(CredentialDto.class, fm -> fm.giveMeBuilder(CredentialDto.class)
             .setLazy("login", () -> FAKER.credentials().username())
             .setLazy("password", () -> FAKER.credentials().password())
+        )
+        .register(UserAuthDto.class, fm -> fm.giveMeBuilder(UserAuthDto.class)
+            .setNull("id")
+            .set("userId", 1L)
+        )
+        .register(UserInfoDto.class, fm -> fm.giveMeBuilder(UserInfoDto.class)
+            .setNull("id")
+            .setLazy("name", () -> FAKER.name().firstName())
+            .setLazy("surname", () -> FAKER.name().lastName())
+            .set("birthDate", LocalDate.of(1970, 12, 1))
+            .setLazy("email", () -> FAKER.internet().emailAddress())
         )
         .build();
   }
@@ -83,14 +100,14 @@ class AuthControllerIT extends AbstractIntegrationTest {
                 .login("ab")
                 .password("Password1")
                 .build(),
-            "login",
+            "authDto.credentials.login",
             "Login length must be between 3 and 24"
         ),
         Arguments.of(
             CredentialDto.builder()
                 .password("Password1")
                 .build(),
-            "login",
+            "authDto.credentials.login",
             "Login must be provided"
         ),
         Arguments.of(
@@ -98,14 +115,14 @@ class AuthControllerIT extends AbstractIntegrationTest {
                 .login("veryyyyyyyyyyyyyyyyyyyyyyylongloginvalueX")
                 .password("Password1")
                 .build(),
-            "login",
+            "authDto.credentials.login",
             "Login length must be between 3 and 24"
         ),
         Arguments.of(
             CredentialDto.builder()
                 .login("user1")
                 .build(),
-            "password",
+            "authDto.credentials.password",
             "Password must be provided"
         ),
         Arguments.of(
@@ -113,7 +130,7 @@ class AuthControllerIT extends AbstractIntegrationTest {
                 .login("user1")
                 .password("short")
                 .build(),
-            "password",
+            "authDto.credentials.password",
             "Password must contain at least 8 characters, one digit and one letter"
         ),
         Arguments.of(
@@ -121,7 +138,7 @@ class AuthControllerIT extends AbstractIntegrationTest {
                 .login("user1")
                 .password("passwordwithoutdigit")
                 .build(),
-            "password",
+            "authDto.credentials.password",
             "Password must contain at least 8 characters, one digit and one letter"
         )
     );
@@ -129,12 +146,45 @@ class AuthControllerIT extends AbstractIntegrationTest {
 
   @ParameterizedTest(name = "{index}: {2}")
   @MethodSource("invalidCredentialDtos")
-  void login_invalidCredentials_returnUnprocessableStatus(CredentialDto credentials, String field,
+  void register_invalidCredentials_returnUnprocessableStatus(CredentialDto credentials,
+      String field,
       String expectedError)
       throws Exception {
 
-    String body = objectMapper.writeValueAsString(credentials);
-    mockMvc.perform(post(BASE_URL + "/login")
+    var userAuthInfoDto = sut.giveMeBuilder(UserAuthInfoDto.class)
+        .set("authDto.credentials", credentials)
+        .sample();
+
+    var createdUserInfoDto = UserInfoDto.builder()
+        .id(1L)
+        .name(userAuthInfoDto.infoDto().name())
+        .surname(userAuthInfoDto.infoDto().surname())
+        .birthDate(userAuthInfoDto.infoDto().birthDate())
+        .email(userAuthInfoDto.infoDto().email())
+        .build();
+
+    userServiceClientServer.stubFor(
+        WireMock.post("/api/v1/users")
+            .willReturn(WireMock.aResponse()
+                .withStatus(HttpStatus.CREATED.value())
+                .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .withResponseBody(Body.fromJsonBytes(
+                    objectMapper.writeValueAsBytes(createdUserInfoDto))
+                )
+            )
+    );
+
+    userServiceClientServer.stubFor(
+        WireMock.delete("/api/v1/users/" + createdUserInfoDto.id())
+            .willReturn(WireMock.aResponse()
+                .withStatus(HttpStatus.NO_CONTENT.value())
+            )
+    );
+
+    String body = objectMapper.writerWithView(UserConstraints.Register.class)
+        .writeValueAsString(userAuthInfoDto);
+
+    mockMvc.perform(post(BASE_URL + "/register")
             .contentType("application/json")
             .content(body))
         .andExpect(status().isUnprocessableContent())
@@ -143,7 +193,7 @@ class AuthControllerIT extends AbstractIntegrationTest {
   }
 
   @Test
-  void login_validCredentialsButUserNotExists_returnUnauthorizedStatus() throws Exception {
+  void login_userNotExists_returnUnauthorizedStatus() throws Exception {
 
     var user = sut.giveMeOne(User.class);
     em.persistAndFlush(user);

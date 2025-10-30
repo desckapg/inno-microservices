@@ -12,7 +12,7 @@ import com.innowise.authservice.exception.AuthFailedException;
 import com.innowise.authservice.exception.TokenException;
 import com.innowise.authservice.exception.TokenException.TokenErrorCode;
 import com.innowise.authservice.model.dto.credential.CredentialDto;
-import com.innowise.authservice.model.dto.user.UserDto;
+import com.innowise.authservice.model.dto.user.UserAuthDto;
 import com.innowise.authservice.service.impl.TokenServiceImpl;
 import com.innowise.authservice.service.impl.UserServiceImpl;
 import com.innowise.common.exception.ResourceNotFoundException;
@@ -22,6 +22,7 @@ import com.navercorp.fixturemonkey.api.jqwik.JavaTypeArbitraryGenerator;
 import com.navercorp.fixturemonkey.api.jqwik.JqwikPlugin;
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.Set;
 import lombok.SneakyThrows;
 import net.jqwik.api.Arbitraries;
 import net.jqwik.api.arbitraries.LongArbitrary;
@@ -78,9 +79,9 @@ class TokenServiceTest {
   }
 
   @SneakyThrows
-  private String createAccessToken(Long userAuthId, Long userProfileId, List<String> roles) {
+  private String createAccessToken(Long userAuthId, Long userProfileId, Set<String> roles) {
     Method method = tokenService.getClass()
-        .getDeclaredMethod("createAccessToken", Long.class, Long.class, List.class);
+        .getDeclaredMethod("createAccessToken", Long.class, Long.class, Set.class);
     method.setAccessible(true);
     return (String) method.invoke(tokenService, userAuthId, userProfileId, roles);
   }
@@ -95,7 +96,7 @@ class TokenServiceTest {
   @Test
   void createTokens_whenUserValid_shouldReturnPairsOfTokens() {
     var credentialDto = SUT.giveMeOne(CredentialDto.class);
-    var userDto = SUT.giveMeBuilder(UserDto.class).set("login", credentialDto.login())
+    var userDto = SUT.giveMeBuilder(UserAuthDto.class).set("login", credentialDto.login())
         .set("password", credentialDto.password()).sample();
 
     when(userService.findByLoginAndPassword(credentialDto.login(),
@@ -129,7 +130,7 @@ class TokenServiceTest {
 
   @Test
   void refreshAccessToken_whenTokenSignedByAnotherKey_shouldThrowTokenException() {
-    var userDto = SUT.giveMeOne(UserDto.class);
+    var userDto = SUT.giveMeOne(UserAuthDto.class);
 
     String refreshToken = createRefreshToken(userDto.id());
 
@@ -140,7 +141,7 @@ class TokenServiceTest {
 
   @Test
   void refreshAccessToken_whenTokenValidAndUserNotExists_shouldThrowAuthFailedException() {
-    var userDto = SUT.giveMeOne(UserDto.class);
+    var userDto = SUT.giveMeOne(UserAuthDto.class);
 
     String refreshToken = createRefreshToken(userDto.id());
 
@@ -153,7 +154,7 @@ class TokenServiceTest {
 
   @Test
   void refreshAccessToken_whenTokenExpired_shouldThrowTokenException() {
-    var userDto = SUT.giveMeOne(UserDto.class);
+    var userDto = SUT.giveMeOne(UserAuthDto.class);
 
     envVariables.set("JWT_REFRESH_EXPIRATION", 0);
 
@@ -165,7 +166,7 @@ class TokenServiceTest {
 
   @Test
   void refreshAccessToken_whenTokenValidAndUserExists_shouldReturnNewAccessToken() {
-    var userDto = SUT.giveMeOne(UserDto.class);
+    var userDto = SUT.giveMeOne(UserAuthDto.class);
 
     String refreshToken = createRefreshToken(userDto.id());
 
@@ -184,7 +185,7 @@ class TokenServiceTest {
   @Test
   void validateAccessToken_whenTokenValid_shouldThrowNoExceptions() {
 
-    var userDto = SUT.giveMeOne(UserDto.class);
+    var userDto = SUT.giveMeOne(UserAuthDto.class);
     String accessToken = createAccessToken(userDto.id(), userDto.userId(), userDto.roles());
 
     assertThatNoException().isThrownBy(() -> tokenService.validateAccessToken(accessToken));
@@ -193,7 +194,7 @@ class TokenServiceTest {
   @Test
   void validateAccessToken_whenTokenSignedByAnotherKey_shouldThrowNoExceptions() {
 
-    var userDto = SUT.giveMeOne(UserDto.class);
+    var userDto = SUT.giveMeOne(UserAuthDto.class);
 
     envVariables.set("JWT_ACCESS_KEY", TEST_ANOTHER_ACCESS_KEY);
     String accessToken = createAccessToken(userDto.id(), userDto.userId(), userDto.roles());
@@ -207,7 +208,7 @@ class TokenServiceTest {
   @Test
   void validateAccessToken_whenTokenExpired_shouldThrowNoExceptions() {
 
-    var userDto = SUT.giveMeOne(UserDto.class);
+    var userDto = SUT.giveMeOne(UserAuthDto.class);
 
     envVariables.set("JWT_EXPIRATION", 0);
 
