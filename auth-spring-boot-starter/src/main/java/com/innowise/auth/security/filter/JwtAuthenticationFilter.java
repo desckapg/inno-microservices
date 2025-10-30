@@ -1,13 +1,11 @@
 package com.innowise.auth.security.filter;
 
 import com.auth0.jwt.JWT;
-import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.Claim;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.innowise.auth.model.AuthConstants;
 import com.innowise.auth.model.JwtUserDetails;
 import com.innowise.auth.security.provider.AuthTokenProvider;
-import com.innowise.auth.security.provider.AuthTokenProviderInterceptor;
 import com.innowise.auth.security.token.LoginRolesJwtAuthenticationToken;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -18,61 +16,81 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 
 @NullMarked
-@RequiredArgsConstructor
-public class JwtAuthenticationFilter extends OncePerRequestFilter {
+public class JwtAuthenticationFilter extends AbstractAuthenticationProcessingFilter {
 
-  private final AuthTokenProvider authTokenProvider;
+  public JwtAuthenticationFilter(
+      RequestMatcher requiresAuthenticationRequestMatcher,
+      AuthenticationManager authenticationManager,
+      AuthTokenProvider authTokenProvider
+  ) {
+    super(requiresAuthenticationRequestMatcher, authenticationManager);
+    setAuthenticationSuccessHandler(new AuthenticationSuccessHandler() {
+      @Override
+      public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
+          Authentication authentication) {
+        authTokenProvider.set((LoginRolesJwtAuthenticationToken) authentication);
+      }
+
+      @Override
+      public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
+          FilterChain chain, Authentication authentication) throws ServletException, IOException {
+        authTokenProvider.set((LoginRolesJwtAuthenticationToken) authentication);
+        chain.doFilter(request, response);
+      }
+    });
+  }
 
   @Override
-  protected void doFilterInternal(
-      HttpServletRequest request,
-      HttpServletResponse response,
-      FilterChain filterChain)
-      throws ServletException, IOException {
+  public @Nullable Authentication attemptAuthentication(HttpServletRequest request,
+      HttpServletResponse response) throws AuthenticationException {
+    String rawJwt = obtainJwtToken(request);
+    if (rawJwt == null) {
+      throw new BadCredentialsException("JWT isn't provided");
+    }
+    var jwt = JWT.decode(rawJwt);
 
-    String authHeader = request.getHeader(AuthConstants.AUTH_HEADER);
+    var userDetails = extractUserDetails(jwt);
 
-    if (authHeader == null || !authHeader.startsWith(AuthConstants.BEARER_PREFIX)) {
-      response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-      return;
+    if (userDetails == null) {
+      throw new BadCredentialsException("JWT is malformed");
     }
 
-    String token = authHeader.substring(AuthConstants.BEARER_PREFIX.length()).trim();
-    if (token.isEmpty()) {
-      response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-      return;
+    var authentication = new LoginRolesJwtAuthenticationToken(userDetails, rawJwt);
+    setDetails(request, authentication);
+    return this.getAuthenticationManager().authenticate(authentication);
+  }
+
+  @Override
+  protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response,
+      FilterChain chain, Authentication authResult) throws IOException, ServletException {
+    super.successfulAuthentication(request, response, chain, authResult);
+    chain.doFilter(request, response);
+  }
+
+  protected void setDetails(HttpServletRequest request,
+      LoginRolesJwtAuthenticationToken authRequest) {
+    authRequest.setDetails(this.authenticationDetailsSource.buildDetails(request));
+  }
+
+  private @Nullable String obtainJwtToken(HttpServletRequest request) {
+    var authHeader = request.getHeader(AuthConstants.AUTH_HEADER);
+    if (authHeader == null || !authHeader.startsWith(AuthConstants.AUTH_SCHEME)) {
+      return null;
     }
-
-    if (SecurityContextHolder.getContext().getAuthentication() == null) {
-      try {
-        var jwt = JWT.decode(token);
-
-        var userDetails = extractUserDetails(jwt);
-
-        if (userDetails == null) {
-          response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-          return;
-        }
-
-        var authentication = new LoginRolesJwtAuthenticationToken(userDetails, token);
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-        authTokenProvider.set(authentication);
-      } catch (JWTVerificationException _) {
-        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-        return;
-      }
-    }
-
-    filterChain.doFilter(request, response);
+    return authHeader.substring(AuthConstants.AUTH_SCHEME.length());
   }
 
   private @Nullable JwtUserDetails extractUserDetails(DecodedJWT jwt) {

@@ -1,13 +1,8 @@
-package com.innowise.userservice.config;
+package com.innowise.userservice.integration;
 
-import com.innowise.auth.security.filter.JwtAuthenticationFilter;
-import com.innowise.auth.security.provider.AuthTokenProvider;
-import lombok.RequiredArgsConstructor;
+import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.CsrfConfigurer;
 import org.springframework.security.config.annotation.web.configurers.FormLoginConfigurer;
@@ -15,19 +10,11 @@ import org.springframework.security.config.annotation.web.configurers.HttpBasicC
 import org.springframework.security.config.annotation.web.configurers.LogoutConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.logout.LogoutFilter;
-import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
 
-@Configuration
-@EnableMethodSecurity
-@RequiredArgsConstructor
-public class SecurityConfig {
-
-  private final AuthenticationManager authenticationManager;
-  private final AuthTokenProvider authTokenProvider;
+@TestConfiguration
+public class TestSecurityConfig {
 
   @Bean
-  @Profile("!test")
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
     http
         .sessionManagement(cfg -> cfg.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -37,12 +24,7 @@ public class SecurityConfig {
         .logout(LogoutConfigurer::disable)
         .authorizeHttpRequests(authz ->
             authz.anyRequest().authenticated()
-        )
-        .addFilterAfter(new JwtAuthenticationFilter(
-            PathPatternRequestMatcher.pathPattern("/**"),
-            authenticationManager,
-            authTokenProvider
-        ), LogoutFilter.class);
+        );
     return http.build();
   }
 
