@@ -6,6 +6,10 @@ spring:
       server:
         webflux:
           routes:
+            - id: register
+              uri: lb://auth-service
+              predicates:
+                - 'Path=/api/v1/auth/register'
             - id: login
               uri: lb://auth-service
               predicates:
