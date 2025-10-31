@@ -86,7 +86,7 @@ management:
         include: health,circuitbreakers
 
 server:
-  port: 8090
+  port: 8080
 
 logging:
   level:

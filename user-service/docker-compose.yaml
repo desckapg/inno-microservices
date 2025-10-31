@@ -72,9 +72,10 @@ services:
     stdin_open: true
   user-service:
     image: user-service:latest
+    depends_on:
+      - postgres
+      - redis
     build:
-      context: ..
-      dockerfile: user-service/Dockerfile
       args:
         DOCKER_BUILDKIT: 1
     restart: "no"
