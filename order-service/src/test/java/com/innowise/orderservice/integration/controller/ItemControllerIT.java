@@ -19,11 +19,14 @@ import com.navercorp.fixturemonkey.api.jqwik.JqwikPlugin;
 import java.math.BigDecimal;
 import java.net.URI;
 import lombok.RequiredArgsConstructor;
+import net.jqwik.api.Arbitraries;
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.assertj.MockMvcTester;
 import tools.jackson.databind.json.JsonMapper;
 
 @IT
@@ -33,6 +36,7 @@ class ItemControllerIT extends AbstractIntegrationTest {
   private final ItemMapper itemMapper;
   private final JsonMapper jsonMapper;
   private final MockMvc mockMvc;
+  private final MockMvcTester mockMvcTester;
   private final TestEntityManager em;
 
   private FixtureMonkey itemsSut;
@@ -96,6 +100,28 @@ class ItemControllerIT extends AbstractIntegrationTest {
     ).andExpectAll(
         status().isOk(),
         jsonPath("$").isArray()
+    );
+  }
+
+  @Test
+  @WithMockCustomUser
+  void findAll_byIdIn() throws Exception {
+    var items = itemsSut.giveMe(Item.class, 5);
+
+    items.forEach(em::persist);
+    em.flush();
+    em.clear();
+
+    var findingItems = Arbitraries.of(items).list().ofSize(3).sample();
+
+    mockMvc.perform(
+        get(URI.create("/api/v1/orders/items"))
+            .param("ids",
+                findingItems.stream().map(i -> i.getId().toString()).toArray(String[]::new))
+    ).andExpectAll(
+        status().isOk(),
+        jsonPath("$").isArray(),
+        jsonPath("$").value(Matchers.hasSize(findingItems.size()))
     );
   }
 

@@ -193,6 +193,51 @@ class AuthControllerIT extends AbstractIntegrationTest {
   }
 
   @Test
+  void register_validCredentials_returnCreated() throws Exception {
+
+    var userAuthInfoDto = sut.giveMeBuilder(UserAuthInfoDto.class)
+        .sample();
+
+    var createdUserInfoDto = UserInfoDto.builder()
+        .id(1L)
+        .name(userAuthInfoDto.infoDto().name())
+        .surname(userAuthInfoDto.infoDto().surname())
+        .birthDate(userAuthInfoDto.infoDto().birthDate())
+        .email(userAuthInfoDto.infoDto().email())
+        .build();
+
+    userServiceClientServer.stubFor(
+        WireMock.post("/api/v1/users")
+            .willReturn(WireMock.aResponse()
+                .withStatus(HttpStatus.CREATED.value())
+                .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .withResponseBody(Body.fromJsonBytes(
+                    objectMapper.writeValueAsBytes(createdUserInfoDto))
+                )
+            )
+    );
+
+    String body = objectMapper.writerWithView(UserConstraints.Register.class)
+        .writeValueAsString(userAuthInfoDto);
+
+    mockMvc.perform(post(BASE_URL + "/register")
+            .contentType("application/json")
+            .content(body))
+        .andExpectAll(
+            status().isCreated(),
+            jsonPath("$.id").isNumber(),
+            jsonPath("$.login").value(userAuthInfoDto.authDto().credentials().login()),
+            jsonPath("$.password").doesNotExist(),
+            jsonPath("$.roles").isArray(),
+            jsonPath("$.userId").isNumber(),
+            jsonPath("$.name").value(userAuthInfoDto.infoDto().name()),
+            jsonPath("$.surname").value(userAuthInfoDto.infoDto().surname()),
+            jsonPath("$.birthDate").value(userAuthInfoDto.infoDto().birthDate().toString()),
+            jsonPath("$.email").value(userAuthInfoDto.infoDto().email())
+        );
+  }
+
+  @Test
   void login_userNotExists_returnUnauthorizedStatus() throws Exception {
 
     var user = sut.giveMeOne(User.class);

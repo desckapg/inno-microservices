@@ -1,6 +1,5 @@
 package com.innowise.authservice.controller;
 
-import com.fasterxml.jackson.annotation.JsonView;
 import com.innowise.authservice.exception.TokenException;
 import com.innowise.authservice.model.dto.CredentialsConstraints;
 import com.innowise.authservice.model.dto.UserConstraints;
