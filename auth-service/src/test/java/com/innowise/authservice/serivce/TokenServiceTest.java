@@ -21,7 +21,6 @@ import com.navercorp.fixturemonkey.api.introspector.ConstructorPropertiesArbitra
 import com.navercorp.fixturemonkey.api.jqwik.JavaTypeArbitraryGenerator;
 import com.navercorp.fixturemonkey.api.jqwik.JqwikPlugin;
 import java.lang.reflect.Method;
-import java.util.List;
 import java.util.Set;
 import lombok.SneakyThrows;
 import net.jqwik.api.Arbitraries;

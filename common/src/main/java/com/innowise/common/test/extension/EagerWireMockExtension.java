@@ -185,17 +185,17 @@ public class EagerWireMockExtension extends DslWrapper
   }
 
   private Options buildOptionsFromWireMockTestAnnotation(WireMockTest annotation) {
-    WireMockConfiguration options =
+    WireMockConfiguration wireMockCfg =
         WireMockConfiguration.options()
             .port(annotation.httpPort())
             .extensionScanningEnabled(annotation.extensionScanningEnabled())
             .enableBrowserProxying(annotation.proxyMode());
 
     if (annotation.httpsEnabled()) {
-      options.httpsPort(annotation.httpsPort());
+      wireMockCfg.httpsPort(annotation.httpsPort());
     }
 
-    return options;
+    return wireMockCfg;
   }
 
   private void stopServerIfRunning() {
@@ -250,9 +250,9 @@ public class EagerWireMockExtension extends DslWrapper
       wireMockServer.checkForUnmatchedRequests();
     }
 
-//    if (isNonStatic) {
-//      stopServerIfRunning();
-//    }
+    if (isNonStatic) {
+      stopServerIfRunning();
+    }
 
     if (proxyMode) {
       JvmProxyConfigurer.restorePrevious();
@@ -317,8 +317,8 @@ public class EagerWireMockExtension extends DslWrapper
     public EagerWireMockExtension build() {
       if (proxyMode
           && !options.browserProxySettings().enabled()
-          && (options instanceof WireMockConfiguration)) {
-        ((WireMockConfiguration) options).enableBrowserProxying(true);
+          && (options instanceof WireMockConfiguration wireMocCfg)) {
+        wireMocCfg.enableBrowserProxying(true);
       }
 
       return new EagerWireMockExtension(
