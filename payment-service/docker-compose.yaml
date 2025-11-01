@@ -1,0 +1,7 @@
+services:
+  payment-service:
+    image: payment-service:latest
+    build:
+      args:
+        DOCKER_BUILDKIT: 1
+    restart: "no"
