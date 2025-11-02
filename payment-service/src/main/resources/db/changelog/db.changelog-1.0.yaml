@@ -1,0 +1,73 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1
+      author: desckapg
+      changes:
+        - createCollection:
+            collectionName: "payments"
+            options: |
+              {
+              validator: {
+                $jsonSchema: {
+                  bsonType: "object",
+                  title: "Payment object validation",
+                  properties: {
+                    order_id: {
+                      bsonType: "int",
+                      description: "'order_id' must be an int and must be provided"
+                    },
+                    user_id: {
+                      bsonType: "int",
+                      description: "'user_id' must be an int and must be provided"
+                    },
+                    status: {
+                      bsonType: "string",
+                        description: "'status' must be a string and must be provided"
+                      },
+                    timestamp: {
+                        bsonType: "timestamp",
+                        description: "'timestamp' must be a timestamp and must be provided"
+                    },
+                    payment_amount: {
+                        bsonType: "double",
+                        description: "'payment_amount' must be a double and must be provided"
+                    }
+                  }
+                }
+              }
+              }
+  - changeSet:
+      id: 2
+      author: desckapg
+      changes:
+        - createIndex:
+            collectionName: 'payments'
+            keys: |
+              {
+                order_id: 1
+              }
+            options: |
+              {
+                name: "order_id_asc"
+              }
+        - createIndex:
+            collectionName: 'payments'
+            keys: |
+              {
+                user_id: 1
+              }
+            options: |
+              {
+                name: "user_id_asc"
+              }
+        - createIndex:
+            collectionName: 'payments'
+            keys: |
+              {
+                timestamp: -1
+              }
+            options: |
+              {
+                name: "timestamp_desc"
+                unique: true
+              }

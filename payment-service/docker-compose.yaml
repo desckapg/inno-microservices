@@ -10,6 +10,8 @@ services:
       - '27017:27017'
   payment-service:
     image: payment-service:latest
+    depends_on:
+      - mongo
     build:
       args:
         DOCKER_BUILDKIT: 1
