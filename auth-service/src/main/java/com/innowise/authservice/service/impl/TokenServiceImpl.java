@@ -8,14 +8,16 @@ import com.innowise.authservice.exception.AuthFailedException;
 import com.innowise.authservice.exception.TokenException;
 import com.innowise.authservice.model.dto.credential.CredentialDto;
 import com.innowise.authservice.model.dto.token.TokenDto;
-import com.innowise.authservice.model.dto.user.UserDto;
+import com.innowise.authservice.model.dto.user.UserAuthDto;
 import com.innowise.authservice.service.TokenService;
 import com.innowise.authservice.service.UserService;
 import com.innowise.common.exception.ResourceNotFoundException;
 import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NullMarked;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -23,6 +25,7 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 @NullMarked
+@Slf4j
 public class TokenServiceImpl implements TokenService {
 
   private final UserService userService;
@@ -30,10 +33,10 @@ public class TokenServiceImpl implements TokenService {
   @Value("${spring.application.name}")
   private String issuer;
 
-  private static final String USER_SERVICE_ID_CLAIM = "userId";
+  private static final String USER_SERVICE_ID_CLAIM = "id";
   private static final String USER_ROLES_CLAIM = "roles";
 
-  private String createAccessToken(Long userAuthId, Long userProfileId, List<String> roles) {
+  private String createAccessToken(Long userAuthId, Long userProfileId, Set<String> roles) {
     return JWT.create()
         .withExpiresAt(Instant.from(ZonedDateTime.now().plusSeconds(getExpiration())))
         .withIssuer(issuer)
@@ -59,12 +62,12 @@ public class TokenServiceImpl implements TokenService {
       var refreshVerifier = createRefreshTokenJwtVerifier();
       var decodedRefreshToken = refreshVerifier.verify(refreshToken);
       Long userAuthId = Long.parseUnsignedLong(decodedRefreshToken.getSubject());
-      UserDto userDto = tryAuthenticateUser(userAuthId);
+      UserAuthDto userAuthDto = tryAuthenticateUser(userAuthId);
       return TokenDto.builder()
           .accessToken(createAccessToken(
-              userDto.id(),
-              userDto.userId(),
-              userDto.roles()
+              userAuthDto.id(),
+              userAuthDto.userId(),
+              userAuthDto.roles()
           ))
           .build();
     } catch (JWTVerificationException e) {
@@ -84,7 +87,7 @@ public class TokenServiceImpl implements TokenService {
         .build();
   }
 
-  private UserDto tryAuthenticateUser(Long id) {
+  private UserAuthDto tryAuthenticateUser(Long id) {
     try {
       return userService.findById(id);
     } catch (ResourceNotFoundException _) {
@@ -112,6 +115,7 @@ public class TokenServiceImpl implements TokenService {
     try {
       createAccessTokenJwtVerifier().verify(accessToken);
     } catch (JWTVerificationException e) {
+      log.warn("JWT access token verification failed", e);
       throw TokenException.fromJwtException(e);
     }
   }

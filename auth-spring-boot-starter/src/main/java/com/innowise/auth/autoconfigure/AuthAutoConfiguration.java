@@ -1,7 +1,7 @@
 package com.innowise.auth.autoconfigure;
 
 import com.innowise.auth.model.Role;
-import com.innowise.auth.security.filter.JwtAuthenticationFilter;
+import com.innowise.auth.security.JwtAuthenticationProvider;
 import com.innowise.auth.security.provider.AuthTokenProvider;
 import com.innowise.auth.security.provider.AuthTokenProviderInterceptor;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -11,12 +11,10 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplicat
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -42,38 +40,26 @@ public class AuthAutoConfiguration implements WebMvcConfigurer {
   }
 
   @Bean
-  public UserDetailsService userDetailsService() {
-    return new InMemoryUserDetailsManager();
+  public JwtAuthenticationProvider jwtAuthenticationProvider() {
+    return new JwtAuthenticationProvider();
   }
 
   @Bean
-  @ConditionalOnMissingBean
-  public JwtAuthenticationFilter jwtExtractorFilter(AuthTokenProvider authTokenProvider) {
-    return new JwtAuthenticationFilter(authTokenProvider);
+  public AuthenticationManager authenticationManager(
+      JwtAuthenticationProvider jwtAuthenticationProvider) {
+    return new ProviderManager(jwtAuthenticationProvider);
   }
 
   @Bean
-  @ConditionalOnMissingBean
   public AuthTokenProvider authTokenProvider() {
     return new AuthTokenProvider();
   }
 
   @Bean
-  @ConditionalOnMissingBean
-  public AuthTokenProviderInterceptor authTokenProviderInterceptor(AuthTokenProvider authTokenProvider) {
+  public AuthTokenProviderInterceptor authTokenProviderInterceptor(
+      AuthTokenProvider authTokenProvider) {
     return new AuthTokenProviderInterceptor(authTokenProvider);
   }
-
-  @Bean
-  @ConditionalOnMissingBean
-  public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http,
-      JwtAuthenticationFilter filter) throws Exception {
-    http.sessionManagement(AbstractHttpConfigurer::disable);
-    http.csrf(AbstractHttpConfigurer::disable);
-    http.addFilterBefore(filter, BasicAuthenticationFilter.class);
-    return http.build();
-  }
-
 
 
 }

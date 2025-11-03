@@ -36,8 +36,6 @@ services:
   auth-service:
     image: auth-service:latest
     build:
-      context: ..
-      dockerfile: auth-service/Dockerfile
       args:
         DOCKER_BUILDKIT: 1
     restart: "no"

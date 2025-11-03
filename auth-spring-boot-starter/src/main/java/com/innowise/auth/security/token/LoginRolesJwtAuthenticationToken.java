@@ -27,7 +27,7 @@ public class LoginRolesJwtAuthenticationToken extends AbstractAuthenticationToke
 
   @Override
   public @Nullable Object getCredentials() {
-    return user.getPassword();
+    return jwtToken;
   }
 
   @Override
@@ -44,7 +44,7 @@ public class LoginRolesJwtAuthenticationToken extends AbstractAuthenticationToke
       AbstractAuthenticationBuilder<B> {
 
     private JwtUserDetails user;
-    private final String jwtToken;
+    private String jwtToken;
 
     protected Builder(LoginRolesJwtAuthenticationToken token) {
       super(token);
@@ -61,8 +61,11 @@ public class LoginRolesJwtAuthenticationToken extends AbstractAuthenticationToke
     }
 
     @Override
-    public @Nullable B credentials(@Nullable Object credentials) {
-      return null;
+    @SuppressWarnings("unchecked")
+    public B credentials(@Nullable Object credentials) {
+      Assert.notNull(credentials, "credentials cannot be null");
+      this.jwtToken = (String) credentials;
+      return (B) this;
     }
 
     @Override

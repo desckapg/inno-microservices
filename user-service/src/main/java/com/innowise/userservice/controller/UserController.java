@@ -79,7 +79,7 @@ public class UserController {
    */
   @GetMapping("/{id}")
   @PreAuthorize(
-      "hasAuthority(T(com.innowise.auth.model.Role).USER.getAuthority()) and #id == authentication.principal.id or " +
+      "hasAuthority(T(com.innowise.auth.model.Role).USER.getAuthority()) and #id == authentication.principal.userId or " +
       "hasAuthority(T(com.innowise.auth.model.Role).MANAGER.getAuthority())"
   )
   public ResponseEntity<UserDto> findById(@PathVariable Long id) {
@@ -130,7 +130,7 @@ public class UserController {
    */
   @GetMapping("/{userId}/cards")
   @PreAuthorize(
-      "hasAuthority(T(com.innowise.auth.model.Role).USER.getAuthority()) and #userId == authentication.principal.id or " +
+      "hasAuthority(T(com.innowise.auth.model.Role).USER.getAuthority()) and #userId == authentication.principal.userId or " +
       "hasAuthority(T(com.innowise.auth.model.Role).MANAGER.getAuthority())"
   )
   public ResponseEntity<List<CardDto>> findUserCards(@PathVariable Long userId) {

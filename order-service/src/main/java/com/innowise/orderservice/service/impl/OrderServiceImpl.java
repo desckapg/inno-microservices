@@ -42,7 +42,7 @@ public class OrderServiceImpl implements OrderService {
         .orElseThrow(() -> generateNotFoundException(id));
     return orderMapper.toDto(order,
         userServiceClient.findById(order.getUserId(),
-            AuthConstants.BEARER_PREFIX + authTokenProvider.get().getJwtToken())
+            AuthConstants.AUTH_SCHEME + authTokenProvider.get().getJwtToken())
     );
   }
 
@@ -60,7 +60,7 @@ public class OrderServiceImpl implements OrderService {
     return orderRepository.findAll(specification).stream()
         .map(order -> orderMapper.toDto(order,
             userServiceClient.findById(order.getUserId(),
-                AuthConstants.BEARER_PREFIX + authTokenProvider.get().getJwtToken())))
+                AuthConstants.AUTH_SCHEME + authTokenProvider.get().getJwtToken())))
         .toList();
   }
 
@@ -74,7 +74,7 @@ public class OrderServiceImpl implements OrderService {
 
     var userId = authTokenProvider.get().getPrincipal().userId();
     var user = userServiceClient.findById(userId,
-            AuthConstants.  BEARER_PREFIX + authTokenProvider.get().getJwtToken());
+            AuthConstants.AUTH_SCHEME + authTokenProvider.get().getJwtToken());
     orderEntity.setStatus(Status.NEW);
     orderEntity.setUserId(userId);
     return orderMapper.toDto(orderRepository.save(orderEntity), user);
@@ -89,7 +89,7 @@ public class OrderServiceImpl implements OrderService {
     return orderMapper.toDto(
         orderRepository.save(order),
         userServiceClient.findById(order.getUserId(),
-            AuthConstants.BEARER_PREFIX + authTokenProvider.get().getJwtToken()));
+            AuthConstants.AUTH_SCHEME + authTokenProvider.get().getJwtToken()));
   }
 
   @Override

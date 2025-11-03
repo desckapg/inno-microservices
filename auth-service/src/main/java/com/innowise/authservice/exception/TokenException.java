@@ -7,6 +7,7 @@ import com.auth0.jwt.exceptions.SignatureVerificationException;
 import com.auth0.jwt.exceptions.TokenExpiredException;
 import java.io.Serial;
 import java.time.Instant;
+import java.time.OffsetDateTime;
 import lombok.Getter;
 import lombok.ToString;
 import org.springframework.http.HttpStatus;
@@ -19,12 +20,12 @@ public class TokenException extends RuntimeException {
   private static final long serialVersionUID = 2201998854758646992L;
 
   private final TokenErrorCode errorCode;
-  private final Instant occurredAt;
+  private final OffsetDateTime occurredAt;
 
   public TokenException(TokenErrorCode errorCode, String message) {
     super(message);
     this.errorCode = errorCode;
-    this.occurredAt = Instant.now();
+    this.occurredAt = OffsetDateTime.now();
   }
 
   public static TokenException expired(Instant expiresAt) {

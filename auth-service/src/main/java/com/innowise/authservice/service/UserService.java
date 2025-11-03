@@ -1,18 +1,14 @@
 package com.innowise.authservice.service;
 
-import com.innowise.authservice.model.dto.credential.CredentialDto;
-import com.innowise.authservice.model.dto.user.UserDto;
-import com.innowise.common.exception.ResourceNotFoundException;
+import com.innowise.authservice.model.dto.user.UserAuthDto;
+import com.innowise.authservice.model.dto.user.UserAuthInfoDto;
 import org.jspecify.annotations.NullMarked;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 /**
  * Provides operations for retrieving users and managing their credentials.
  */
 @NullMarked
-public interface UserService extends UserDetailsService {
+public interface UserService {
 
   /**
    * Finds a user by unique identifier.
@@ -20,7 +16,7 @@ public interface UserService extends UserDetailsService {
    * @param id user identifier
    * @return user data
    */
-  UserDto findById(Long id);
+  UserAuthDto findById(Long id);
 
 
   /**
@@ -29,7 +25,7 @@ public interface UserService extends UserDetailsService {
    * @param login user login
    * @return user data
    */
-  UserDto findByLogin(String login);
+  UserAuthDto findByLogin(String login);
 
   /**
    * Finds a user that matches the given login and password.
@@ -38,30 +34,22 @@ public interface UserService extends UserDetailsService {
    * @param password raw password
    * @return user data
    */
-  UserDto findByLoginAndPassword(String login, String password);
-
-  /**
-   * Persists user credentials and returns the created user.
-   *
-   * @param credentialDto credentials payload
-   * @return user data
-   */
-  UserDto saveCredentials(CredentialDto credentialDto);
+  UserAuthDto findByLoginAndPassword(String login, String password);
 
   /**
    * Deletes credentials and user for the given user identifier.
    *
    * @param id user identifier
    */
-  void deleteCredentials(Long id);
+  void delete(Long id);
 
-  @Override
-  default UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-    try {
-      return findByLogin(username);
-    } catch (ResourceNotFoundException e) {
-      throw new UsernameNotFoundException(e.getMessage());
-    }
-  }
+  /**
+   * Create new user and returns the created user.
+   *
+   * @param userDto user data payload
+   * @return created user data
+   */
+  UserAuthInfoDto register(UserAuthInfoDto userDto);
+
 
 }

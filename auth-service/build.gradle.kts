@@ -5,12 +5,10 @@ plugins {
 
 val springCloudVersion by extra("2025.1.0-M3")
 
-version = "0.0.1-SNAPSHOT"
-description = "auth-service"
-
 val mockitoAgent = configurations.create("mockitoAgent")
 dependencies {
     implementation(project(":common"))
+    implementation(project(":auth-spring-boot-starter"))
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.springframework.boot:spring-boot-starter-liquibase")
     implementation("org.springframework.boot:spring-boot-starter-web")
@@ -23,6 +21,9 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-restclient")
     implementation(libs.java.jwt)
     implementation(libs.bcrypt)
+    implementation("org.springframework.cloud:spring-cloud-starter-openfeign")
+    implementation("org.springframework.cloud:spring-cloud-starter-circuitbreaker-resilience4j")
+    implementation(libs.spring.boot.starter.aop)
 
     compileOnly("org.projectlombok:lombok")
     compileOnly(libs.mapstruct)
@@ -48,6 +49,7 @@ dependencies {
     testImplementation(libs.fixture.monkey.starter)
     testImplementation(libs.fixture.monkey.datafaker)
     testImplementation(libs.datafaker)
+    testImplementation(libs.wiremock.standalone)
 
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     testCompileOnly("org.projectlombok:lombok")

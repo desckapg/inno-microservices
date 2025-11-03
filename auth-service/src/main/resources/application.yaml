@@ -8,9 +8,15 @@ spring:
     url: '${DB_URL}'
     username: '${DB_USERNAME}'
     password: '${DB_PASSWORD}'
+  cloud:
+    openfeign:
+      circuitbreaker:
+        enabled: true
+        group:
+          enabled: true
 
 server:
-  port: 8081
+  port: 8082
 
 eureka:
   client:
@@ -26,3 +32,36 @@ eureka:
   instance:
     preferIpAddress: true
     leaseRenewalIntervalInSeconds: 10
+
+logging:
+  level:
+    com.innowise.authservice.service.client.UserServiceClient: DEBUG
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,circuitbreakers
+        exclude: errors
+
+resilience4j:
+  timelimiter:
+    configs:
+      UserServiceClient:
+        timeoutDuration: 3s
+        cancelRunningFuture: true
+  retry:
+    configs:
+      UserServiceClient:
+        maxAttempts: 3
+        waitDuration: 1s
+
+  circuitbreaker:
+    configs:
+      UserServiceClient:
+        registerHealthIndicator: true
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10s
+        permittedNumberOfCallsInHalfOpenState: 3

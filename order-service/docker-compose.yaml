@@ -36,13 +36,9 @@ services:
   order-service:
     image: order-service:latest
     build:
-      context: ..
-      dockerfile: order-service/Dockerfile
       args:
         DOCKER_BUILDKIT: 1
     restart: "no"
-    ports:
-      - "8082:8082"
 
 volumes:
   db:

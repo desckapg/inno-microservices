@@ -1,0 +1,215 @@
+services:
+  user-service-postgres:
+    image: 'postgres:latest'
+    volumes:
+      - user-service-db:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=${USER_SERVICE_POSTGRES_DATABASE}
+      - POSTGRES_USER=${USER_SERVICE_POSTGRES_USERNAME}
+      - POSTGRES_PASSWORD=${USER_SERVICE_POSTGRES_PASSWORD}
+    env_file:
+      - .env.user-service
+    ports:
+      - '5432'
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+    command: >
+      postgres -c max_connections=1000
+                 -c shared_buffers=256MB
+                 -c effective_cache_size=768MB
+                 -c maintenance_work_mem=64MB
+                 -c checkpoint_completion_target=0.7
+                 -c wal_buffers=16MB
+                 -c default_statistics_target=100
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${USER_SERVICE_POSTGRES_USERNAME} -d ${USER_SERVICE_POSTGRES_DATABASE}" ]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+    restart: unless-stopped
+    tty: true
+    stdin_open: true
+  auth-service-postgres:
+    image: 'postgres:latest'
+    volumes:
+      - auth-service-db:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=${AUTH_SERVICE_POSTGRES_DATABASE}
+      - POSTGRES_USER=${AUTH_SERVICE_POSTGRES_USERNAME}
+      - POSTGRES_PASSWORD=${AUTH_SERVICE_POSTGRES_PASSWORD}
+    env_file:
+      - .env.auth-service
+    ports:
+      - '5432'
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+    command: >
+      postgres -c max_connections=1000
+                 -c shared_buffers=256MB
+                 -c effective_cache_size=768MB
+                 -c maintenance_work_mem=64MB
+                 -c checkpoint_completion_target=0.7
+                 -c wal_buffers=16MB
+                 -c default_statistics_target=100
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${AUTH_SERVICE_POSTGRES_USERNAME} -d ${AUTH_SERVICE_POSTGRES_DATABASE}" ]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+    restart: unless-stopped
+    tty: true
+    stdin_open: true
+  order-service-postgres:
+    image: 'postgres:latest'
+    volumes:
+      - order-service-db:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=${ORDER_SERVICE_POSTGRES_DATABASE}
+      - POSTGRES_USER=${ORDER_SERVICE_POSTGRES_USERNAME}
+      - POSTGRES_PASSWORD=${ORDER_SERVICE_POSTGRES_PASSWORD}
+    env_file:
+      - .env.oder-service
+    ports:
+      - '5432'
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+    command: >
+      postgres -c max_connections=1000
+                 -c shared_buffers=256MB
+                 -c effective_cache_size=768MB
+                 -c maintenance_work_mem=64MB
+                 -c checkpoint_completion_target=0.7
+                 -c wal_buffers=16MB
+                 -c default_statistics_target=100
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${ORDER_SERVICE_POSTGRES_USERNAME} -d ${ORDER_SERVICE_POSTGRES_DATABASE}" ]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+    restart: unless-stopped
+    tty: true
+    stdin_open: true
+  user-service-redis:
+    image: 'redis:latest'
+    volumes:
+      - user-service-redis:/data
+    env_file:
+      - .env.user-service
+    ports:
+      - '6379'
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 128M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+    command: >
+      sh -c '
+        mkdir -p /usr/local/etc/redis &&
+        echo "bind 0.0.0.0" > /usr/local/etc/redis/redis.conf &&
+        echo "requirepass $USER_SERVICE_REDIS_PASSWORD" >> /usr/local/etc/redis/redis.conf &&
+        echo "appendonly yes" >> /usr/local/etc/redis/redis.conf &&
+        echo "appendfsync everysec" >> /usr/local/etc/redis/redis.conf &&
+        echo "user default on nopass ~* +@all" > /usr/local/etc/redis/users.acl &&
+        echo "user $USER_SERVICE_REDIS_USER on >$USER_SERVICE_REDIS_USER_PASSWORD ~* +@all" >> /usr/local/etc/redis/users.acl &&
+        redis-server /usr/local/etc/redis/redis.conf --aclfile /usr/local/etc/redis/users.acl
+      '
+    healthcheck:
+      test: [ "CMD", "redis-cli", "-a", "$USER_SERVICE_REDIS_PASSWORD", "ping" ]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+    restart: unless-stopped
+    tty: true
+    stdin_open: true
+  discovery-service:
+    image: discovery-service:latest
+    build:
+      context: ../discovery-service
+      args:
+        DOCKER_BUILDKIT: 1
+    restart: "no"
+    ports:
+        - "8761"
+  api-gateway:
+    image: api-gateway:latest
+    depends_on:
+      - discovery-service
+    build:
+      context: ../api-gateway
+      args:
+        DOCKER_BUILDKIT: 1
+    restart: "no"
+    env_file:
+      - ./.env.api-gateway
+    ports:
+      - "8080"
+  user-service:
+    image: user-service:latest
+    depends_on:
+      - user-service-postgres
+      - user-service-redis
+      - discovery-service
+    build:
+      context: ../user-service
+      args:
+        DOCKER_BUILDKIT: 1
+    env_file:
+      - .env.user-service
+    restart: "no"
+    ports:
+      - "8081"
+  auth-service:
+    image: auth-service:latest
+    depends_on:
+      - auth-service-postgres
+      - discovery-service
+    build:
+      context: ../auth-service
+      args:
+        DOCKER_BUILDKIT: 1
+    restart: "no"
+    env_file:
+      - .env.auth-service
+    ports:
+      - "8082"
+  order-service:
+    image: order-service:latest
+    depends_on:
+      - order-service-postgres
+      - discovery-service
+    build:
+      context: ../order-service
+      args:
+        DOCKER_BUILDKIT: 1
+    restart: "no"
+    env_file:
+      - .env.oder-service
+    ports:
+      - "8083"
+
+volumes:
+  user-service-db:
+  user-service-redis:
+  auth-service-db:
+  order-service-db:

@@ -1,14 +1,19 @@
 package com.innowise.authservice.controller;
 
 import com.innowise.authservice.exception.TokenException;
+import com.innowise.authservice.model.dto.CredentialsConstraints;
+import com.innowise.authservice.model.dto.UserConstraints;
 import com.innowise.authservice.model.dto.credential.CredentialDto;
 import com.innowise.authservice.model.dto.token.TokenDto;
+import com.innowise.authservice.model.dto.user.UserAuthInfoDto;
 import com.innowise.authservice.service.TokenService;
+import com.innowise.authservice.service.UserService;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NullMarked;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,9 +31,20 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
 
   private final TokenService tokenService;
+  private final UserService userService;
+
+  @PostMapping("/register")
+  public ResponseEntity<UserAuthInfoDto> register(
+      @RequestBody
+      @Validated(UserConstraints.Register.class)
+      UserAuthInfoDto userAuthInfoDto
+  ) {
+    return ResponseEntity.status(HttpStatus.CREATED)
+        .body(userService.register(userAuthInfoDto));
+  }
 
   @PostMapping("/login")
-  public ResponseEntity<TokenDto> login(@RequestBody @Validated CredentialDto credentialDto) {
+  public ResponseEntity<TokenDto> login(@RequestBody @Validated(CredentialsConstraints.Base.class) CredentialDto credentialDto) {
     return ResponseEntity.ok(tokenService.createTokens(credentialDto));
   }
 
