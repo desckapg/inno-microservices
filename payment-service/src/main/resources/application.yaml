@@ -1,5 +1,51 @@
+server:
+  port: 8084
+
 spring:
   application:
     name: 'payment-service'
   mongodb:
     uri: 'mongodb://${DB_USERNAME}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_DATABASE}?authSource=admin'
+  cloud:
+    openfeign:
+      circuitbreaker:
+        enabled: true
+        group:
+          enabled: true
+
+resilience4j:
+  timelimiter:
+    configs:
+      PaymentSystemClient:
+        timeoutDuration: 3s
+        cancelRunningFuture:
+  retry:
+    configs:
+      PaymentSystemClient:
+        maxAttempts: 3
+        waitDuration: 1s
+
+  circuitbreaker:
+    configs:
+      PaymentSystemClient:
+        registerHealthIndicator: true
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10s
+        permittedNumberOfCallsInHalfOpenState: 3
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,circuitbreakers
+        exclude: errors
+
+services:
+  payment-system:
+    url: 'http://www.randomnumberapi.com'
+
+logging:
+  level:
+    com.innowise.paymentservice.service.client.PaymentSystemClient: DEBUG

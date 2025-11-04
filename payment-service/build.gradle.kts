@@ -3,6 +3,7 @@ plugins {
     id("org.springframework.boot") version "4.0.0-RC1"
     id("io.spring.dependency-management") version "1.1.7"
 }
+val springCloudVersion by extra("2025.1.0-M4")
 
 
 configurations {
@@ -12,11 +13,15 @@ configurations {
 }
 
 dependencies {
+    implementation(project(":common"))
     implementation("org.springframework.boot:spring-boot-starter")
     implementation("org.springframework.boot:spring-boot-starter-data-mongodb")
-    implementation("org.liquibase:liquibase-core")
-    implementation("org.liquibase.ext:liquibase-mongodb:${dependencyManagement.importedProperties["liquibase.version"]}")
+    implementation(libs.liquibase.mongodb)
     implementation(libs.mapstruct)
+    implementation("org.springframework.cloud:spring-cloud-starter-circuitbreaker-resilience4j")
+    implementation("org.springframework.cloud:spring-cloud-starter-openfeign")
+    implementation("org.springframework.boot:spring-boot-starter-webmvc")
+    implementation("org.springframework.boot:spring-boot-starter-actuator")
 
     compileOnly("org.projectlombok:lombok")
 
@@ -30,6 +35,11 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-test")
 
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+}
+dependencyManagement {
+    imports {
+        mavenBom("org.springframework.cloud:spring-cloud-dependencies:$springCloudVersion")
+    }
 }
 
 sonar {
