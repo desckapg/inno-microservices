@@ -11,7 +11,7 @@ import lombok.Builder;
 public record PaymentDto(
 
     String id,
-    Long oderId,
+    Long orderId,
     Long userId,
     Status status,
     ZonedDateTime timestamp,
