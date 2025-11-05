@@ -12,6 +12,7 @@ import java.time.ZonedDateTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NullMarked;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,6 +25,7 @@ public class PaymentServiceImpl implements PaymentService {
   private final PaymentRepository paymentRepository;
   private final PaymentSystemClient paymentSystemClient;
   private final PaymentMapper paymentMapper;
+  private final KafkaTemplate<String, PaymentDto> paymentKafkaTemplate;
 
   @Override
   @Transactional
