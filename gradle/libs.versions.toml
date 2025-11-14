@@ -12,6 +12,7 @@ lombok="1.18.42"
 spring-boot-starter-aop="4.0.0-M2"
 wiremock-standalone="3.13.1"
 liquibase="5.0.1"
+awaitility="4.3.0"
 
 [libraries]
 mockito = {module = "org.mockito:mockito-core", version.ref = "mockito"}
@@ -27,3 +28,4 @@ bcrypt = {module = "at.favre.lib:bcrypt", version.ref = "bcrypt"}
 spring-boot-starter-aop = {module = "org.springframework.boot:spring-boot-starter-aop", version.ref = "spring-boot-starter-aop"}
 wiremock-standalone = {module = "org.wiremock:wiremock-standalone", version.ref = "wiremock-standalone"}
 liquibase-mongodb = {module = "org.liquibase.ext:liquibase-mongodb", version.ref = "liquibase"}
+awaitility = {module = "org.awaitility:awaitility", version.ref = "awaitility"}

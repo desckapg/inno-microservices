@@ -24,6 +24,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-kafka")
+    implementation("org.springframework.boot:spring-boot-starter-validation")
 
     compileOnly("org.projectlombok:lombok")
 
@@ -34,8 +35,22 @@ dependencies {
     annotationProcessor("org.projectlombok:lombok")
     annotationProcessor(libs.mapstruct.processor)
 
+    testCompileOnly("org.projectlombok:lombok")
+
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.kafka:spring-kafka-test")
+    testImplementation(libs.system.stubs.jupiter)
+    testImplementation(libs.fixture.monkey.starter)
+    testImplementation(libs.fixture.monkey.datafaker)
+    testImplementation(libs.datafaker)
+    testImplementation(libs.wiremock.standalone)
+    testImplementation("org.springframework.boot:spring-boot-testcontainers")
+    testImplementation("org.testcontainers:junit-jupiter")
+    testImplementation("org.testcontainers:mongodb")
+    testImplementation("org.testcontainers:kafka")
+    testImplementation(libs.awaitility)
+
+    testAnnotationProcessor("org.projectlombok:lombok")
 
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }

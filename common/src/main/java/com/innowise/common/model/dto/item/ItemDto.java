@@ -1,4 +1,4 @@
-package com.innowise.paymentservice.model.dto.item;
+package com.innowise.common.model.dto.item;
 
 import java.io.Serializable;
 import java.math.BigDecimal;

@@ -1,20 +1,22 @@
 package com.innowise.paymentservice.service.impl;
 
-import com.innowise.paymentservice.model.dto.order.OrderDto;
-import com.innowise.paymentservice.model.dto.payment.PaymentDto;
-import com.innowise.paymentservice.model.dto.payment.PaymentDto.Status;
+import com.innowise.common.exception.ExternalApiException;
+import com.innowise.common.exception.ResourceNotFoundException;
+import com.innowise.common.model.dto.order.OrderDto;
+import com.innowise.common.model.dto.payment.PaymentDto;
+import com.innowise.common.model.enums.PaymentStatus;
+import com.innowise.paymentservice.controller.kafka.producer.PaymentProducer;
+import com.innowise.paymentservice.model.entity.Payment;
 import com.innowise.paymentservice.model.mapper.PaymentMapper;
 import com.innowise.paymentservice.repository.PaymentRepository;
 import com.innowise.paymentservice.service.PaymentService;
 import com.innowise.paymentservice.service.client.PaymentSystemClient;
 import java.math.BigDecimal;
-import java.time.ZonedDateTime;
+import java.time.Instant;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NullMarked;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @NullMarked
 @Service
@@ -25,23 +27,24 @@ public class PaymentServiceImpl implements PaymentService {
   private final PaymentRepository paymentRepository;
   private final PaymentSystemClient paymentSystemClient;
   private final PaymentMapper paymentMapper;
-  private final KafkaTemplate<String, PaymentDto> paymentKafkaTemplate;
+  private final PaymentProducer paymentProducer;
 
   @Override
-  @Transactional
   public PaymentDto create(OrderDto orderDto) {
-    log.info("Creating a new payment from order={}", orderDto);
+    log.info("Creating a new payment from order(Order={})", orderDto);
     var paymentDto = PaymentDto.builder()
         .orderId(orderDto.id())
         .userId(orderDto.user().id())
         .amount(calculateOPaymentAmount(orderDto))
-        .timestamp(ZonedDateTime.now())
-        .status(Status.PENDING)
+        .timestamp(Instant.now())
+        .status(PaymentStatus.PENDING)
         .build();
-    log.debug("Saving payment={} to database", paymentDto);
-    var savedPayment = paymentRepository.save(paymentMapper.toEntity(paymentDto));
-    log.info("Payment={} created", paymentDto);
-    return paymentMapper.toDto(savedPayment);
+    log.debug("Saving payment(Payment={}) to database", paymentDto);
+    var savedPaymentEntity = paymentRepository.save(paymentMapper.toEntity(paymentDto));
+    var savedPaymentDto = paymentMapper.toDto(savedPaymentEntity);
+    log.info("Payment(id={}) created", savedPaymentDto.id());
+    paymentProducer.sendPaymentCreated(savedPaymentDto);
+    return savedPaymentDto;
   }
 
   private BigDecimal calculateOPaymentAmount(OrderDto orderDto) {
@@ -51,33 +54,42 @@ public class PaymentServiceImpl implements PaymentService {
   }
 
   @Override
-  @Transactional
-  public PaymentDto processPayment(PaymentDto paymentDto) {
-    log.info("Processing paymentDto={}", paymentDto);
-    PaymentDto.PaymentDtoBuilder builder = PaymentDto.builder()
-        .id(paymentDto.id())
-        .amount(paymentDto.amount())
-        .orderId(paymentDto.orderId())
-        .userId(paymentDto.userId())
-        .timestamp(paymentDto.timestamp());
+  public PaymentDto processPayment(String id) {
+    var payment = paymentRepository.findById(id)
+        .orElseThrow(() -> ResourceNotFoundException.byId("Payment", id));
+    log.info("Processing payment(id={})", payment.getId());
 
-    log.debug("Updating paymentDto={} to database", paymentDto);
-    PaymentDto.Status status = PaymentDto.Status.PROCESSING;
-    var payment = paymentMapper.toEntity(builder.status(status).build());
-    paymentRepository.save(payment);
-    log.info("Payment={} changed status to {}", paymentDto, status);
-
-    if (paymentSystemClient.processPayment() % 2 == 0) {
-      status = Status.SUCCEEDED;
-    } else {
-      status = Status.FAILED;
+    updatePaymentStatus(payment, PaymentStatus.PROCESSING);
+    PaymentStatus afterPaymentStatus;
+    try {
+      if (paymentSystemClient.processPayment()[0] % 2 == 0) {
+        afterPaymentStatus = PaymentStatus.SUCCEEDED;
+      } else {
+        afterPaymentStatus = PaymentStatus.FAILED;
+      }
+    } catch (ExternalApiException _) {
+      afterPaymentStatus = PaymentStatus.FAILED;
     }
-    log.info("Payment={} changed status to {}", paymentDto, status);
-    var processedPaymentDto = builder.status(status).build();
-    log.debug("Updating payment={}", processedPaymentDto);
-    paymentRepository.save(paymentMapper.toEntity(processedPaymentDto));
-    log.info("Payment={} has processed", processedPaymentDto);
+    updatePaymentStatus(payment, afterPaymentStatus);
 
-    return processedPaymentDto;
+    log.info("Payment(id={}) has processed", payment.getId());
+    return paymentMapper.toDto(payment);
+  }
+
+  private void updatePaymentStatus(Payment payment, PaymentStatus newStatus) {
+    var oldStatus = payment.getStatus();
+    payment.setStatus(newStatus);
+    log.debug("Updating payment(id={}) in database", payment.getId());
+    paymentRepository.save(payment);
+    paymentProducer.sendPaymentStatusUpdated(
+        payment.getId(),
+        payment.getOrderId(),
+        oldStatus,
+        newStatus
+    );
+
+    log.info("Payment(id={}) changed status from {} to {}", payment.getId(), oldStatus,
+        newStatus);
+
   }
 }

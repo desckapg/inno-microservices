@@ -1,4 +1,4 @@
-package com.innowise.paymentservice.model.dto.card;
+package com.innowise.common.model.dto.card;
 
 import java.io.Serializable;
 import java.time.LocalDate;

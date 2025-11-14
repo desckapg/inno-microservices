@@ -1,6 +1,6 @@
 package com.innowise.paymentservice.model.mapper;
 
-import com.innowise.paymentservice.model.dto.payment.PaymentDto;
+import com.innowise.common.model.dto.payment.PaymentDto;
 import com.innowise.paymentservice.model.entity.Payment;
 import org.mapstruct.InjectionStrategy;
 import org.mapstruct.Mapper;

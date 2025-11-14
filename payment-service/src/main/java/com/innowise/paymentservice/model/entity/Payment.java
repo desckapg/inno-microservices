@@ -1,7 +1,8 @@
 package com.innowise.paymentservice.model.entity;
 
+import com.innowise.common.model.enums.PaymentStatus;
 import java.math.BigDecimal;
-import java.time.ZonedDateTime;
+import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -10,6 +11,7 @@ import lombok.ToString;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
+import org.springframework.data.mongodb.core.mapping.FieldType;
 
 @Document("payments")
 @AllArgsConstructor
@@ -26,18 +28,12 @@ public class Payment {
 
   private final Long userId;
 
-  private Status status;
+  private PaymentStatus status;
 
-  private final ZonedDateTime timestamp;
+  @Field(targetType = FieldType.TIMESTAMP)
+  private final Instant timestamp;
 
-  @Field("payment_amount")
+  @Field(value = "payment_amount", targetType = FieldType.STRING)
   private final BigDecimal amount;
-
-  public enum Status {
-    PENDING,
-    PROCESSING,
-    SUCCEEDED,
-    FAILED
-  }
 
 }

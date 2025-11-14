@@ -26,15 +26,15 @@ services:
       - KAFKA_NUM_PARTITIONS=1
     ports:
       - '9092:9092'
-  payment-service:
-    image: payment-service:latest
-    depends_on:
-      - mongo
-      - kafka
-    build:
-      args:
-        DOCKER_BUILDKIT: 1
-    restart: "no"
+#  payment-service:
+#    image: payment-service:latest
+#    depends_on:
+#      - mongo
+#      - kafka
+#    build:
+#      args:
+#        DOCKER_BUILDKIT: 1
+#    restart: "no"
 
 volumes:
   mongo:

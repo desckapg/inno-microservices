@@ -11,6 +11,7 @@ public class PaymentSystemFallbackFactory implements FallbackFactory<PaymentSyst
 
   @Override
   public PaymentSystemClient create(Throwable cause) {
+    log.error(cause.getMessage(), cause);
     throw new ExternalApiException("Exception during request to payment system");
   }
 

@@ -17,6 +17,6 @@ public interface PaymentSystemClient {
           "max=" + Integer.MAX_VALUE
       }
   )
-  Integer processPayment();
+  int[] processPayment();
 
 }

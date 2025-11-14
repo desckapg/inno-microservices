@@ -1,6 +1,6 @@
-package com.innowise.paymentservice.model.dto.orderitem;
+package com.innowise.common.model.dto.orderitem;
 
-import com.innowise.paymentservice.model.dto.item.ItemDto;
+import com.innowise.common.model.dto.item.ItemDto;
 import java.io.Serializable;
 
 public record OrderItemDto(
