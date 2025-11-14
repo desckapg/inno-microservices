@@ -11,6 +11,11 @@ spring:
         enabled: true
         group:
           enabled: true
+  kafka:
+    bootstrap-servers:
+      - ${KAFKA_BOOTSTRAP_SERVER}
+    topics:
+
 
 server:
   port: 8083
