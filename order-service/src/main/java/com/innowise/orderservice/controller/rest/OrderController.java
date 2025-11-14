@@ -1,10 +1,9 @@
-package com.innowise.orderservice.controller;
+package com.innowise.orderservice.controller.rest;
 
 import com.fasterxml.jackson.annotation.JsonView;
 import com.innowise.orderservice.model.dto.OrdersConstraints;
 import com.innowise.orderservice.model.dto.order.OrderDto;
 import com.innowise.orderservice.model.dto.order.OrderSpecsDto;
-import com.innowise.orderservice.model.entity.Order;
 import com.innowise.orderservice.model.enums.OrderStatus;
 import com.innowise.orderservice.service.OrderService;
 import java.net.URI;

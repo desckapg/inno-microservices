@@ -1,4 +1,4 @@
-package com.innowise.orderservice.integration.controller;
+package com.innowise.orderservice.integration.controller.rest;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.ArgumentMatchers.anyLong;
