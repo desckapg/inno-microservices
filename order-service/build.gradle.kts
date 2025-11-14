@@ -61,6 +61,7 @@ dependencies {
     testImplementation(libs.system.stubs.jupiter)
     testImplementation("org.springframework.kafka:spring-kafka-test")
     testImplementation("org.testcontainers:kafka")
+    testImplementation(libs.awaitility)
 
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 

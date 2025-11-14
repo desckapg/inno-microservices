@@ -15,11 +15,13 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 @NullMarked
 @KafkaListener(
-    topics = "queuing.payment_service.payments",
+    topics = PaymentListener.TOPIC,
     containerFactory = "kafkaListenerContainerFactory",
     groupId = "payment-processing-group"
 )
 public class PaymentListener {
+
+  public static final String TOPIC = "queuing.payment_service.payments";
 
   private final OrderService orderService;
 
