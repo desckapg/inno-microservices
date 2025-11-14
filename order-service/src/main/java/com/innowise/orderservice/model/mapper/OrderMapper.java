@@ -1,7 +1,7 @@
 package com.innowise.orderservice.model.mapper;
 
+import com.innowise.common.model.dto.user.UserDto;
 import com.innowise.orderservice.model.dto.order.OrderDto;
-import com.innowise.orderservice.model.dto.user.UserDto;
 import com.innowise.orderservice.model.entity.Order;
 import org.mapstruct.AfterMapping;
 import org.mapstruct.Context;
@@ -19,6 +19,9 @@ public interface OrderMapper {
   @Mapping(target = "user", expression = "java(userDto)")
   @Mapping(target = "orderItems", qualifiedByName = "toDtoIdOnly")
   OrderDto toDto(Order order, @Context UserDto userDto);
+
+
+  com.innowise.common.model.dto.order.OrderDto toExternalDto(OrderDto order);
 
   @Mapping(target = "user", expression = "java(userDto)")
   OrderDto toFullDto(Order order, @Context UserDto userDto);

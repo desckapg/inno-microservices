@@ -5,6 +5,7 @@ import com.innowise.orderservice.model.dto.OrdersConstraints;
 import com.innowise.orderservice.model.dto.order.OrderDto;
 import com.innowise.orderservice.model.dto.order.OrderSpecsDto;
 import com.innowise.orderservice.model.entity.Order;
+import com.innowise.orderservice.model.enums.OrderStatus;
 import com.innowise.orderservice.service.OrderService;
 import java.net.URI;
 import java.util.List;
@@ -40,7 +41,7 @@ public class OrderController {
   public ResponseEntity<List<OrderDto>> findAll(
       @RequestParam(required = false) Long userId,
       @RequestParam(required = false) List<Long> ids,
-      @RequestParam(required = false) List<Order.Status> statuses
+      @RequestParam(required = false) List<OrderStatus> statuses
   ) {
     return ResponseEntity.ok(orderService.findAll(OrderSpecsDto.builder()
         .userId(userId)

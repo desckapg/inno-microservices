@@ -6,7 +6,7 @@ import com.innowise.common.exception.ResourceNotFoundException;
 import com.innowise.orderservice.model.dto.order.OrderDto;
 import com.innowise.orderservice.model.dto.order.OrderSpecsDto;
 import com.innowise.orderservice.model.entity.Order;
-import com.innowise.orderservice.model.entity.Order.Status;
+import com.innowise.orderservice.model.enums.OrderStatus;
 import com.innowise.orderservice.model.mapper.OrderMapper;
 import com.innowise.orderservice.repository.ItemRepository;
 import com.innowise.orderservice.repository.OrderRepository;
@@ -75,7 +75,7 @@ public class OrderServiceImpl implements OrderService {
     var userId = authTokenProvider.get().getPrincipal().userId();
     var user = userServiceClient.findById(userId,
             AuthConstants.AUTH_SCHEME + authTokenProvider.get().getJwtToken());
-    orderEntity.setStatus(Status.NEW);
+    orderEntity.setStatus(OrderStatus.NEW);
     orderEntity.setUserId(userId);
     return orderMapper.toDto(orderRepository.save(orderEntity), user);
   }
@@ -85,7 +85,7 @@ public class OrderServiceImpl implements OrderService {
   public OrderDto update(Long id, OrderDto orderDto) {
     var order = orderRepository.findById(id)
         .orElseThrow(() -> generateNotFoundException(id));
-    order.setStatus(Order.Status.valueOf(orderDto.status().name()));
+    order.setStatus(OrderStatus.valueOf(orderDto.status().name()));
     return orderMapper.toDto(
         orderRepository.save(order),
         userServiceClient.findById(order.getUserId(),

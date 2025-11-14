@@ -1,4 +1,4 @@
-package com.innowise.common.model.enums;
+package com.innowise.orderservice.model.enums;
 
 public enum OrderStatus {
   NEW,

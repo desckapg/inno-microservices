@@ -112,7 +112,11 @@ class ItemControllerIT extends AbstractIntegrationTest {
     em.flush();
     em.clear();
 
-    var findingItems = Arbitraries.of(items).list().ofSize(3).sample();
+    var findingItems = Arbitraries.of(items)
+        .list()
+        .uniqueElements()
+        .ofSize(3)
+        .sample();
 
     mockMvc.perform(
         get(URI.create("/api/v1/orders/items"))
