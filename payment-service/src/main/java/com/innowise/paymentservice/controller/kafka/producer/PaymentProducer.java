@@ -28,7 +28,7 @@ public class PaymentProducer {
 
   public void sendPaymentStatusUpdated(String id, Long orderId, PaymentStatus previousStatus,
       PaymentStatus newStatus) {
-    sendMessage(new PaymentStatusUpdatedEvent(id, previousStatus, newStatus), String.valueOf(orderId));
+    sendMessage(new PaymentStatusUpdatedEvent(id, orderId, previousStatus, newStatus), String.valueOf(orderId));
   }
 
   private <T> void sendMessage(T payload, String key) {

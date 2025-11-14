@@ -20,8 +20,7 @@ public interface OrderMapper {
   @Mapping(target = "orderItems", qualifiedByName = "toDtoIdOnly")
   OrderDto toDto(Order order, @Context UserDto userDto);
 
-
-  com.innowise.common.model.dto.order.OrderDto toExternalDto(OrderDto order);
+  com.innowise.common.model.dto.order.OrderDto toExternalDto(OrderDto orderDto);
 
   @Mapping(target = "user", expression = "java(userDto)")
   OrderDto toFullDto(Order order, @Context UserDto userDto);
