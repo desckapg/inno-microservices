@@ -1,0 +1,63 @@
+server:
+  port: 8084
+
+spring:
+  application:
+    name: 'payment-service'
+  mongodb:
+    uri: 'mongodb://${DB_USERNAME}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_DATABASE}?authSource=admin'
+  cloud:
+    openfeign:
+      circuitbreaker:
+        enabled: true
+        group:
+          enabled: true
+  kafka:
+    bootstrap-servers:
+      - ${KAFKA_BOOTSTRAP_SERVER}
+    topics:
+      - name: 'queuing.payment_service.payments'
+        partitions: 1
+        replicationFactor: 1
+    admin:
+      properties:
+        offsets.topic.replication.factor: 1
+        transaction.state.log.replication.factor: 1
+        transaction.state.log.min.isr: 1
+
+resilience4j:
+  timelimiter:
+    configs:
+      payment-system:
+        timeoutDuration: 3s
+        cancelRunningFuture:
+  retry:
+    configs:
+      payment-system:
+        maxAttempts: 3
+        waitDuration: 1s
+
+  circuitbreaker:
+    configs:
+      payment-system:
+        registerHealthIndicator: true
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10s
+        permittedNumberOfCallsInHalfOpenState: 3
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,circuitbreakers
+        exclude: errors
+
+services:
+  payment-system:
+    url: 'http://www.randomnumberapi.com'
+
+logging:
+  level:
+    com.innowise.paymentservice.service.client.PaymentSystemClient: DEBUG

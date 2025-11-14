@@ -29,6 +29,7 @@ dependencies {
     implementation("org.springframework.cloud:spring-cloud-starter-circuitbreaker-resilience4j")
     implementation("io.github.resilience4j:resilience4j-micrometer")
     implementation(libs.mapstruct)
+    implementation("org.springframework.boot:spring-boot-starter-kafka")
 
 
     compileOnly("org.projectlombok:lombok")
@@ -58,6 +59,9 @@ dependencies {
     testImplementation(libs.fixture.monkey.datafaker)
     testImplementation(libs.datafaker)
     testImplementation(libs.system.stubs.jupiter)
+    testImplementation("org.springframework.kafka:spring-kafka-test")
+    testImplementation("org.testcontainers:kafka")
+    testImplementation(libs.awaitility)
 
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 

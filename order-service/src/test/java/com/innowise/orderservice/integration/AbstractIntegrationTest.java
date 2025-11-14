@@ -5,6 +5,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.kafka.KafkaContainer;
 import org.testcontainers.lifecycle.Startables;
 import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
 
@@ -16,8 +17,10 @@ public abstract class AbstractIntegrationTest {
   static PostgreSQLContainer<?> postgres =
       new PostgreSQLContainer<>("postgres:latest");
 
+  static KafkaContainer kafka = new KafkaContainer("apache/kafka-native:latest");
+
   static {
-    Startables.deepStart(postgres).join();
+    Startables.deepStart(postgres, kafka).join();
   }
 
   @DynamicPropertySource
@@ -25,6 +28,8 @@ public abstract class AbstractIntegrationTest {
     registry.add("spring.datasource.url", postgres::getJdbcUrl);
     registry.add("spring.datasource.username", postgres::getUsername);
     registry.add("spring.datasource.password", postgres::getPassword);
+
+    registry.add("spring.kafka.bootstrap-servers[0]", kafka::getBootstrapServers);
   }
 
 }
