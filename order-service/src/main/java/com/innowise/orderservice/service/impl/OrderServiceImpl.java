@@ -3,6 +3,7 @@ package com.innowise.orderservice.service.impl;
 import com.innowise.auth.model.AuthConstants;
 import com.innowise.auth.security.provider.AuthTokenProvider;
 import com.innowise.common.exception.ResourceNotFoundException;
+import com.innowise.orderservice.controller.kafka.producer.OrderProducer;
 import com.innowise.orderservice.model.dto.order.OrderDto;
 import com.innowise.orderservice.model.dto.order.OrderSpecsDto;
 import com.innowise.orderservice.model.entity.Order;
@@ -27,10 +28,10 @@ public class OrderServiceImpl implements OrderService {
 
   private final OrderRepository orderRepository;
   private final ItemRepository itemRepository;
-
   private final OrderMapper orderMapper;
   private final UserServiceClient userServiceClient;
   private final AuthTokenProvider authTokenProvider;
+  private final OrderProducer orderProducer;
 
   @Override
   @PreAuthorize("""
@@ -77,7 +78,9 @@ public class OrderServiceImpl implements OrderService {
             AuthConstants.AUTH_SCHEME + authTokenProvider.get().getJwtToken());
     orderEntity.setStatus(OrderStatus.NEW);
     orderEntity.setUserId(userId);
-    return orderMapper.toDto(orderRepository.save(orderEntity), user);
+    var savedOrderDto = orderMapper.toDto(orderRepository.save(orderEntity), user);
+    orderProducer.sendOrderCreated(savedOrderDto);
+    return savedOrderDto;
   }
 
   @Override
