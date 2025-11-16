@@ -33,6 +33,12 @@ spring:
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JacksonJsonSerializer
+  data:
+    redis:
+      host: '${REDIS_HOST}'
+      port: '${REDIS_PORT}'
+      username: '${REDIS_USER}'
+      password: '${REDIS_USER_PASSWORD}'
 
 resilience4j:
   timelimiter:

@@ -8,7 +8,7 @@ import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor
-public class PaymentStatusUpdatedEvent implements Serializable {
+public class PaymentStatusUpdatedEvent extends BaseEvent implements Serializable {
 
   @Serial
   private static final long serialVersionUID = -6228686413551665018L;

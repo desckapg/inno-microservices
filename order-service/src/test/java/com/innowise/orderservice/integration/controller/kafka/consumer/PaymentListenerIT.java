@@ -12,6 +12,7 @@ import com.innowise.orderservice.integration.AbstractIntegrationTest;
 import com.innowise.orderservice.integration.annotation.IT;
 import com.innowise.orderservice.model.entity.Order;
 import com.innowise.orderservice.model.enums.OrderStatus;
+import com.innowise.orderservice.service.OrderService;
 import com.navercorp.fixturemonkey.FixtureMonkey;
 import com.navercorp.fixturemonkey.api.introspector.BuilderArbitraryIntrospector;
 import com.navercorp.fixturemonkey.api.jqwik.JqwikPlugin;
@@ -20,7 +21,9 @@ import java.time.Duration;
 import lombok.RequiredArgsConstructor;
 import net.jqwik.api.Arbitraries;
 import org.jspecify.annotations.NonNull;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.messaging.support.MessageBuilder;
@@ -53,6 +56,16 @@ class PaymentListenerIT extends AbstractIntegrationTest {
   private final KafkaTemplate<@NonNull String, @NonNull String> kafkaTemplate;
   private final TransactionTemplate tt;
 
+  private final OrderService orderService;
+
+  @AfterEach
+  void clearOrderTable() {
+    tt.executeWithoutResult(_ -> {
+      em.createQuery("DELETE FROM Order").executeUpdate();
+
+    });
+  }
+
   @Test
   void consumePaymentCreatedEvent_updateOrderStatusToProcessing() {
     var order = ORDERS_SUT.giveMeOne(Order.class);
@@ -79,12 +92,46 @@ class PaymentListenerIT extends AbstractIntegrationTest {
             assertThat(foundOrder.getStatus()).isEqualTo(OrderStatus.PROCESSING);
           });
         });
+  }
 
-    tt.executeWithoutResult(_ ->
-        em.createQuery("DELETE FROM Order o WHERE o.id = :id")
-            .setParameter("id", order.getId())
-            .executeUpdate()
+  @Test
+  void consumePaymentCreatedEvent_eventReceivedTwice_updateOrderStatusToProcessingOnlyOnce() {
+    var order = ORDERS_SUT.giveMeBuilder(Order.class)
+        .set("status", OrderStatus.NEW)
+        .sample();
+
+    tt.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+    tt.executeWithoutResult(_ -> em.persist(order));
+
+    var payment = PAYMENTS_SUT.giveMeBuilder(PaymentDto.class)
+        .set("orderId", order.getId())
+        .set("status", PaymentStatus.PROCESSING)
+        .sample();
+
+    var event = new PaymentCreatedEvent(payment);
+
+    kafkaTemplate.send(MessageBuilder
+        .withPayload(event)
+        .setHeader(KafkaHeaders.TOPIC, PaymentListener.TOPIC)
+        .build()
     );
+    kafkaTemplate.send(MessageBuilder
+        .withPayload(event)
+        .setHeader(KafkaHeaders.TOPIC, PaymentListener.TOPIC)
+        .build()
+    );
+
+    await()
+        .atMost(Duration.ofSeconds(3))
+        .pollInterval(Duration.ofMillis(200))
+        .untilAsserted(() -> {
+          assertThat(em.find(Order.class, order.getId())).satisfies(foundOrder -> {
+            assertThat(foundOrder.getStatus()).isEqualTo(OrderStatus.PROCESSING);
+          });
+        });
+
+    Mockito.verify(orderService, Mockito.times(1))
+        .processPaymentCreation(Mockito.any());
   }
 
   @Test
@@ -115,17 +162,13 @@ class PaymentListenerIT extends AbstractIntegrationTest {
             assertThat(foundOrder.getStatus()).isEqualTo(OrderStatus.PROCESSING);
           });
         });
-
-    tt.executeWithoutResult(_ ->
-        em.createQuery("DELETE FROM Order o WHERE o.id = :id")
-            .setParameter("id", order.getId())
-            .executeUpdate()
-    );
   }
 
   @Test
   void consumePaymentStatusUpdatedEvent_paymentSucceeded_updateOrderStatusToDelivering() {
-    var order = ORDERS_SUT.giveMeOne(Order.class);
+    var order = ORDERS_SUT.giveMeBuilder(Order.class)
+        .set("status", OrderStatus.PROCESSING)
+        .sample();
 
     tt.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
     tt.executeWithoutResult(_ -> em.persist(order));
@@ -149,12 +192,46 @@ class PaymentListenerIT extends AbstractIntegrationTest {
             assertThat(foundOrder.getStatus()).isEqualTo(OrderStatus.DELIVERING);
           });
         });
+  }
 
-    tt.executeWithoutResult(_ ->
-        em.createQuery("DELETE FROM Order o WHERE o.id = :id")
-            .setParameter("id", order.getId())
-            .executeUpdate()
+  @Test
+  void consumePaymentStatusUpdatedEvent_paymentSucceededAndEventReceivedTwice_updateOrderStatusToDeliveringOnlyOnce() {
+    var order = ORDERS_SUT.giveMeBuilder(Order.class)
+        .set("status", OrderStatus.PROCESSING)
+        .sample();
+
+    tt.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+    tt.executeWithoutResult(_ -> em.persist(order));
+
+    var event = new PaymentStatusUpdatedEvent(
+        Arbitraries.strings().sample(),
+        order.getId(),
+        PaymentStatus.PROCESSING,
+        PaymentStatus.SUCCEEDED
     );
+
+    kafkaTemplate.send(MessageBuilder
+        .withPayload(event)
+        .setHeader(KafkaHeaders.TOPIC, PaymentListener.TOPIC)
+        .build()
+    );
+    kafkaTemplate.send(MessageBuilder
+        .withPayload(event)
+        .setHeader(KafkaHeaders.TOPIC, PaymentListener.TOPIC)
+        .build()
+    );
+
+    await()
+        .atMost(Duration.ofSeconds(3))
+        .pollInterval(Duration.ofMillis(200))
+        .untilAsserted(() -> {
+          assertThat(em.find(Order.class, order.getId())).satisfies(foundOrder -> {
+            assertThat(foundOrder.getStatus()).isEqualTo(OrderStatus.DELIVERING);
+          });
+        });
+
+    Mockito.verify(orderService, Mockito.times(1))
+        .processPaymentUpdate(Mockito.any(), Mockito.any());
   }
 
 }

@@ -7,7 +7,7 @@ import java.io.Serializable;
 import lombok.Getter;
 
 @Getter
-public class OrderCreatedEvent implements Serializable {
+public class OrderCreatedEvent extends BaseEvent implements Serializable {
 
   @Serial
   private static final long serialVersionUID = 1629083144347308904L;

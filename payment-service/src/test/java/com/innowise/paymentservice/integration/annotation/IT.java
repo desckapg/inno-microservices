@@ -3,6 +3,7 @@ package com.innowise.paymentservice.integration.annotation;
 import com.innowise.paymentservice.controller.kafka.consumer.OrderListener;
 import com.innowise.paymentservice.controller.kafka.producer.PaymentProducer;
 import com.innowise.paymentservice.repository.PaymentRepository;
+import com.innowise.paymentservice.service.PaymentService;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -16,7 +17,8 @@ import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 @MockitoSpyBean(types = {
     PaymentRepository.class,
     PaymentProducer.class,
-    OrderListener.class
+    OrderListener.class,
+    PaymentService.class
 })
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)

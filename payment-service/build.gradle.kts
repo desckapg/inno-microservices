@@ -25,6 +25,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-kafka")
     implementation("org.springframework.boot:spring-boot-starter-validation")
+    implementation("org.springframework.boot:spring-boot-starter-data-redis")
 
     compileOnly("org.projectlombok:lombok")
 
@@ -49,6 +50,8 @@ dependencies {
     testImplementation("org.testcontainers:mongodb")
     testImplementation("org.testcontainers:kafka")
     testImplementation(libs.awaitility)
+    testImplementation("com.redis:testcontainers-redis")
+
 
     testAnnotationProcessor("org.projectlombok:lombok")
 

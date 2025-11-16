@@ -11,11 +11,9 @@ import static org.springframework.data.mongodb.core.query.Query.query;
 import com.innowise.common.model.dto.order.OrderDto;
 import com.innowise.common.model.enums.PaymentStatus;
 import com.innowise.common.model.event.OrderCreatedEvent;
-import com.innowise.paymentservice.controller.kafka.producer.PaymentProducer;
 import com.innowise.paymentservice.integration.AbstractIntegrationTest;
 import com.innowise.paymentservice.integration.annotation.IT;
 import com.innowise.paymentservice.model.entity.Payment;
-import com.innowise.paymentservice.repository.PaymentRepository;
 import com.innowise.paymentservice.service.PaymentService;
 import com.navercorp.fixturemonkey.FixtureMonkey;
 import com.navercorp.fixturemonkey.api.introspector.ConstructorPropertiesArbitraryIntrospector;
@@ -26,6 +24,7 @@ import lombok.RequiredArgsConstructor;
 import net.jqwik.api.Arbitraries;
 import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.KafkaHeaders;
@@ -61,8 +60,6 @@ class OrderListenerIT extends AbstractIntegrationTest {
   private final MongoTemplate mongoTemplate;
 
   private final PaymentService paymentService;
-  private final PaymentRepository paymentRepository;
-  private final PaymentProducer paymentProducer;
 
   @Test
   void consumeOrderCreatedEvent() {
@@ -93,6 +90,47 @@ class OrderListenerIT extends AbstractIntegrationTest {
           assertThat(payment.getStatus()).isEqualTo(PaymentStatus.SUCCEEDED);
         });
 
+    Mockito.verify(paymentService, Mockito.times(1)).create(Mockito.any());
+  }
+
+  @Test
+  void consumeOrderCreatedEvent_eventReceivedTwice_processedOnlyOne() {
+    var orderDto = SUT.giveMeOne(OrderDto.class);
+
+    var orderCreatedEvent = new OrderCreatedEvent(orderDto);
+
+    kafkaTemplate.send(MessageBuilder
+        .withPayload(orderCreatedEvent)
+        .setHeader(KafkaHeaders.TOPIC, "queuing.order_service.orders")
+        .build()
+    );
+    kafkaTemplate.send(MessageBuilder
+        .withPayload(orderCreatedEvent)
+        .setHeader(KafkaHeaders.TOPIC, "queuing.order_service.orders")
+        .build()
+    );
+
+    paymentSystemClientServer.stubFor(
+        get(urlPathTemplate("**"))
+            .willReturn(aResponse()
+                .withStatus(HttpStatus.OK_200)
+                .withHeader(HttpHeader.CONTENT_TYPE.asString(), Type.APPLICATION_JSON.asString())
+                .withBody("[2]")
+            )
+    );
+
+    await()
+        .atMost(Duration.ofSeconds(5))
+        .pollInterval(Duration.ofMillis(200))
+        .untilAsserted(() -> {
+          var payment = mongoTemplate.findOne(query(where("orderId").is(orderDto.id())), Payment.class);
+
+          assertThat(payment).isNotNull();
+          assertThat(payment.getStatus()).isEqualTo(PaymentStatus.SUCCEEDED);
+        });
+
+    Mockito.verify(paymentService, Mockito.times(1)).create(Mockito.any());
+    Mockito.verify(paymentService, Mockito.times(1)).processPayment(Mockito.any());
   }
 
 }

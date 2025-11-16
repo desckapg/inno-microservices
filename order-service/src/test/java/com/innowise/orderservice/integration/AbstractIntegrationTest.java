@@ -1,5 +1,6 @@
 package com.innowise.orderservice.integration;
 
+import com.redis.testcontainers.RedisContainer;
 import java.util.List;
 import net.datafaker.Faker;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -20,8 +21,10 @@ public abstract class AbstractIntegrationTest {
 
   static KafkaContainer kafka = new KafkaContainer("apache/kafka-native:latest");
 
+  static RedisContainer redis = new RedisContainer("redis:latest");
+
   static {
-    Startables.deepStart(postgres, kafka).join();
+    Startables.deepStart(postgres, kafka, redis).join();
   }
 
   @DynamicPropertySource
@@ -31,6 +34,12 @@ public abstract class AbstractIntegrationTest {
     registry.add("spring.datasource.password", postgres::getPassword);
 
     registry.add("spring.kafka.bootstrap-servers", () -> List.of(kafka.getBootstrapServers()));
+
+    registry.add("spring.data.redis.host", redis::getHost);
+    registry.add("spring.data.redis.port", redis::getRedisPort);
+    registry.add("spring.data.redis.username", () -> "");
+    registry.add("spring.data.redis.password", () -> "");
+
   }
 
 }

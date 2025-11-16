@@ -30,6 +30,7 @@ dependencies {
     implementation("io.github.resilience4j:resilience4j-micrometer")
     implementation(libs.mapstruct)
     implementation("org.springframework.boot:spring-boot-starter-kafka")
+    implementation("org.springframework.boot:spring-boot-starter-data-redis")
 
 
     compileOnly("org.projectlombok:lombok")
@@ -62,6 +63,7 @@ dependencies {
     testImplementation("org.springframework.kafka:spring-kafka-test")
     testImplementation("org.testcontainers:kafka")
     testImplementation(libs.awaitility)
+    testImplementation("com.redis:testcontainers-redis")
 
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
