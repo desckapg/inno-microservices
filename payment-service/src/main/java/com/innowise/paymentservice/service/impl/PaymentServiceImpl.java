@@ -31,7 +31,6 @@ public class PaymentServiceImpl implements PaymentService {
 
   @Override
   public PaymentDto create(OrderDto orderDto) {
-    log.info("Creating a new payment from order(Order={})", orderDto);
     var paymentDto = PaymentDto.builder()
         .orderId(orderDto.id())
         .userId(orderDto.user().id())
@@ -39,10 +38,9 @@ public class PaymentServiceImpl implements PaymentService {
         .timestamp(Instant.now())
         .status(PaymentStatus.PENDING)
         .build();
-    log.debug("Saving payment(Payment={}) to database", paymentDto);
     var savedPaymentEntity = paymentRepository.save(paymentMapper.toEntity(paymentDto));
     var savedPaymentDto = paymentMapper.toDto(savedPaymentEntity);
-    log.info("Payment(id={}) created", savedPaymentDto.id());
+    log.info("{} created", savedPaymentDto);
     paymentProducer.sendPaymentCreated(savedPaymentDto);
     return savedPaymentDto;
   }
@@ -57,7 +55,7 @@ public class PaymentServiceImpl implements PaymentService {
   public PaymentDto processPayment(String id) {
     var payment = paymentRepository.findById(id)
         .orElseThrow(() -> ResourceNotFoundException.byId("Payment", id));
-    log.info("Processing payment(id={})", payment.getId());
+    log.info("Processing payment{id={}}", payment.getId());
 
     updatePaymentStatus(payment, PaymentStatus.PROCESSING);
     PaymentStatus afterPaymentStatus;
@@ -72,14 +70,12 @@ public class PaymentServiceImpl implements PaymentService {
     }
     updatePaymentStatus(payment, afterPaymentStatus);
 
-    log.info("Payment(id={}) has processed", payment.getId());
     return paymentMapper.toDto(payment);
   }
 
   private void updatePaymentStatus(Payment payment, PaymentStatus newStatus) {
     var oldStatus = payment.getStatus();
     payment.setStatus(newStatus);
-    log.debug("Updating payment(id={}) in database", payment.getId());
     paymentRepository.save(payment);
     paymentProducer.sendPaymentStatusUpdated(
         payment.getId(),
@@ -88,7 +84,7 @@ public class PaymentServiceImpl implements PaymentService {
         newStatus
     );
 
-    log.info("Payment(id={}) changed status from {} to {}", payment.getId(), oldStatus,
+    log.info("Payment{id={}} changed status from {} to {}", payment.getId(), oldStatus,
         newStatus);
 
   }
