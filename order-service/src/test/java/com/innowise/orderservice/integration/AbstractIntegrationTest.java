@@ -1,5 +1,6 @@
 package com.innowise.orderservice.integration;
 
+import java.util.List;
 import net.datafaker.Faker;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -29,7 +30,7 @@ public abstract class AbstractIntegrationTest {
     registry.add("spring.datasource.username", postgres::getUsername);
     registry.add("spring.datasource.password", postgres::getPassword);
 
-    registry.add("spring.kafka.bootstrap-servers[0]", kafka::getBootstrapServers);
+    registry.add("spring.kafka.bootstrap-servers", () -> List.of(kafka.getBootstrapServers()));
   }
 
 }

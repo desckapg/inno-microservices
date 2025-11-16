@@ -3,6 +3,7 @@ package com.innowise.paymentservice.integration;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 
 import com.innowise.common.test.extension.EagerWireMockExtension;
+import java.util.List;
 import net.datafaker.Faker;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -32,7 +33,7 @@ public abstract class AbstractIntegrationTest {
   static void registerPostgresProperties(DynamicPropertyRegistry registry) {
     registry.add("spring.mongodb.uri", mongo::getReplicaSetUrl);
 
-    registry.add("spring.kafka.bootstrap-servers[0]", kafka::getBootstrapServers);
+    registry.add("spring.kafka.bootstrap-servers", () -> List.of(kafka.getBootstrapServers()));
 
     registry.add("services.payment-system.url", paymentSystemClientServer::baseUrl);
 

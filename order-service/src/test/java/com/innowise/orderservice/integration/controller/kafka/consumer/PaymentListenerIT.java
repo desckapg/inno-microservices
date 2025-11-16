@@ -89,7 +89,9 @@ class PaymentListenerIT extends AbstractIntegrationTest {
 
   @Test
   void consumePaymentStatusUpdatedEvent_paymentFailed_orderStatusStillProcessing() {
-    var order = ORDERS_SUT.giveMeOne(Order.class);
+    var order = ORDERS_SUT.giveMeBuilder(Order.class)
+        .set("status", OrderStatus.PROCESSING)
+        .sample();
 
     tt.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
     tt.executeWithoutResult(_ -> em.persist(order));

@@ -49,41 +49,10 @@ public class KafkaConfig {
   }
 
   @Bean
-  public ProducerFactory<String, String> producerFactory(@Value("${spring.kafka.bootstrap-servers[0]}") String bootstrapServer) {
-    return new DefaultKafkaProducerFactory<>(
-        Map.of(
-            ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServer,
-            ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class,
-            ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JacksonJsonSerializer.class,
-            ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, false
-        )
-    );
-  }
-
-  @Bean
-  public ConsumerFactory<String, String> consumerFactory(@Value("${spring.kafka.bootstrap-servers[0]}") String bootstrapServer) {
-    return new DefaultKafkaConsumerFactory<>(
-        Map.of(
-            ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServer,
-            ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class,
-            ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JacksonJsonDeserializer.class,
-            JacksonJsonDeserializer.TRUSTED_PACKAGES, "com.innowise.common.model.event",
-            ConsumerConfig.GROUP_ID_CONFIG, "order-processing-group",
-            ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, true
-        )
-    );
-  }
-
-  @Bean
   public ConcurrentKafkaListenerContainerFactory<String, String> kafkaListenerContainerFactory(ConsumerFactory<String, String> consumerFactory) {
     var factory = new ConcurrentKafkaListenerContainerFactory<String, String>();
     factory.setConsumerFactory(consumerFactory);
     return factory;
-  }
-
-  @Bean
-  public KafkaTemplate<String, String> kafkaTemplate(ProducerFactory<String, String> producerFactory) {
-    return new KafkaTemplate<>(producerFactory);
   }
 
   @Getter
