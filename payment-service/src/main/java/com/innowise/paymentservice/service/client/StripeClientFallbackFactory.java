@@ -7,10 +7,10 @@ import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
-public class PaymentSystemFallbackFactory implements FallbackFactory<PaymentSystemClient> {
+public class StripeClientFallbackFactory implements FallbackFactory<StripeClient> {
 
   @Override
-  public PaymentSystemClient create(Throwable cause) {
+  public StripeClient create(Throwable cause) {
     log.error(cause.getMessage(), cause);
     throw new ExternalApiException("Exception during request to payment system");
   }

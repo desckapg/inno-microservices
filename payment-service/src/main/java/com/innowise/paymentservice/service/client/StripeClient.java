@@ -6,9 +6,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 @FeignClient(
     name = "payment-system",
     url = "${services.payment-system.url}",
-    fallbackFactory = PaymentSystemFallbackFactory.class
+    fallbackFactory = StripeClientFallbackFactory.class
 )
-public interface PaymentSystemClient {
+public interface StripeClient {
 
   @GetMapping(
       value = "/api/v1.0/random",

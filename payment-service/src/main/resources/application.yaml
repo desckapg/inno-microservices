@@ -60,4 +60,4 @@ services:
 
 logging:
   level:
-    com.innowise.paymentservice.service.client.PaymentSystemClient: DEBUG
+    com.innowise.paymentservice.service.client.com.innowise.paymentservice.service.client.StripeClient: DEBUG

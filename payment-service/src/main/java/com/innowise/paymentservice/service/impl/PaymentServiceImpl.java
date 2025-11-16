@@ -10,7 +10,7 @@ import com.innowise.paymentservice.model.entity.Payment;
 import com.innowise.paymentservice.model.mapper.PaymentMapper;
 import com.innowise.paymentservice.repository.PaymentRepository;
 import com.innowise.paymentservice.service.PaymentService;
-import com.innowise.paymentservice.service.client.PaymentSystemClient;
+import com.innowise.paymentservice.service.client.StripeClient;
 import java.math.BigDecimal;
 import java.time.Instant;
 import lombok.RequiredArgsConstructor;
@@ -25,7 +25,7 @@ import org.springframework.stereotype.Service;
 public class PaymentServiceImpl implements PaymentService {
 
   private final PaymentRepository paymentRepository;
-  private final PaymentSystemClient paymentSystemClient;
+  private final StripeClient stripeClient;
   private final PaymentMapper paymentMapper;
   private final PaymentProducer paymentProducer;
 
@@ -60,7 +60,7 @@ public class PaymentServiceImpl implements PaymentService {
     updatePaymentStatus(payment, PaymentStatus.PROCESSING);
     PaymentStatus afterPaymentStatus;
     try {
-      if (paymentSystemClient.processPayment()[0] % 2 == 0) {
+      if (stripeClient.processPayment()[0] % 2 == 0) {
         afterPaymentStatus = PaymentStatus.SUCCEEDED;
       } else {
         afterPaymentStatus = PaymentStatus.FAILED;
