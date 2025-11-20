@@ -2,7 +2,7 @@ services:
   user-service-postgres:
     image: 'postgres:latest'
     volumes:
-      - user-service-db:/var/lib/postgresql/data
+      - user-service-db:/var/lib/postgresql
     environment:
       - POSTGRES_DB=${USER_SERVICE_POSTGRES_DATABASE}
       - POSTGRES_USER=${USER_SERVICE_POSTGRES_USERNAME}
@@ -38,7 +38,7 @@ services:
   auth-service-postgres:
     image: 'postgres:latest'
     volumes:
-      - auth-service-db:/var/lib/postgresql/data
+      - auth-service-db:/var/lib/postgresql
     environment:
       - POSTGRES_DB=${AUTH_SERVICE_POSTGRES_DATABASE}
       - POSTGRES_USER=${AUTH_SERVICE_POSTGRES_USERNAME}
@@ -74,7 +74,7 @@ services:
   order-service-postgres:
     image: 'postgres:latest'
     volumes:
-      - order-service-db:/var/lib/postgresql/data
+      - order-service-db:/var/lib/postgresql
     environment:
       - POSTGRES_DB=${ORDER_SERVICE_POSTGRES_DATABASE}
       - POSTGRES_USER=${ORDER_SERVICE_POSTGRES_USERNAME}
@@ -142,6 +142,68 @@ services:
     restart: unless-stopped
     tty: true
     stdin_open: true
+  payment-service-redis:
+    image: 'redis:latest'
+    volumes:
+      - payment-service-redis:/data
+    env_file:
+      - .env.payment-service
+    ports:
+      - '6379:6379'
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 128M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+    command: >
+      sh -c '
+        mkdir -p /usr/local/etc/redis &&
+        echo "bind 0.0.0.0" > /usr/local/etc/redis/redis.conf &&
+        echo "requirepass $USER_SERVICE_REDIS_PASSWORD" >> /usr/local/etc/redis/redis.conf &&
+        echo "appendonly yes" >> /usr/local/etc/redis/redis.conf &&
+        echo "appendfsync everysec" >> /usr/local/etc/redis/redis.conf &&
+        echo "user default on nopass ~* +@all" > /usr/local/etc/redis/users.acl &&
+        echo "user $USER_SERVICE_REDIS_USER on >$USER_SERVICE_REDIS_USER_PASSWORD ~* +@all" >> /usr/local/etc/redis/users.acl &&
+        redis-server /usr/local/etc/redis/redis.conf --aclfile /usr/local/etc/redis/users.acl
+      '
+    healthcheck:
+      test: [ "CMD", "redis-cli", "-a", "$USER_SERVICE_REDIS_PASSWORD", "ping" ]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+    restart: unless-stopped
+    tty: true
+    stdin_open: true
+  payment-service-mongo:
+    image: mongo:latest
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
+    volumes:
+      - payment-service-db:/data/db
+    ports:
+      - '27017'
+  kafka:
+    image: apache/kafka-native
+    environment:
+      - CLUSTER_ID='LOCAL'
+      - KAFKA_NODE_ID=1
+      - KAFKA_PROCESS_ROLES=broker,controller
+      - KAFKA_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093
+      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092
+      - KAFKA_CONTROLLER_LISTENER_NAMES=CONTROLLER
+      - KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      - KAFKA_CONTROLLER_QUORUM_VOTERS=1@localhost:9093
+      - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1
+      - KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR=1
+      - KAFKA_TRANSACTION_STATE_LOG_MIN_ISR=1
+      - KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS=0
+      - KAFKA_NUM_PARTITIONS=1
+    ports:
+      - '9092:9092'
   discovery-service:
     image: discovery-service:latest
     build:
@@ -207,9 +269,26 @@ services:
       - .env.oder-service
     ports:
       - "8083"
+  payment-service:
+    image: payment-service:latest
+    depends_on:
+      - kafka
+      - payment-service-redis
+      - payment-service-mongo
+    build:
+      context: ../payment-service
+      args:
+        DOCKER_BUILDKIT: 1
+    restart: "no"
+    env_file:
+      - .env.payment-service
+    ports:
+      - "8084:8084"
 
 volumes:
   user-service-db:
   user-service-redis:
   auth-service-db:
   order-service-db:
+  payment-service-db:
+  payment-service-redis:
