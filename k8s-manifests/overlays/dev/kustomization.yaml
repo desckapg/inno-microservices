@@ -1,0 +1,7 @@
+namespace: dev
+
+resources:
+  - ../../base
+
+patches:
+  - path: patches/kafka.yaml

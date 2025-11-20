@@ -1,0 +1,5 @@
+resources:
+  - kafka/stateful_set.yaml
+  - kafka/service.yaml
+#  - user-service/deployment.yaml
+#  - user-service/service.yaml
