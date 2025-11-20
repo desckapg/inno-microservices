@@ -1,0 +1,7 @@
+architecture: standalone
+auth:
+  existingSecret: mongodb-credentials
+  usernames:
+    - payment_service_user
+  databases:
+    - payment_service
