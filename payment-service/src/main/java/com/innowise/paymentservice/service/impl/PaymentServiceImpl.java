@@ -1,6 +1,5 @@
 package com.innowise.paymentservice.service.impl;
 
-import com.innowise.common.exception.ExternalApiException;
 import com.innowise.common.exception.ResourceNotFoundException;
 import com.innowise.common.model.dto.order.OrderDto;
 import com.innowise.common.model.dto.payment.PaymentDto;
@@ -52,25 +51,21 @@ public class PaymentServiceImpl implements PaymentService {
   }
 
   @Override
-  public PaymentDto processPayment(String id) {
+  public void processPayment(String id) {
     var payment = paymentRepository.findById(id)
         .orElseThrow(() -> ResourceNotFoundException.byId("Payment", id));
     log.info("Processing payment{id={}}", payment.getId());
 
     updatePaymentStatus(payment, PaymentStatus.PROCESSING);
-    PaymentStatus afterPaymentStatus;
-    try {
-      if (stripeClient.processPayment()[0] % 2 == 0) {
-        afterPaymentStatus = PaymentStatus.SUCCEEDED;
-      } else {
-        afterPaymentStatus = PaymentStatus.FAILED;
-      }
-    } catch (ExternalApiException _) {
-      afterPaymentStatus = PaymentStatus.FAILED;
-    }
-    updatePaymentStatus(payment, afterPaymentStatus);
+    stripeClient.processPayment()
+        .subscribe(
+            status -> updatePaymentStatus(payment, status),
+            _ -> {
+              log.info("Due to the exception from stipe fallback to failed for Payment(id={})", payment.getId());
+              updatePaymentStatus(payment, PaymentStatus.FAILED);
+            }
+        );
 
-    return paymentMapper.toDto(payment);
   }
 
   private void updatePaymentStatus(Payment payment, PaymentStatus newStatus) {

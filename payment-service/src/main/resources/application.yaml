@@ -52,26 +52,31 @@ spring:
       password: '${REDIS_USER_PASSWORD}'
 
 resilience4j:
-  timelimiter:
-    configs:
-      payment-system:
-        timeoutDuration: 3s
-        cancelRunningFuture:
-  retry:
-    configs:
-      payment-system:
-        maxAttempts: 3
-        waitDuration: 1s
-
   circuitbreaker:
     configs:
-      payment-system:
+      default:
         registerHealthIndicator: true
         slidingWindowSize: 10
         minimumNumberOfCalls: 5
         failureRateThreshold: 50
         waitDurationInOpenState: 10s
         permittedNumberOfCallsInHalfOpenState: 3
+        ignore-exceptions:
+          - com.innowise.common.exception.ExternalApiException
+  timelimiter:
+    configs:
+      default:
+        timeout-duration:
+          seconds: 3
+        cancel-running-future: true
+  retry:
+    configs:
+      default:
+        max-attempts: 3
+        wait-duration:
+          seconds: 1
+        ignore-exceptions:
+          - com.innowise.common.exception.ExternalApiException
 
 management:
   endpoints:
@@ -80,10 +85,17 @@ management:
         include: health,circuitbreakers
         exclude: errors
 
-services:
-  payment-system:
-    url: 'http://www.randomnumberapi.com'
 
-logging:
-  level:
-    com.innowise.paymentservice.service.client.com.innowise.paymentservice.service.client.StripeClient: DEBUG
+eureka:
+  instance:
+    prefer-ip-address: true
+  client:
+    enabled: true
+    register-with-eureka: false
+    fetch-registry: true
+    service-url:
+      defaultZone: http://${EUREKA_HOST}:${EUREKA_PORT}/eureka
+
+services:
+  stipe:
+    url: 'http://www.randomnumberapi.com'

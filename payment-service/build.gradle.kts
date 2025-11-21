@@ -18,13 +18,14 @@ dependencies {
     implementation(libs.liquibase.mongodb)
     implementation(libs.mapstruct)
     implementation("org.springframework.cloud:spring-cloud-starter-circuitbreaker-resilience4j")
-    implementation("org.springframework.cloud:spring-cloud-starter-openfeign")
     implementation("org.springframework.boot:spring-boot-starter-webmvc")
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-kafka")
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.boot:spring-boot-starter-data-redis")
+    implementation("org.springframework.boot:spring-boot-starter-webclient")
+    implementation("org.springframework.cloud:spring-cloud-starter-circuitbreaker-reactor-resilience4j")
 
     compileOnly("org.projectlombok:lombok")
 
@@ -37,6 +38,7 @@ dependencies {
 
     testCompileOnly("org.projectlombok:lombok")
 
+    testImplementation("io.projectreactor:reactor-test")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation(libs.system.stubs.jupiter)
     testImplementation(libs.fixture.monkey.starter)

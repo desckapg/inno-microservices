@@ -8,6 +8,6 @@ public interface PaymentService {
 
   PaymentDto create(OrderDto orderDto);
 
-  PaymentDto processPayment(String id);
+  void processPayment(String id);
 
 }
