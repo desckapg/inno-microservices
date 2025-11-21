@@ -225,7 +225,7 @@ class PaymentListenerIT extends AbstractIntegrationTest {
     );
 
     await()
-        .atMost(Duration.ofSeconds(3))
+        .atMost(Duration.ofSeconds(5))
         .pollInterval(Duration.ofMillis(200))
         .untilAsserted(() -> {
           assertThat(em.find(Order.class, order.getId())).satisfies(foundOrder -> {

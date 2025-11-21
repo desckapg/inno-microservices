@@ -72,7 +72,7 @@ class OrderListenerIT extends AbstractIntegrationTest {
         .build()
     );
 
-    paymentSystemClientServer.stubFor(
+    stripeClientServer.stubFor(
         get(urlPathTemplate("**"))
             .willReturn(aResponse()
                 .withStatus(HttpStatus.OK_200)
@@ -112,7 +112,7 @@ class OrderListenerIT extends AbstractIntegrationTest {
         .build()
     );
 
-    paymentSystemClientServer.stubFor(
+    stripeClientServer.stubFor(
         get(urlPathTemplate("**"))
             .willReturn(aResponse()
                 .withStatus(HttpStatus.OK_200)

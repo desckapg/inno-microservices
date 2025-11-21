@@ -15,7 +15,7 @@ import org.testcontainers.lifecycle.Startables;
 public abstract class AbstractIntegrationTest {
 
   @RegisterExtension
-  protected static EagerWireMockExtension paymentSystemClientServer = EagerWireMockExtension.newInstance()
+  protected static EagerWireMockExtension stripeClientServer = EagerWireMockExtension.newInstance()
       .options(wireMockConfig().dynamicPort())
       .build();
 
@@ -35,7 +35,7 @@ public abstract class AbstractIntegrationTest {
 
     registry.add("spring.kafka.bootstrap-servers", () -> List.of(kafka.getBootstrapServers()));
 
-    registry.add("services.payment-system.url", paymentSystemClientServer::baseUrl);
+    registry.add("services.stipe.url", stripeClientServer::baseUrl);
 
 
     registry.add("spring.data.redis.host", redis::getHost);

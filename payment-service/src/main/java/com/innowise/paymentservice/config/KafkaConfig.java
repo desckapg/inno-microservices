@@ -2,7 +2,6 @@ package com.innowise.paymentservice.config;
 
 import com.innowise.common.exception.ExternalApiException;
 import java.time.Duration;
-import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
 import lombok.Data;
@@ -11,7 +10,6 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.admin.NewTopic;
 import org.jspecify.annotations.NullMarked;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.PropertyMapper;
 import org.springframework.boot.kafka.autoconfigure.KafkaProperties;
