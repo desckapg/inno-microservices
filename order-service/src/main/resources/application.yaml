@@ -5,12 +5,45 @@ spring:
     url: '${DB_URL}'
     username: '${DB_USERNAME}'
     password: '${DB_PASSWORD}'
+  data:
+    redis:
+      host: '${REDIS_HOST}'
+      port: '${REDIS_PORT}'
+      username: '${REDIS_USER}'
+      password: '${REDIS_USER_PASSWORD}'
   cloud:
     openfeign:
       circuitbreaker:
         enabled: true
         group:
           enabled: true
+  kafka:
+    bootstrap-servers:
+      - ${KAFKA_BOOTSTRAP_SERVER}
+    topics:
+      orders:
+        name: 'queuing.order_service.orders'
+        create: true
+        partitions: 1
+        replication-factor: 1
+      payments:
+        name: 'queuing.payment_service.payments'
+    consumer:
+      enable-auto-commit: false
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JacksonJsonDeserializer
+      properties:
+        spring.json.trusted.packages: 'com.innowise.common.model.event'
+      group-id: 'payment-processing-group'
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JacksonJsonSerializer
+    retry:
+      topic:
+        attempts: 5
+        backoff:
+          multiplier: 2
+          max-delay: 30s
 
 server:
   port: 8083

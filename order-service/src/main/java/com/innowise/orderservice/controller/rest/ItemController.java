@@ -1,4 +1,4 @@
-package com.innowise.orderservice.controller;
+package com.innowise.orderservice.controller.rest;
 
 import com.innowise.orderservice.model.dto.ItemsConstraints;
 import com.innowise.orderservice.model.dto.item.ItemDto;

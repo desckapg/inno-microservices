@@ -1,6 +1,7 @@
 package com.innowise.orderservice.integration.annotation;
 
 import com.innowise.orderservice.integration.TestSecurityConfig;
+import com.innowise.orderservice.service.OrderService;
 import com.innowise.orderservice.service.client.UserServiceClient;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -13,6 +14,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.transaction.annotation.Transactional;
 
 @SpringBootTest
@@ -23,7 +25,10 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @MockitoBean(types = {
-    UserServiceClient.class
+    UserServiceClient.class,
+})
+@MockitoSpyBean(types = {
+    OrderService.class
 })
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)

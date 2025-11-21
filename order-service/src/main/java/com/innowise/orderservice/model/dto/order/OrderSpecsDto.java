@@ -1,6 +1,7 @@
 package com.innowise.orderservice.model.dto.order;
 
 import com.innowise.orderservice.model.entity.Order;
+import com.innowise.orderservice.model.enums.OrderStatus;
 import java.util.LinkedList;
 import java.util.List;
 import lombok.Builder;
@@ -12,7 +13,7 @@ import org.springframework.data.jpa.domain.Specification;
 @Builder
 public record OrderSpecsDto(
     @Nullable List<Long> ids,
-    @Nullable List<Order.Status> statuses,
+    @Nullable List<OrderStatus> statuses,
     @Nullable Long userId
 ) {
 
