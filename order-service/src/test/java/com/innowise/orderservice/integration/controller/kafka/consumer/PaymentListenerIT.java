@@ -7,7 +7,6 @@ import com.innowise.common.model.dto.payment.PaymentDto;
 import com.innowise.common.model.enums.PaymentStatus;
 import com.innowise.common.model.event.PaymentCreatedEvent;
 import com.innowise.common.model.event.PaymentStatusUpdatedEvent;
-import com.innowise.orderservice.controller.kafka.consumer.PaymentListener;
 import com.innowise.orderservice.integration.AbstractIntegrationTest;
 import com.innowise.orderservice.integration.annotation.IT;
 import com.innowise.orderservice.model.entity.Order;
@@ -24,6 +23,7 @@ import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.messaging.support.MessageBuilder;
@@ -58,6 +58,9 @@ class PaymentListenerIT extends AbstractIntegrationTest {
 
   private final OrderService orderService;
 
+  @Value("${spring.kafka.topics.payments.name}")
+  private String paymentsTopic;
+
   @AfterEach
   void clearOrderTable() {
     tt.executeWithoutResult(_ -> {
@@ -80,7 +83,7 @@ class PaymentListenerIT extends AbstractIntegrationTest {
 
     kafkaTemplate.send(MessageBuilder
         .withPayload(new PaymentCreatedEvent(payment))
-        .setHeader(KafkaHeaders.TOPIC, PaymentListener.TOPIC)
+        .setHeader(KafkaHeaders.TOPIC, paymentsTopic)
         .build()
     );
 
@@ -112,12 +115,12 @@ class PaymentListenerIT extends AbstractIntegrationTest {
 
     kafkaTemplate.send(MessageBuilder
         .withPayload(event)
-        .setHeader(KafkaHeaders.TOPIC, PaymentListener.TOPIC)
+        .setHeader(KafkaHeaders.TOPIC, paymentsTopic)
         .build()
     );
     kafkaTemplate.send(MessageBuilder
         .withPayload(event)
-        .setHeader(KafkaHeaders.TOPIC, PaymentListener.TOPIC)
+        .setHeader(KafkaHeaders.TOPIC, paymentsTopic)
         .build()
     );
 
@@ -150,7 +153,7 @@ class PaymentListenerIT extends AbstractIntegrationTest {
             PaymentStatus.PROCESSING,
             PaymentStatus.FAILED
         ))
-        .setHeader(KafkaHeaders.TOPIC, PaymentListener.TOPIC)
+        .setHeader(KafkaHeaders.TOPIC, paymentsTopic)
         .build()
     );
 
@@ -180,7 +183,7 @@ class PaymentListenerIT extends AbstractIntegrationTest {
             PaymentStatus.PROCESSING,
             PaymentStatus.SUCCEEDED
         ))
-        .setHeader(KafkaHeaders.TOPIC, PaymentListener.TOPIC)
+        .setHeader(KafkaHeaders.TOPIC, paymentsTopic)
         .build()
     );
 
@@ -212,12 +215,12 @@ class PaymentListenerIT extends AbstractIntegrationTest {
 
     kafkaTemplate.send(MessageBuilder
         .withPayload(event)
-        .setHeader(KafkaHeaders.TOPIC, PaymentListener.TOPIC)
+        .setHeader(KafkaHeaders.TOPIC, paymentsTopic)
         .build()
     );
     kafkaTemplate.send(MessageBuilder
         .withPayload(event)
-        .setHeader(KafkaHeaders.TOPIC, PaymentListener.TOPIC)
+        .setHeader(KafkaHeaders.TOPIC, paymentsTopic)
         .build()
     );
 

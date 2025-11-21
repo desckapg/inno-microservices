@@ -7,10 +7,11 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NullMarked;
-import org.springframework.kafka.annotation.DltHandler;
 import org.springframework.kafka.annotation.KafkaHandler;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.Acknowledgment;
+import org.springframework.kafka.support.KafkaHeaders;
+import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.annotation.Validated;
@@ -21,13 +22,10 @@ import org.springframework.validation.annotation.Validated;
 @NullMarked
 @Validated
 @KafkaListener(
-    topics = "queuing.order_service.orders",
-    containerFactory = "concurrentKafkaListenerContainerFactory",
-    groupId = OrderListener.GROUP_ID
+    topics = "${spring.kafka.topics.orders.name}",
+    containerFactory = "concurrentKafkaListenerContainerFactory"
 )
 public class OrderListener {
-
-  public static final String GROUP_ID = "order-processing-group";
 
   private final PaymentService paymentService;
   private final EventService eventService;
@@ -35,16 +33,17 @@ public class OrderListener {
   @KafkaHandler
   public void consumeOrderCreatedEvent(
       @Payload @Valid OrderCreatedEvent event,
+      @Header(KafkaHeaders.GROUP_ID) String groupId,
       Acknowledgment acknowledgment
   ) {
-    log.info("Received {}, uuid={}", event, event.getEventId());
-    if (eventService.isEventProcessed(GROUP_ID, event.getEventId().toString())) {
+    log.info("Received {}", event);
+    if (eventService.isEventProcessed(groupId, event.getEventId().toString())) {
       log.info("Skip OrderCreatedEvent{id={}} (had already processed earlier", event.getEventId());
       return;
     }
     var payment = paymentService.create(event.getOrder());
     paymentService.processPayment(payment.id());
-    eventService.saveProcessedEvent(GROUP_ID, event.getEventId().toString());
+    eventService.saveProcessedEvent(groupId, event.getEventId().toString());
     acknowledgment.acknowledge();
   }
 

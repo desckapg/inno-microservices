@@ -26,6 +26,7 @@ import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.KafkaHeaders;
@@ -58,13 +59,16 @@ class OrderListenerIT extends AbstractIntegrationTest {
   private final PaymentService paymentService;
   private final OrderListener orderListener;
 
+  @Value("${spring.kafka.topics.orders.name}")
+  private String orderTopic;
+
   @Test
   void consumeOrderCreatedEvent() {
     var orderDto = SUT.giveMeOne(OrderDto.class);
 
     kafkaTemplate.send(MessageBuilder
         .withPayload(new OrderCreatedEvent(orderDto))
-        .setHeader(KafkaHeaders.TOPIC, "queuing.order_service.orders")
+        .setHeader(KafkaHeaders.TOPIC, orderTopic)
         .build()
     );
 
@@ -99,12 +103,12 @@ class OrderListenerIT extends AbstractIntegrationTest {
 
     kafkaTemplate.send(MessageBuilder
         .withPayload(orderCreatedEvent)
-        .setHeader(KafkaHeaders.TOPIC, "queuing.order_service.orders")
+        .setHeader(KafkaHeaders.TOPIC, orderTopic)
         .build()
     );
     kafkaTemplate.send(MessageBuilder
         .withPayload(orderCreatedEvent)
-        .setHeader(KafkaHeaders.TOPIC, "queuing.order_service.orders")
+        .setHeader(KafkaHeaders.TOPIC, orderTopic)
         .build()
     );
 
@@ -145,14 +149,14 @@ class OrderListenerIT extends AbstractIntegrationTest {
 
     kafkaTemplate.send(MessageBuilder
         .withPayload(orderCreatedEvent)
-        .setHeader(KafkaHeaders.TOPIC, "queuing.order_service.orders")
+        .setHeader(KafkaHeaders.TOPIC, orderTopic)
         .build()
     );
 
     await().during(Duration.ofSeconds(5)).until(() -> true);
 
     Mockito.verify(orderListener, Mockito.never())
-        .consumeOrderCreatedEvent(Mockito.any(), Mockito.any());
+        .consumeOrderCreatedEvent(Mockito.any(), Mockito.any(), Mockito.any());
   }
 
   @Test
@@ -167,7 +171,7 @@ class OrderListenerIT extends AbstractIntegrationTest {
 
     kafkaTemplate.send(MessageBuilder
         .withPayload(orderCreatedEvent)
-        .setHeader(KafkaHeaders.TOPIC, "queuing.order_service.orders")
+        .setHeader(KafkaHeaders.TOPIC, orderTopic)
         .build()
     );
 
