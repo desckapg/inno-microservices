@@ -5,7 +5,6 @@ plugins {
 }
 val springCloudVersion by extra("2025.1.0-M4")
 
-
 configurations {
     compileOnly {
         extendsFrom(configurations.annotationProcessor.get())
@@ -39,7 +38,6 @@ dependencies {
     testCompileOnly("org.projectlombok:lombok")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
-    testImplementation("org.springframework.kafka:spring-kafka-test")
     testImplementation(libs.system.stubs.jupiter)
     testImplementation(libs.fixture.monkey.starter)
     testImplementation(libs.fixture.monkey.datafaker)
@@ -51,7 +49,8 @@ dependencies {
     testImplementation("org.testcontainers:kafka")
     testImplementation(libs.awaitility)
     testImplementation("com.redis:testcontainers-redis")
-
+    testImplementation(libs.fixture.monkey.jakarta.validation)
+    testImplementation(libs.rgxgen)
 
     testAnnotationProcessor("org.projectlombok:lombok")
 

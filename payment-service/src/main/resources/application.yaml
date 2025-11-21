@@ -33,6 +33,12 @@ spring:
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JacksonJsonSerializer
+    retry:
+      topic:
+        attempts: 5
+        backoff:
+          multiplier: 2
+          max-delay: 30s
   data:
     redis:
       host: '${REDIS_HOST}'

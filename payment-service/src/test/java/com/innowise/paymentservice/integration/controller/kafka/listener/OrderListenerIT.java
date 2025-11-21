@@ -8,9 +8,11 @@ import static org.awaitility.Awaitility.await;
 import static org.springframework.data.mongodb.core.query.Criteria.where;
 import static org.springframework.data.mongodb.core.query.Query.query;
 
+import com.innowise.common.exception.ExternalApiException;
 import com.innowise.common.model.dto.order.OrderDto;
 import com.innowise.common.model.enums.PaymentStatus;
 import com.innowise.common.model.event.OrderCreatedEvent;
+import com.innowise.paymentservice.controller.kafka.consumer.OrderListener;
 import com.innowise.paymentservice.integration.AbstractIntegrationTest;
 import com.innowise.paymentservice.integration.annotation.IT;
 import com.innowise.paymentservice.model.entity.Payment;
@@ -18,10 +20,9 @@ import com.innowise.paymentservice.service.PaymentService;
 import com.navercorp.fixturemonkey.FixtureMonkey;
 import com.navercorp.fixturemonkey.api.introspector.ConstructorPropertiesArbitraryIntrospector;
 import com.navercorp.fixturemonkey.api.jqwik.JqwikPlugin;
-import java.math.BigDecimal;
+import com.navercorp.fixturemonkey.jakarta.validation.plugin.JakartaValidationPlugin;
 import java.time.Duration;
 import lombok.RequiredArgsConstructor;
-import net.jqwik.api.Arbitraries;
 import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -39,27 +40,23 @@ class OrderListenerIT extends AbstractIntegrationTest {
 
   private static final FixtureMonkey SUT = FixtureMonkey.builder()
       .plugin(new JqwikPlugin())
+      .plugin(new JakartaValidationPlugin())
       .objectIntrospector(new ConstructorPropertiesArbitraryIntrospector())
       .defaultNotNull(true)
       .nullableContainer(false)
       .nullableElement(false)
-      .register(OrderDto.class, fm -> fm.giveMeBuilder(OrderDto.class)
-          .set("id", Arbitraries.longs().greaterOrEqual(1L))
-          .set("user.id", Arbitraries.longs().greaterOrEqual(1L))
-      )
       .register(Payment.class, fm -> fm.giveMeBuilder(Payment.class)
           .setNull("id")
-          .set("userId", Arbitraries.longs().greaterOrEqual(1L))
-          .set("orderId", Arbitraries.longs().greaterOrEqual(1L))
-          .set("amount", Arbitraries.bigDecimals().greaterThan(BigDecimal.ZERO))
           .set("status", PaymentStatus.PENDING)
       )
       .build();
 
   private final KafkaTemplate<@NonNull String, @NonNull String> kafkaTemplate;
+
   private final MongoTemplate mongoTemplate;
 
   private final PaymentService paymentService;
+  private final OrderListener orderListener;
 
   @Test
   void consumeOrderCreatedEvent() {
@@ -84,7 +81,8 @@ class OrderListenerIT extends AbstractIntegrationTest {
         .atMost(Duration.ofSeconds(5))
         .pollInterval(Duration.ofMillis(200))
         .untilAsserted(() -> {
-          var payment = mongoTemplate.findOne(query(where("orderId").is(orderDto.id())), Payment.class);
+          var payment = mongoTemplate.findOne(query(where("orderId").is(orderDto.id())),
+              Payment.class);
 
           assertThat(payment).isNotNull();
           assertThat(payment.getStatus()).isEqualTo(PaymentStatus.SUCCEEDED);
@@ -123,7 +121,8 @@ class OrderListenerIT extends AbstractIntegrationTest {
         .atMost(Duration.ofSeconds(5))
         .pollInterval(Duration.ofMillis(200))
         .untilAsserted(() -> {
-          var payment = mongoTemplate.findOne(query(where("orderId").is(orderDto.id())), Payment.class);
+          var payment = mongoTemplate.findOne(query(where("orderId").is(orderDto.id())),
+              Payment.class);
 
           assertThat(payment).isNotNull();
           assertThat(payment.getStatus()).isEqualTo(PaymentStatus.SUCCEEDED);
@@ -131,6 +130,54 @@ class OrderListenerIT extends AbstractIntegrationTest {
 
     Mockito.verify(paymentService, Mockito.times(1)).create(Mockito.any());
     Mockito.verify(paymentService, Mockito.times(1)).processPayment(Mockito.any());
+  }
+
+  @Test
+  void consumeOrderCreatedEvent_invalidOrderDto_shouldSendToDLT() {
+    var invalidOrderDto = new OrderDto(
+        null,
+        null,
+        null,
+        null
+    );
+
+    var orderCreatedEvent = new OrderCreatedEvent(invalidOrderDto);
+
+    kafkaTemplate.send(MessageBuilder
+        .withPayload(orderCreatedEvent)
+        .setHeader(KafkaHeaders.TOPIC, "queuing.order_service.orders")
+        .build()
+    );
+
+    await().during(Duration.ofSeconds(5)).until(() -> true);
+
+    Mockito.verify(orderListener, Mockito.never())
+        .consumeOrderCreatedEvent(Mockito.any(), Mockito.any());
+  }
+
+  @Test
+  void consumeOrderCreatedEvent_exceptionFromService_shouldRetrySeveralTimes() {
+    var orderDto = SUT.giveMeOne(OrderDto.class);
+
+    var orderCreatedEvent = new OrderCreatedEvent(orderDto);
+
+    Mockito.doThrow(ExternalApiException.class)
+        .when(paymentService)
+        .create(Mockito.any());
+
+    kafkaTemplate.send(MessageBuilder
+        .withPayload(orderCreatedEvent)
+        .setHeader(KafkaHeaders.TOPIC, "queuing.order_service.orders")
+        .build()
+    );
+
+    await()
+        .atMost(Duration.ofSeconds(10))
+        .pollInterval(Duration.ofMillis(500))
+        .untilAsserted(() -> {
+          Mockito.verify(paymentService, Mockito.atLeast(2))
+              .create(Mockito.any());
+        });
   }
 
 }

@@ -18,7 +18,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
     PaymentRepository.class,
     PaymentProducer.class,
     OrderListener.class,
-    PaymentService.class
+    PaymentService.class,
 })
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
