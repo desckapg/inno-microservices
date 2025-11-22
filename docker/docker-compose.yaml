@@ -80,7 +80,7 @@ services:
       - POSTGRES_USER=${ORDER_SERVICE_POSTGRES_USERNAME}
       - POSTGRES_PASSWORD=${ORDER_SERVICE_POSTGRES_PASSWORD}
     env_file:
-      - .env.oder-service
+      - .env.order-service
     ports:
       - '5432'
     deploy:
@@ -113,8 +113,6 @@ services:
       - user-service-redis:/data
     env_file:
       - .env.user-service
-    ports:
-      - '6379'
     deploy:
       resources:
         limits:
@@ -148,8 +146,40 @@ services:
       - payment-service-redis:/data
     env_file:
       - .env.payment-service
-    ports:
-      - '6379:6379'
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 128M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+    command: >
+      sh -c '
+        mkdir -p /usr/local/etc/redis &&
+        echo "bind 0.0.0.0" > /usr/local/etc/redis/redis.conf &&
+        echo "requirepass $USER_SERVICE_REDIS_PASSWORD" >> /usr/local/etc/redis/redis.conf &&
+        echo "appendonly yes" >> /usr/local/etc/redis/redis.conf &&
+        echo "appendfsync everysec" >> /usr/local/etc/redis/redis.conf &&
+        echo "user default on nopass ~* +@all" > /usr/local/etc/redis/users.acl &&
+        echo "user $USER_SERVICE_REDIS_USER on >$USER_SERVICE_REDIS_USER_PASSWORD ~* +@all" >> /usr/local/etc/redis/users.acl &&
+        redis-server /usr/local/etc/redis/redis.conf --aclfile /usr/local/etc/redis/users.acl
+      '
+    healthcheck:
+      test: [ "CMD", "redis-cli", "-a", "$USER_SERVICE_REDIS_PASSWORD", "ping" ]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+    restart: unless-stopped
+    tty: true
+    stdin_open: true
+
+  order-service-redis:
+    image: 'redis:latest'
+    volumes:
+      - order-service-redis:/data
+    env_file:
+      - .env.order-service
     deploy:
       resources:
         limits:
@@ -185,7 +215,7 @@ services:
     volumes:
       - payment-service-db:/data/db
     ports:
-      - '27017'
+      - '27017:27017'
   kafka:
     image: apache/kafka-native
     environment:
@@ -212,7 +242,7 @@ services:
         DOCKER_BUILDKIT: 1
     restart: "no"
     ports:
-        - "8761"
+        - "8761:8761"
   api-gateway:
     image: api-gateway:latest
     depends_on:
@@ -225,7 +255,7 @@ services:
     env_file:
       - ./.env.api-gateway
     ports:
-      - "8080"
+      - "8080:8081"
   user-service:
     image: user-service:latest
     depends_on:
@@ -240,7 +270,7 @@ services:
       - .env.user-service
     restart: "no"
     ports:
-      - "8081"
+      - "8081:8081"
   auth-service:
     image: auth-service:latest
     depends_on:
@@ -254,27 +284,30 @@ services:
     env_file:
       - .env.auth-service
     ports:
-      - "8082"
+      - "8082:8082"
   order-service:
     image: order-service:latest
     depends_on:
       - order-service-postgres
+      - order-service-redis
       - discovery-service
+      - kafka
     build:
       context: ../order-service
       args:
         DOCKER_BUILDKIT: 1
     restart: "no"
     env_file:
-      - .env.oder-service
+      - .env.order-service
     ports:
-      - "8083"
+      - "8083:8083"
   payment-service:
     image: payment-service:latest
     depends_on:
       - kafka
       - payment-service-redis
       - payment-service-mongo
+      - discovery-service
     build:
       context: ../payment-service
       args:
@@ -290,5 +323,6 @@ volumes:
   user-service-redis:
   auth-service-db:
   order-service-db:
+  order-service-redis:
   payment-service-db:
   payment-service-redis:
