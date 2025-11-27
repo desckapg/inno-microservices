@@ -10,6 +10,7 @@ resources:
   - auth-service/service.yaml
   - api-gateway/deployment.yaml
   - api-gateway/service.yaml
+  - api-gateway/ingress.yaml
   - order-service/deployment.yaml
   - order-service/service.yaml
   - discovery-service/deployment.yaml

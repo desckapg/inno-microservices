@@ -10,7 +10,8 @@ patches:
   - path: patches/kafka.yaml
   - path: patches/user-service.yaml
   - path: patches/auth-service.yaml
-  - path: patches/api-gateway.yaml
+  - path: patches/api-gateway/deployment.yaml
+  - path: patches/api-gateway/ingress.yaml
   - path: patches/order-service.yaml
   - path: patches/discovery-service.yaml
 
