@@ -1,5 +1,16 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
 resources:
-  - kafka/stateful_set.yaml
+  - kafka/stateful-set.yaml
   - kafka/service.yaml
-#  - user-service/deployment.yaml
-#  - user-service/service.yaml
+  - user-service/deployment.yaml
+  - user-service/service.yaml
+  - auth-service/deployment.yaml
+  - auth-service/service.yaml
+  - api-gateway/deployment.yaml
+  - api-gateway/service.yaml
+  - order-service/deployment.yaml
+  - order-service/service.yaml
+  - discovery-service/deployment.yaml
+  - discovery-service/service.yaml

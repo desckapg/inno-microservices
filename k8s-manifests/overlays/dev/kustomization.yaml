@@ -1,3 +1,6 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
 namespace: dev
 
 resources:
@@ -5,3 +8,34 @@ resources:
 
 patches:
   - path: patches/kafka.yaml
+  - path: patches/user-service.yaml
+  - path: patches/auth-service.yaml
+  - path: patches/api-gateway.yaml
+  - path: patches/order-service.yaml
+  - path: patches/discovery-service.yaml
+
+configMapGenerator:
+  - name: common-env
+    options:
+      disableNameSuffixHash: true
+    literals:
+      - SPRING_PROFILES_ACTIVE=dev
+      - EUREKA_HOST=discovery-service
+      - EUREKA_PORT=8761
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+  - name: user-service-env
+    options:
+      disableNameSuffixHash: true
+    literals:
+      - DB_URL=jdbc:postgresql://postgres:5432/user_service_db
+  - name: order-service-env
+    options:
+      disableNameSuffixHash: true
+    literals:
+      - DB_URL=jdbc:postgresql://postgres:5432/order_service_db
+  - name: auth-service-env
+    options:
+      disableNameSuffixHash: true
+    literals:
+      - DB_URL=jdbc:postgresql://postgres:5432/auth_service_db
