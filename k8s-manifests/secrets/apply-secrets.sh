@@ -119,6 +119,15 @@ kubectl create secret generic user-service-credentials \
   --dry-run=client -o yaml | kubectl apply -f -
 echo -e "${GREEN}✓ User service secrets created${NC}"
 
+# Order Service Secrets
+echo -e "${YELLOW}Creating Order service secrets...${NC}"
+kubectl create secret generic order-service-credentials \
+  --from-literal=DB_USERNAME="$ORDER_SERVICE_DB_USERNAME" \
+  --from-literal=DB_PASSWORD="$ORDER_SERVICE_DB_PASSWORD" \
+  --namespace=$NAMESPACE \
+  --dry-run=client -o yaml | kubectl apply -f -
+echo -e "${GREEN}✓ User service secrets created${NC}"
+
 echo ""
 echo -e "${GREEN}All secrets created successfully!${NC}"
 echo ""
