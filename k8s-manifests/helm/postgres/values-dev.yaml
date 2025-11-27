@@ -1,5 +1,6 @@
 global:
   postgresql:
+    fullnameOverride: postgres
     auth:
       existingSecret: postgres-credentials
       secretKeys:
@@ -7,27 +8,7 @@ global:
 
 primary:
   initdb:
-    scriptsSecret: postgres-credentials
-    scripts:
-      init-databases.sh: |
-        #!/bin/bash
-        set -e
-        
-        export PGPASSWORD="$POSTGRES_PASSWORD"
-        
-        psql -v ON_ERROR_STOP=1 --username "postgres" <<-EOSQL
-          CREATE DATABASE user_service_db;
-          CREATE USER user_service_user WITH ENCRYPTED PASSWORD '${user-service-password}';
-          GRANT ALL PRIVILEGES ON DATABASE user_service_db TO user_service_user;
-        
-          CREATE DATABASE auth_service_db;
-          CREATE USER auth_service_user WITH ENCRYPTED PASSWORD '${auth-service-password}';
-          GRANT ALL PRIVILEGES ON DATABASE auth_service_db TO auth_service_user;
-        
-          CREATE DATABASE order_service_db;
-          CREATE USER order_service_user WITH ENCRYPTED PASSWORD '${order-service-password}';
-          GRANT ALL PRIVILEGES ON DATABASE order_service_db TO order_service_user;
-        EOSQL
+    scriptsSecret: postgres-init-scripts
   resources:
     limits:
       cpu: 1000m

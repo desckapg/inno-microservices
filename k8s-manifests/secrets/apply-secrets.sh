@@ -42,6 +42,55 @@ kubectl create secret generic postgres-credentials \
   --dry-run=client -o yaml | kubectl apply -f -
 echo -e "${GREEN}✓ PostgreSQL secrets created${NC}"
 
+# PostgreSQL Init Scripts
+echo -e "${YELLOW}Creating PostgreSQL init scripts...${NC}"
+kubectl create secret generic postgres-init-scripts \
+  --from-literal=init-databases.sh="#!/bin/bash
+set -e
+
+export PGPASSWORD=\"\$POSTGRES_PASSWORD\"
+
+psql -v ON_ERROR_STOP=1 --username \"postgres\" <<-EOSQL
+  CREATE DATABASE user_service_db;
+  CREATE USER user_service_user WITH ENCRYPTED PASSWORD '$USER_SERVICE_POSTGRES_PASSWORD';
+  GRANT ALL PRIVILEGES ON DATABASE user_service_db TO user_service_user;
+
+  \c user_service_db
+  GRANT ALL ON SCHEMA public TO user_service_user;
+  GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO user_service_user;
+  GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO user_service_user;
+  ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO user_service_user;
+  ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO user_service_user;
+
+  \c postgres
+  CREATE DATABASE auth_service_db;
+  CREATE USER auth_service_user WITH ENCRYPTED PASSWORD '$AUTH_SERVICE_POSTGRES_PASSWORD';
+  GRANT ALL PRIVILEGES ON DATABASE auth_service_db TO auth_service_user;
+
+  \c auth_service_db
+  GRANT ALL ON SCHEMA public TO auth_service_user;
+  GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO auth_service_user;
+  GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO auth_service_user;
+  ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO auth_service_user;
+  ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO auth_service_user;
+
+  \c postgres
+  CREATE DATABASE order_service_db;
+  CREATE USER order_service_user WITH ENCRYPTED PASSWORD '$ORDER_SERVICE_POSTGRES_PASSWORD';
+  GRANT ALL PRIVILEGES ON DATABASE order_service_db TO order_service_user;
+
+  \c order_service_db
+  GRANT ALL ON SCHEMA public TO order_service_user;
+  GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO order_service_user;
+  GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO order_service_user;
+  ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO order_service_user;
+  ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO order_service_user;
+EOSQL
+" \
+  --namespace=$NAMESPACE \
+  --dry-run=client -o yaml | kubectl apply -f -
+echo -e "${GREEN}✓ PostgreSQL init scripts created${NC}"
+
 # MongoDB Secrets
 echo -e "${YELLOW}Creating MongoDB secrets...${NC}"
 kubectl create secret generic mongodb-credentials \
@@ -58,6 +107,17 @@ kubectl create secret generic redis-credentials \
   --namespace=$NAMESPACE \
   --dry-run=client -o yaml | kubectl apply -f -
 echo -e "${GREEN}✓ Redis secrets created${NC}"
+
+# User Service Secrets
+echo -e "${YELLOW}Creating User service secrets...${NC}"
+kubectl create secret generic user-service-credentials \
+  --from-literal=DB_USERNAME="$USER_SERVICE_DB_USERNAME" \
+  --from-literal=DB_PASSWORD="$USER_SERVICE_DB_PASSWORD" \
+  --from-literal=REDIS_USER="$USER_SERVICE_REDIS_USER" \
+  --from-literal=REDIS_USER_PASSWORD="$USER_SERVICE_REDIS_USER_PASSWORD" \
+  --namespace=$NAMESPACE \
+  --dry-run=client -o yaml | kubectl apply -f -
+echo -e "${GREEN}✓ User service secrets created${NC}"
 
 echo ""
 echo -e "${GREEN}All secrets created successfully!${NC}"

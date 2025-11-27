@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: user-service-deployment
+  name: user-service
 spec:
   selector:
     matchLabels:
@@ -13,7 +13,13 @@ spec:
     spec:
       containers:
         - name: user-service
-          image: user-service:latest
+          envFrom:
+            - configMapRef:
+                name: common-env
+            - configMapRef:
+                name: user-service-env
+            - secretRef:
+                name: user-service-credentials
+          image: desckapg/inno-microservices-user-service:latest
           ports:
             - containerPort: 8081
-    
