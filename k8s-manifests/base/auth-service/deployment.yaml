@@ -1,37 +1,37 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: order-service
+  name: auth-service
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: order-service
+      app: auth-service
   template:
     metadata:
       labels:
-        app: order-service
+        app: auth-service
     spec:
       containers:
-        - name: order-service
+        - name: auth-service
           envFrom:
             - configMapRef:
                 name: common-env
             - configMapRef:
-                name: order-service-env
+                name: auth-service-env
             - secretRef:
-                name: order-service-credentials
-          image: desckapg/inno-microservices-order-service:latest
+                name: auth-service-credentials
+          image: desckapg/inno-microservices-auth-service:latest
           ports:
-            - containerPort: 8083
+            - containerPort: 8082
           readinessProbe:
             httpGet:
               path: actuator/health/readiness
-              port: 8083
+              port: 8082
             initialDelaySeconds: 10
           livenessProbe:
             httpGet:
               path: actuator/health/liveness
-              port: 8083
+              port: 8082
             initialDelaySeconds: 10
             periodSeconds: 5
