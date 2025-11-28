@@ -1,7 +1,7 @@
 package com.innowise.orderservice.service.client;
 
 import com.innowise.auth.model.AuthConstants;
-import com.innowise.orderservice.model.dto.user.UserDto;
+import com.innowise.common.model.dto.user.UserDto;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;

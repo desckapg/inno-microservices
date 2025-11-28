@@ -1,4 +1,4 @@
-package com.innowise.orderservice.integration.controller;
+package com.innowise.orderservice.integration.controller.rest;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -14,13 +14,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.innowise.auth.security.provider.AuthTokenProvider;
 import com.innowise.auth.test.annotation.WithMockCustomUser;
+import com.innowise.common.model.dto.user.UserDto;
 import com.innowise.orderservice.integration.AbstractIntegrationTest;
 import com.innowise.orderservice.integration.annotation.IT;
 import com.innowise.orderservice.model.dto.order.OrderDto;
-import com.innowise.orderservice.model.dto.user.UserDto;
 import com.innowise.orderservice.model.entity.Item;
 import com.innowise.orderservice.model.entity.Order;
 import com.innowise.orderservice.model.entity.OrderItem;
+import com.innowise.orderservice.model.enums.OrderStatus;
 import com.innowise.orderservice.model.mapper.OrderMapper;
 import com.innowise.orderservice.service.client.UserServiceClient;
 import com.navercorp.fixturemonkey.FixtureMonkey;
@@ -222,7 +223,7 @@ class OrderControllerIT extends AbstractIntegrationTest {
 
     var order = ordersSut.giveMeBuilder(Order.class)
         .set("userId", ownedUserDto.id())
-        .set("status", Order.Status.NEW)
+        .set("status", OrderStatus.NEW)
         .sample();
 
     order.getOrderItems().forEach(item -> item.setOrder(order));
@@ -238,7 +239,7 @@ class OrderControllerIT extends AbstractIntegrationTest {
     ).thenReturn(ownedUserDto);
 
     var orderUpdateDto = OrderDto.builder()
-        .status(OrderDto.Status.SHIPPED)
+        .status(OrderStatus.NEW.SHIPPED)
         .build();
 
     mockMvc.perform(
@@ -251,7 +252,7 @@ class OrderControllerIT extends AbstractIntegrationTest {
 
     assertThat(em.find(Order.class, order.getId())).satisfies(foundOrder -> {
       assertThat(foundOrder).isNotNull();
-      assertThat(foundOrder.getStatus()).isEqualTo(Order.Status.SHIPPED);
+      assertThat(foundOrder.getStatus()).isEqualTo(OrderStatus.SHIPPED);
     });
   }
 

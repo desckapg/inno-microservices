@@ -11,14 +11,15 @@ import static org.mockito.Mockito.when;
 import com.innowise.auth.security.provider.AuthTokenProvider;
 import com.innowise.auth.test.annotation.WithMockCustomUser;
 import com.innowise.common.exception.ResourceNotFoundException;
+import com.innowise.common.model.dto.user.UserDto;
 import com.innowise.orderservice.integration.AbstractIntegrationTest;
 import com.innowise.orderservice.integration.annotation.IT;
 import com.innowise.orderservice.model.dto.order.OrderDto;
 import com.innowise.orderservice.model.dto.order.OrderSpecsDto;
-import com.innowise.orderservice.model.dto.user.UserDto;
 import com.innowise.orderservice.model.entity.Item;
 import com.innowise.orderservice.model.entity.Order;
 import com.innowise.orderservice.model.entity.OrderItem;
+import com.innowise.orderservice.model.enums.OrderStatus;
 import com.innowise.orderservice.model.mapper.OrderMapper;
 import com.innowise.orderservice.service.OrderService;
 import com.innowise.orderservice.service.client.UserServiceClient;
@@ -305,7 +306,7 @@ class OrderServiceIT extends AbstractIntegrationTest {
   void findAll_byStatusesAndUserHasUserAuthority_accessDenied() {
 
     var orderSpecsDto = OrderSpecsDto.builder()
-        .statuses(Arbitraries.of(Order.Status.values()).list().sample())
+        .statuses(Arbitraries.of(OrderStatus.values()).list().sample())
         .build();
 
     assertThatExceptionOfType(AuthorizationDeniedException.class)
@@ -453,7 +454,7 @@ class OrderServiceIT extends AbstractIntegrationTest {
 
     var order = ordersSut.giveMeBuilder(Order.class)
         .set("userId", ownedUserDto.id())
-        .set("status", Order.Status.NEW)
+        .set("status", OrderStatus.NEW)
         .sample();
 
     order.getOrderItems().forEach(item -> item.setOrder(order));
@@ -469,14 +470,14 @@ class OrderServiceIT extends AbstractIntegrationTest {
     ).thenReturn(ownedUserDto);
 
     var orderUpdateDto = OrderDto.builder()
-        .status(OrderDto.Status.SHIPPED)
+        .status(OrderStatus.SHIPPED)
         .build();
 
     assertThatNoException().isThrownBy(() -> orderService.update(order.getId(), orderUpdateDto));
 
     assertThat(em.find(Order.class, order.getId())).satisfies(foundedOrder -> {
       assertThat(foundedOrder).isNotNull();
-      assertThat(foundedOrder.getStatus()).isEqualTo(Order.Status.SHIPPED);
+      assertThat(foundedOrder.getStatus()).isEqualTo(OrderStatus.SHIPPED);
     });
 
   }
@@ -489,7 +490,7 @@ class OrderServiceIT extends AbstractIntegrationTest {
   )
   void update_orderNotExists_throwResourceNotFoundException() {
     var orderUpdateDto = OrderDto.builder()
-        .status(OrderDto.Status.SHIPPED)
+        .status(OrderStatus.NEW)
         .build();
 
     assertThatExceptionOfType(ResourceNotFoundException.class)

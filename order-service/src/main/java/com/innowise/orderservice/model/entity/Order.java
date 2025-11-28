@@ -1,5 +1,6 @@
 package com.innowise.orderservice.model.entity;
 
+import com.innowise.orderservice.model.enums.OrderStatus;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -38,7 +39,7 @@ public class Order extends BaseEntity {
 
   @Column(name = "status", nullable = false)
   @Enumerated(EnumType.STRING)
-  private Status status;
+  private OrderStatus status;
 
   @Builder.Default
   @OneToMany(
@@ -58,14 +59,6 @@ public class Order extends BaseEntity {
   public void removeItem(OrderItem item) {
     item.setOrder(null);
     this.orderItems.remove(item);
-  }
-
-  public enum Status {
-    NEW,
-    CANCELLED,
-    DELIVERED,
-    PROCESSING,
-    SHIPPED
   }
 
   @Override
