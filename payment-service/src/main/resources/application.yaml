@@ -1,0 +1,101 @@
+server:
+  port: 8084
+
+spring:
+  application:
+    name: 'payment-service'
+  mongodb:
+    uri: 'mongodb://${DB_USERNAME}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_DATABASE}?authSource=admin'
+  cloud:
+    openfeign:
+      circuitbreaker:
+        enabled: true
+        group:
+          enabled: true
+  kafka:
+    bootstrap-servers:
+      - ${KAFKA_BOOTSTRAP_SERVER}
+    topics:
+      orders:
+        name: 'queuing.order_service.orders'
+      payments:
+        name: 'queuing.payment_service.payments'
+        create: true
+        partitions: 1
+        replication-factor: 1
+    admin:
+      properties:
+        offsets.topic.replication.factor: 1
+        transaction.state.log.replication.factor: 1
+        transaction.state.log.min.isr: 1
+    consumer:
+      enable-auto-commit: false
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JacksonJsonDeserializer
+      properties:
+        spring.json.trusted.packages: 'com.innowise.common.model.event'
+      group-id: 'order-processing-group'
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JacksonJsonSerializer
+    retry:
+      topic:
+        attempts: 5
+        backoff:
+          multiplier: 2
+          max-delay: 30s
+  data:
+    redis:
+      host: '${REDIS_HOST}'
+      port: '${REDIS_PORT}'
+      username: '${REDIS_USER}'
+      password: '${REDIS_USER_PASSWORD}'
+
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        registerHealthIndicator: true
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10s
+        permittedNumberOfCallsInHalfOpenState: 3
+        ignore-exceptions:
+          - com.innowise.common.exception.ExternalApiException
+  timelimiter:
+    configs:
+      default:
+        timeout-duration:
+          seconds: 3
+        cancel-running-future: true
+  retry:
+    configs:
+      default:
+        max-attempts: 3
+        wait-duration:
+          seconds: 1
+        ignore-exceptions:
+          - com.innowise.common.exception.ExternalApiException
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,circuitbreakers
+        exclude: errors
+
+
+eureka:
+  instance:
+    prefer-ip-address: true
+  client:
+    enabled: true
+    register-with-eureka: false
+    fetch-registry: true
+    service-url:
+      defaultZone: http://${EUREKA_HOST}:${EUREKA_PORT}/eureka
+
+services:
+  stipe:
+    url: 'http://www.randomnumberapi.com'
