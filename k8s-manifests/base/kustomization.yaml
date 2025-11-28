@@ -15,3 +15,5 @@ resources:
   - order-service/service.yaml
   - discovery-service/deployment.yaml
   - discovery-service/service.yaml
+  - payment-service/deployment.yaml
+  - payment-service/service.yaml

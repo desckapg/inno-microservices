@@ -14,6 +14,7 @@ patches:
   - path: patches/api-gateway/ingress.yaml
   - path: patches/order-service/deployment.yaml
   - path: patches/discovery-service/deployment.yaml
+  - path: patches/payment-service/deployment.yaml
 
 configMapGenerator:
   - name: common-env
@@ -25,6 +26,7 @@ configMapGenerator:
       - EUREKA_PORT=8761
       - REDIS_HOST=redis
       - REDIS_PORT=6379
+      - KAFKA_BOOTSTRAP_SERVER=kafka:9092
   - name: user-service-env
     options:
       disableNameSuffixHash: true
@@ -40,3 +42,10 @@ configMapGenerator:
       disableNameSuffixHash: true
     literals:
       - DB_URL=jdbc:postgresql://postgres:5432/auth_service_db
+  - name: payment-service-env
+    options:
+      disableNameSuffixHash: true
+    literals:
+      - DB_HOST=mongo
+      - DB_PORT=27017
+      - DB_DATABASE=payment_service

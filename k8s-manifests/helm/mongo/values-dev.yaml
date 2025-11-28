@@ -1,4 +1,6 @@
 architecture: standalone
+nameOverride: mongo
+fullnameOverride: mongo
 auth:
   existingSecret: mongodb-credentials
   usernames:

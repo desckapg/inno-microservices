@@ -137,6 +137,15 @@ kubectl create secret generic auth-service-credentials \
   --dry-run=client -o yaml | kubectl apply -f -
 echo -e "${GREEN}✓ Auth service secrets created${NC}"
 
+# Payment Service Secrets
+echo -e "${YELLOW}Creating Payment service secrets...${NC}"
+kubectl create secret generic payment-service-credentials \
+  --from-literal=DB_USERNAME="$PAYMENT_SERVICE_DB_USERNAME" \
+  --from-literal=DB_PASSWORD="$PAYMENT_SERVICE_DB_PASSWORD" \
+  --namespace=$NAMESPACE \
+  --dry-run=client -o yaml | kubectl apply -f -
+echo -e "${GREEN}✓ Payment service secrets created${NC}"
+
 echo ""
 echo -e "${GREEN}All secrets created successfully!${NC}"
 echo ""
