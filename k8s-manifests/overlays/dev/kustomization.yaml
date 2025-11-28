@@ -24,7 +24,7 @@ configMapGenerator:
       - SPRING_PROFILES_ACTIVE=dev
       - EUREKA_HOST=discovery-service
       - EUREKA_PORT=8761
-      - REDIS_HOST=redis
+      - REDIS_HOST=redis-master
       - REDIS_PORT=6379
       - KAFKA_BOOTSTRAP_SERVER=kafka:9092
   - name: user-service-env

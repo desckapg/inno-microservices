@@ -124,6 +124,8 @@ echo -e "${YELLOW}Creating Order service secrets...${NC}"
 kubectl create secret generic order-service-credentials \
   --from-literal=DB_USERNAME="$ORDER_SERVICE_DB_USERNAME" \
   --from-literal=DB_PASSWORD="$ORDER_SERVICE_DB_PASSWORD" \
+  --from-literal=REDIS_USER="$ORDER_SERVICE_REDIS_USER" \
+  --from-literal=REDIS_USER_PASSWORD="$ORDER_SERVICE_REDIS_PASSWORD" \
   --namespace=$NAMESPACE \
   --dry-run=client -o yaml | kubectl apply -f -
 echo -e "${GREEN}✓ Auth service secrets created${NC}"
@@ -142,6 +144,8 @@ echo -e "${YELLOW}Creating Payment service secrets...${NC}"
 kubectl create secret generic payment-service-credentials \
   --from-literal=DB_USERNAME="$PAYMENT_SERVICE_DB_USERNAME" \
   --from-literal=DB_PASSWORD="$PAYMENT_SERVICE_DB_PASSWORD" \
+  --from-literal=REDIS_USER="$PAYMENT_SERVICE_REDIS_USER" \
+  --from-literal=REDIS_USER_PASSWORD="$PAYMENT_SERVICE_REDIS_PASSWORD" \
   --namespace=$NAMESPACE \
   --dry-run=client -o yaml | kubectl apply -f -
 echo -e "${GREEN}✓ Payment service secrets created${NC}"
