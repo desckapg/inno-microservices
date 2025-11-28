@@ -70,15 +70,6 @@ services:
     restart: unless-stopped
     tty: true
     stdin_open: true
-  user-service:
-    image: user-service:latest
-    depends_on:
-      - postgres
-      - redis
-    build:
-      args:
-        DOCKER_BUILDKIT: 1
-    restart: "no"
 
 volumes:
   db:

@@ -1,0 +1,22 @@
+global:
+  postgresql:
+    fullnameOverride: postgres
+    auth:
+      existingSecret: postgres-credentials
+      secretKeys:
+        adminPasswordKey: postgres-password
+
+primary:
+  initdb:
+    scriptsSecret: postgres-init-scripts
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+    requests:
+      cpu: 500m
+      memory: 512Mi
+
+  persistence:
+    enabled: true
+    size: 1Gi

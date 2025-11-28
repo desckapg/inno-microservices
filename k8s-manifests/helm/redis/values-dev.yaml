@@ -1,0 +1,5 @@
+architecture: standalone
+
+auth:
+  existingSecret: redis-credentials
+  existingSecretPasswordKey: password
