@@ -36,7 +36,9 @@ public class SecurityConfig {
         .formLogin(FormLoginConfigurer::disable)
         .logout(LogoutConfigurer::disable)
         .authorizeHttpRequests(authz ->
-            authz.anyRequest().authenticated()
+            authz
+                .requestMatchers("/actuator/**").permitAll()
+                .anyRequest().authenticated()
         )
         .addFilterAfter(new JwtAuthenticationFilter(
             PathPatternRequestMatcher.pathPattern("/**"),
