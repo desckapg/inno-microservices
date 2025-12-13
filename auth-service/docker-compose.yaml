@@ -2,7 +2,7 @@ services:
   postgres:
     image: 'postgres:latest'
     volumes:
-      - db:/var/lib/postgresql/data
+      - db:/var/lib/postgresql/
     environment:
       - POSTGRES_DB=${DB_DATABASE}
       - POSTGRES_PASSWORD=${DB_PASSWORD}
@@ -33,14 +33,6 @@ services:
     restart: unless-stopped
     tty: true
     stdin_open: true
-  auth-service:
-    image: auth-service:latest
-    build:
-      args:
-        DOCKER_BUILDKIT: 1
-    restart: "no"
-    ports:
-      - "8081:8081"
 
 volumes:
   db:

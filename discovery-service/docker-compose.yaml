@@ -1,9 +1,0 @@
-services:
-  discovery-service:
-    image: discovery-service:latest
-    build:
-      args:
-        DOCKER_BUILDKIT: 1
-    restart: "no"
-    ports:
-      - "8761"

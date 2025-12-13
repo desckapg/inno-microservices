@@ -39,7 +39,7 @@ out/
 ## Configuration
 ##############################
 *.env*
-!.env.example
+!.env.*.example
 
 ##############################
 ## Other
