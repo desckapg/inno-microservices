@@ -1,9 +1,11 @@
 plugins {
     java
-    id("org.springframework.boot") version "4.0.0-M3"
+    id("org.springframework.boot") version "4.0.1"
     id("io.spring.dependency-management") version "1.1.7"
 }
-val springCloudVersion by extra("2025.1.0-M4")
+val springCloudVersion by extra("2025.1.0")
+
+extra["testcontainers.version"] = "1.21.4"
 
 configurations {
     compileOnly {
