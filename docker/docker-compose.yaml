@@ -1,223 +1,62 @@
 services:
-  user-service-postgres:
-    image: 'postgres:latest'
+  postgres:
+    image: postgres:18.1-alpine
     volumes:
-      - user-service-db:/var/lib/postgresql
+      - postgres-data:/var/lib/postgresql
+      - ./postgres-init:/docker-entrypoint-initdb.d
     environment:
-      - POSTGRES_DB=${USER_SERVICE_POSTGRES_DATABASE}
-      - POSTGRES_USER=${USER_SERVICE_POSTGRES_USERNAME}
-      - POSTGRES_PASSWORD=${USER_SERVICE_POSTGRES_PASSWORD}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     env_file:
-      - .env.user-service
+      - .env
     ports:
-      - '5432'
+      - '5432:5432'
     deploy:
       resources:
         limits:
-          cpus: '0.50'
-          memory: 512M
+          cpus: '1.0'
+          memory: 1024M
         reservations:
-          cpus: '0.25'
-          memory: 256M
+          cpus: '0.5'
+          memory: 512M
     command: >
       postgres -c max_connections=1000
-                 -c shared_buffers=256MB
-                 -c effective_cache_size=768MB
-                 -c maintenance_work_mem=64MB
+                 -c shared_buffers=512MB
+                 -c effective_cache_size=1536MB
+                 -c maintenance_work_mem=128MB
                  -c checkpoint_completion_target=0.7
                  -c wal_buffers=16MB
                  -c default_statistics_target=100
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U ${USER_SERVICE_POSTGRES_USERNAME} -d ${USER_SERVICE_POSTGRES_DATABASE}" ]
-      interval: 15s
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 10s
       timeout: 10s
       retries: 5
-    restart: unless-stopped
-    tty: true
-    stdin_open: true
-  auth-service-postgres:
-    image: 'postgres:latest'
+  redis:
+    image: redis:8.4-alpine
     volumes:
-      - auth-service-db:/var/lib/postgresql
-    environment:
-      - POSTGRES_DB=${AUTH_SERVICE_POSTGRES_DATABASE}
-      - POSTGRES_USER=${AUTH_SERVICE_POSTGRES_USERNAME}
-      - POSTGRES_PASSWORD=${AUTH_SERVICE_POSTGRES_PASSWORD}
+      - redis-data:/data
+      - ./redis-init:/redis-init
     env_file:
-      - .env.auth-service
-    ports:
-      - '5432'
-    deploy:
-      resources:
-        limits:
-          cpus: '0.50'
-          memory: 512M
-        reservations:
-          cpus: '0.25'
-          memory: 256M
-    command: >
-      postgres -c max_connections=1000
-                 -c shared_buffers=256MB
-                 -c effective_cache_size=768MB
-                 -c maintenance_work_mem=64MB
-                 -c checkpoint_completion_target=0.7
-                 -c wal_buffers=16MB
-                 -c default_statistics_target=100
+      - .env
+    command: sh /redis-init/start.sh
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U ${AUTH_SERVICE_POSTGRES_USERNAME} -d ${AUTH_SERVICE_POSTGRES_DATABASE}" ]
+      test: [ "CMD", "redis-cli", "ping" ]
       interval: 15s
       timeout: 10s
       retries: 5
-    restart: unless-stopped
     tty: true
     stdin_open: true
-  order-service-postgres:
-    image: 'postgres:latest'
-    volumes:
-      - order-service-db:/var/lib/postgresql
-    environment:
-      - POSTGRES_DB=${ORDER_SERVICE_POSTGRES_DATABASE}
-      - POSTGRES_USER=${ORDER_SERVICE_POSTGRES_USERNAME}
-      - POSTGRES_PASSWORD=${ORDER_SERVICE_POSTGRES_PASSWORD}
-    env_file:
-      - .env.order-service
-    ports:
-      - '5432'
-    deploy:
-      resources:
-        limits:
-          cpus: '0.50'
-          memory: 512M
-        reservations:
-          cpus: '0.25'
-          memory: 256M
-    command: >
-      postgres -c max_connections=1000
-                 -c shared_buffers=256MB
-                 -c effective_cache_size=768MB
-                 -c maintenance_work_mem=64MB
-                 -c checkpoint_completion_target=0.7
-                 -c wal_buffers=16MB
-                 -c default_statistics_target=100
-    healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U ${ORDER_SERVICE_POSTGRES_USERNAME} -d ${ORDER_SERVICE_POSTGRES_DATABASE}" ]
-      interval: 15s
-      timeout: 10s
-      retries: 5
-    restart: unless-stopped
-    tty: true
-    stdin_open: true
-  user-service-redis:
-    image: 'redis:latest'
-    volumes:
-      - user-service-redis:/data
-    env_file:
-      - .env.user-service
-    deploy:
-      resources:
-        limits:
-          cpus: '0.25'
-          memory: 128M
-        reservations:
-          cpus: '0.25'
-          memory: 128M
-    command: >
-      sh -c '
-        mkdir -p /usr/local/etc/redis &&
-        echo "bind 0.0.0.0" > /usr/local/etc/redis/redis.conf &&
-        echo "requirepass $USER_SERVICE_REDIS_PASSWORD" >> /usr/local/etc/redis/redis.conf &&
-        echo "appendonly yes" >> /usr/local/etc/redis/redis.conf &&
-        echo "appendfsync everysec" >> /usr/local/etc/redis/redis.conf &&
-        echo "user default on nopass ~* +@all" > /usr/local/etc/redis/users.acl &&
-        echo "user $USER_SERVICE_REDIS_USER on >$USER_SERVICE_REDIS_USER_PASSWORD ~* +@all" >> /usr/local/etc/redis/users.acl &&
-        redis-server /usr/local/etc/redis/redis.conf --aclfile /usr/local/etc/redis/users.acl
-      '
-    healthcheck:
-      test: [ "CMD", "redis-cli", "-a", "$USER_SERVICE_REDIS_PASSWORD", "ping" ]
-      interval: 15s
-      timeout: 10s
-      retries: 5
-    restart: unless-stopped
-    tty: true
-    stdin_open: true
-  payment-service-redis:
-    image: 'redis:latest'
-    volumes:
-      - payment-service-redis:/data
-    env_file:
-      - .env.payment-service
-    deploy:
-      resources:
-        limits:
-          cpus: '0.25'
-          memory: 128M
-        reservations:
-          cpus: '0.25'
-          memory: 128M
-    command: >
-      sh -c '
-        mkdir -p /usr/local/etc/redis &&
-        echo "bind 0.0.0.0" > /usr/local/etc/redis/redis.conf &&
-        echo "requirepass $USER_SERVICE_REDIS_PASSWORD" >> /usr/local/etc/redis/redis.conf &&
-        echo "appendonly yes" >> /usr/local/etc/redis/redis.conf &&
-        echo "appendfsync everysec" >> /usr/local/etc/redis/redis.conf &&
-        echo "user default on nopass ~* +@all" > /usr/local/etc/redis/users.acl &&
-        echo "user $USER_SERVICE_REDIS_USER on >$USER_SERVICE_REDIS_USER_PASSWORD ~* +@all" >> /usr/local/etc/redis/users.acl &&
-        redis-server /usr/local/etc/redis/redis.conf --aclfile /usr/local/etc/redis/users.acl
-      '
-    healthcheck:
-      test: [ "CMD", "redis-cli", "-a", "$USER_SERVICE_REDIS_PASSWORD", "ping" ]
-      interval: 15s
-      timeout: 10s
-      retries: 5
-    restart: unless-stopped
-    tty: true
-    stdin_open: true
-
-  order-service-redis:
-    image: 'redis:latest'
-    volumes:
-      - order-service-redis:/data
-    env_file:
-      - .env.order-service
-    deploy:
-      resources:
-        limits:
-          cpus: '0.25'
-          memory: 128M
-        reservations:
-          cpus: '0.25'
-          memory: 128M
-    command: >
-      sh -c '
-        mkdir -p /usr/local/etc/redis &&
-        echo "bind 0.0.0.0" > /usr/local/etc/redis/redis.conf &&
-        echo "requirepass $USER_SERVICE_REDIS_PASSWORD" >> /usr/local/etc/redis/redis.conf &&
-        echo "appendonly yes" >> /usr/local/etc/redis/redis.conf &&
-        echo "appendfsync everysec" >> /usr/local/etc/redis/redis.conf &&
-        echo "user default on nopass ~* +@all" > /usr/local/etc/redis/users.acl &&
-        echo "user $USER_SERVICE_REDIS_USER on >$USER_SERVICE_REDIS_USER_PASSWORD ~* +@all" >> /usr/local/etc/redis/users.acl &&
-        redis-server /usr/local/etc/redis/redis.conf --aclfile /usr/local/etc/redis/users.acl
-      '
-    healthcheck:
-      test: [ "CMD", "redis-cli", "-a", "$USER_SERVICE_REDIS_PASSWORD", "ping" ]
-      interval: 15s
-      timeout: 10s
-      retries: 5
-    restart: unless-stopped
-    tty: true
-    stdin_open: true
-  payment-service-mongo:
-    image: mongo:latest
+  mongo:
+    image: mongo:8.2
     environment:
       - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
       - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
     volumes:
-      - payment-service-db:/data/db
+      - mongo-data:/data/db
     ports:
       - '27017:27017'
   kafka:
-    image: apache/kafka-native
+    image: apache/kafka-native:4.1.1
     environment:
       - CLUSTER_ID='LOCAL'
       - KAFKA_NODE_ID=1
@@ -238,9 +77,6 @@ services:
     image: discovery-service:latest
     build:
       context: ../discovery-service
-      args:
-        DOCKER_BUILDKIT: 1
-    restart: "no"
     ports:
         - "8761:8761"
   api-gateway:
@@ -249,9 +85,6 @@ services:
       - discovery-service
     build:
       context: ../api-gateway
-      args:
-        DOCKER_BUILDKIT: 1
-    restart: "no"
     env_file:
       - ./.env.api-gateway
     ports:
@@ -259,28 +92,22 @@ services:
   user-service:
     image: user-service:latest
     depends_on:
-      - user-service-postgres
-      - user-service-redis
+      - postgres
+      - redis
       - discovery-service
     build:
       context: ../user-service
-      args:
-        DOCKER_BUILDKIT: 1
     env_file:
       - .env.user-service
-    restart: "no"
     ports:
       - "8081:8081"
   auth-service:
     image: auth-service:latest
     depends_on:
-      - auth-service-postgres
+      - postgres
       - discovery-service
     build:
       context: ../auth-service
-      args:
-        DOCKER_BUILDKIT: 1
-    restart: "no"
     env_file:
       - .env.auth-service
     ports:
@@ -288,15 +115,12 @@ services:
   order-service:
     image: order-service:latest
     depends_on:
-      - order-service-postgres
-      - order-service-redis
+      - postgres
+      - redis
       - discovery-service
       - kafka
     build:
       context: ../order-service
-      args:
-        DOCKER_BUILDKIT: 1
-    restart: "no"
     env_file:
       - .env.order-service
     ports:
@@ -305,24 +129,17 @@ services:
     image: payment-service:latest
     depends_on:
       - kafka
-      - payment-service-redis
-      - payment-service-mongo
+      - redis
+      - mongo
       - discovery-service
     build:
       context: ../payment-service
-      args:
-        DOCKER_BUILDKIT: 1
-    restart: "no"
     env_file:
       - .env.payment-service
     ports:
       - "8084:8084"
 
 volumes:
-  user-service-db:
-  user-service-redis:
-  auth-service-db:
-  order-service-db:
-  order-service-redis:
-  payment-service-db:
-  payment-service-redis:
+  postgres-data:
+  redis-data:
+  mongo-data:
