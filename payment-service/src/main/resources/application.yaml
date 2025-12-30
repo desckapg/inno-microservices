@@ -5,7 +5,7 @@ spring:
   application:
     name: 'payment-service'
   mongodb:
-    uri: 'mongodb://${DB_USERNAME}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_DATABASE}?authSource=admin'
+    uri: 'mongodb://${DB_USERNAME}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_DATABASE}?authSource=${DB_AUTH_DATABASE}'
   cloud:
     openfeign:
       circuitbreaker:

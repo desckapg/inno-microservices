@@ -19,11 +19,11 @@ public abstract class AbstractIntegrationTest {
       .options(wireMockConfig().dynamicPort())
       .build();
 
-  static MongoDBContainer mongo = new MongoDBContainer("mongo:latest");
+  static MongoDBContainer mongo = new MongoDBContainer("mongo:8.2");
 
-  static KafkaContainer kafka = new KafkaContainer("apache/kafka-native:latest");
+  static KafkaContainer kafka = new KafkaContainer("apache/kafka-native:4.1.1");
 
-  static RedisContainer redis = new RedisContainer("redis:latest");
+  static RedisContainer redis = new RedisContainer("redis:8.4-alpine");
 
   static {
     Startables.deepStart(mongo, kafka, redis).join();
