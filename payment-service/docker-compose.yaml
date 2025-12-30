@@ -1,15 +1,15 @@
 services:
   mongo:
-    image: mongo:latest
+    image: mongo:8.2
     environment:
       - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
       - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
     volumes:
-      - mongo:/data/db
+      - mongo-data:/data/db
     ports:
       - '27017:27017'
   kafka:
-    image: apache/kafka-native
+    image: apache/kafka-native:4.1.1
     environment:
       - CLUSTER_ID='LOCAL'
       - KAFKA_NODE_ID=1
@@ -27,9 +27,9 @@ services:
     ports:
       - '9092:9092'
   redis:
-    image: 'redis:latest'
+    image: redis:8.4-alpine
     volumes:
-      - redis:/data
+      - redis-data:/data
     environment:
       - REDIS_PASSWORD=${REDIS_PASSWORD}
       - REDIS_USER=${REDIS_USER}
@@ -64,5 +64,5 @@ services:
     tty: true
     stdin_open: true
 volumes:
-  mongo:
-  redis:
+  mongo-data:
+  redis-data:
