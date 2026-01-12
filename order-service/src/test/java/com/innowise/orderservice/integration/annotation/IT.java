@@ -1,6 +1,5 @@
 package com.innowise.orderservice.integration.annotation;
 
-import com.innowise.orderservice.integration.TestSecurityConfig;
 import com.innowise.orderservice.service.OrderService;
 import com.innowise.orderservice.service.client.UserServiceClient;
 import java.lang.annotation.ElementType;
@@ -8,17 +7,15 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import org.junit.jupiter.api.TestInstance;
-import org.springframework.boot.test.autoconfigure.orm.jpa.AutoConfigureTestEntityManager;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.jpa.test.autoconfigure.AutoConfigureTestEntityManager;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.transaction.annotation.Transactional;
 
 @SpringBootTest
-@Import(TestSecurityConfig.class)
 @ActiveProfiles("test")
 @AutoConfigureMockMvc
 @AutoConfigureTestEntityManager

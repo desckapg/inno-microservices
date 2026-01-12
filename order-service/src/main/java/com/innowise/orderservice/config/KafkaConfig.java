@@ -80,7 +80,7 @@ public class KafkaConfig {
 
   private BackOff getBackOff(Backoff retryTopicBackoff) {
     PropertyMapper map = PropertyMapper.get();
-    RetryPolicy.Builder builder = RetryPolicy.builder().maxAttempts(Long.MAX_VALUE);
+    RetryPolicy.Builder builder = RetryPolicy.builder().maxRetries(Long.MAX_VALUE);
     map.from(retryTopicBackoff.getDelay()).to(builder::delay);
     map.from(retryTopicBackoff.getMaxDelay()).when(Predicate.not(Duration::isZero))
         .to(builder::maxDelay);
