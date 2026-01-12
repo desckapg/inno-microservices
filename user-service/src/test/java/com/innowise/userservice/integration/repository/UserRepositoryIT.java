@@ -18,7 +18,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
-import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
 @IT
@@ -37,14 +37,12 @@ class UserRepositoryIT extends AbstractIntegrationTest {
   void prepareFixtures() {
     userFixture = Users.buildWithoutId();
     cardFixture = Cards.buildWithoutId(userFixture);
-    transactionTemplate.executeWithoutResult(status -> {
-      entityManager.persistAndFlush(userFixture);
-    });
+    transactionTemplate.executeWithoutResult(_ -> entityManager.persistAndFlush(userFixture));
   }
 
   @AfterAll
   void cleanupFixtures() {
-    transactionTemplate.executeWithoutResult(status -> {
+    transactionTemplate.executeWithoutResult(_ -> {
       var user = entityManager.find(User.class, userFixture.getId());
       entityManager.remove(Objects.requireNonNull(user));
     });
@@ -89,9 +87,7 @@ class UserRepositoryIT extends AbstractIntegrationTest {
   void findByEmail_whenEmailExists_shouldReturnUserWithEmail() {
     assertThat(userRepository.findByEmail(userFixture.getEmail()))
         .isPresent()
-        .hasValueSatisfying(user -> {
-          assertThat(user).isEqualTo(userFixture);
-        });
+        .hasValueSatisfying(user -> assertThat(user).isEqualTo(userFixture));
   }
 
   @Test

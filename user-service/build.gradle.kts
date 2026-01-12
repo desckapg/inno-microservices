@@ -1,10 +1,10 @@
 plugins {
-    id("org.springframework.boot") version "4.0.0-M3"
+    id("org.springframework.boot") version "4.0.1"
     id("io.spring.dependency-management") version "1.1.7"
 }
-val springCloudVersion by extra("2025.1.0-M3")
+val springCloudVersion by extra("2025.1.0")
 
-version = "0.0.1-SNAPSHOT"
+extra["testcontainers.version"] = "1.21.4"
 
 dependencies {
     implementation(project(":common"))
@@ -24,10 +24,6 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-restclient")
     implementation(libs.mapstruct)
 
-    // Jackson 2 dependency due to the GenericJackson3JsonRedisSerializer requirement
-    // For some reason spring-data-redis 4.0.0-M6 don't provide it as transitive dependency
-    implementation(libs.jackson2.core)
-
     compileOnly("org.projectlombok:lombok")
 
     runtimeOnly("org.postgresql:postgresql")
@@ -39,9 +35,11 @@ dependencies {
     annotationProcessor(libs.mapstruct.processor)
     annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
 
-    testImplementation("org.springframework.security:spring-security-test")
     testImplementation("org.springframework.boot:spring-boot-testcontainers")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("org.springframework.boot:spring-boot-starter-data-jpa-test")
+    testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
+    testImplementation("org.springframework.boot:spring-boot-security-test")
     testImplementation("org.testcontainers:postgresql")
     testImplementation("com.redis:testcontainers-redis")
     testImplementation("org.testcontainers:junit-jupiter")
