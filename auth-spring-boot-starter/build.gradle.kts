@@ -3,7 +3,7 @@ plugins {
     id("io.spring.dependency-management") version "1.1.7"
 
 }
-val springCloudVersion by extra("2025.1.0-M3")
+val springCloudVersion by extra("2025.1.0")
 
 configurations {
     compileOnly {
@@ -13,7 +13,7 @@ configurations {
 
 dependencyManagement {
     imports {
-        mavenBom("org.springframework.boot:spring-boot-dependencies:4.0.0-M3")
+        mavenBom("org.springframework.boot:spring-boot-dependencies:4.0.1")
         mavenBom("org.springframework.cloud:spring-cloud-dependencies:$springCloudVersion")
     }
 }

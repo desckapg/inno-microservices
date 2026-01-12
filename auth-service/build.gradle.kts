@@ -1,11 +1,20 @@
 plugins {
-    id("org.springframework.boot") version "4.0.0-M3"
+    id("org.springframework.boot") version "4.0.1"
     id("io.spring.dependency-management") version "1.1.7"
 }
 
-val springCloudVersion by extra("2025.1.0-M3")
+val springCloudVersion by extra("2025.1.0")
 
 val mockitoAgent = configurations.create("mockitoAgent")
+
+extra["testcontainers.version"] = "1.21.4"
+
+configurations {
+    compileOnly {
+        extendsFrom(configurations.annotationProcessor.get())
+    }
+}
+
 dependencies {
     implementation(project(":common"))
     implementation(project(":auth-spring-boot-starter"))
@@ -43,6 +52,9 @@ dependencies {
     mockitoAgent(libs.mockito) { isTransitive = false }
     testImplementation("org.springframework.boot:spring-boot-testcontainers")
     testImplementation("org.springframework.security:spring-security-test")
+    testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
+    testImplementation("org.springframework.boot:spring-boot-starter-data-jpa-test")
+    testImplementation("org.springframework.boot:spring-boot-starter-security-test")
     testImplementation("org.testcontainers:junit-jupiter")
     testImplementation("org.testcontainers:postgresql")
     testImplementation(libs.system.stubs.jupiter)
@@ -55,6 +67,7 @@ dependencies {
     testCompileOnly("org.projectlombok:lombok")
 
     testAnnotationProcessor("org.projectlombok:lombok")
+    testAnnotationProcessor(libs.mapstruct.processor)
 }
 
 dependencyManagement {

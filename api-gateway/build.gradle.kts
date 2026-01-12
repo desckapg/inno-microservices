@@ -1,11 +1,8 @@
 plugins {
     java
-    id("org.springframework.boot") version "4.0.0-M3"
+    id("org.springframework.boot") version "4.0.1"
     id("io.spring.dependency-management") version "1.1.7"
 }
-
-version = "0.0.1-SNAPSHOT"
-
 
 configurations {
     compileOnly {
@@ -13,8 +10,9 @@ configurations {
     }
 }
 
-extra["springCloudVersion"] = "2025.1.0-M3"
+extra["springCloudVersion"] = "2025.1.0"
 
+val mockitoAgent = configurations.create("mockitoAgent")
 dependencies {
     implementation(project(":common"))
     implementation("org.springframework.boot:spring-boot-starter-webflux")
@@ -33,6 +31,7 @@ dependencies {
     annotationProcessor("org.projectlombok:lombok")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
+    mockitoAgent(libs.mockito) { isTransitive = false }
     testImplementation("io.projectreactor:reactor-test")
 
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
@@ -42,4 +41,13 @@ dependencyManagement {
     imports {
         mavenBom("org.springframework.cloud:spring-cloud-dependencies:${property("springCloudVersion")}")
     }
+}
+
+tasks.withType<Test> {
+    jvmArgs = listOf(
+        "-javaagent:${mockitoAgent.asPath}",
+        "--add-opens=java.base/java.time=ALL-UNNAMED",
+        "--add-opens=java.base/java.lang=ALL-UNNAMED",
+        "-XX:+EnableDynamicAgentLoading"
+    )
 }

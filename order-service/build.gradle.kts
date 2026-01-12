@@ -1,10 +1,10 @@
 plugins {
-    id("org.springframework.boot") version "4.0.0-M3"
+    id("org.springframework.boot") version "4.0.1"
     id("io.spring.dependency-management") version "1.1.7"
 }
-val springCloudVersion by extra("2025.1.0-M3")
+val springCloudVersion by extra("2025.1.0")
 
-version = "0.0.1-SNAPSHOT"
+extra["testcontainers.version"] = "1.21.4"
 
 configurations {
     compileOnly {
@@ -53,6 +53,9 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.testcontainers:junit-jupiter")
     testImplementation("org.springframework.boot:spring-boot-testcontainers")
+    testImplementation("org.springframework.boot:spring-boot-starter-security-test")
+    testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
+    testImplementation("org.springframework.boot:spring-boot-starter-data-jpa-test")
     testImplementation("org.springframework.security:spring-security-test")
     testImplementation("org.testcontainers:postgresql")
     testImplementation("org.projectlombok:lombok")
@@ -85,4 +88,13 @@ sonar {
             "build/reports/jacoco/test/jacocoTestReport.xml"
         )
     }
+}
+
+tasks.withType<Test> {
+    jvmArgs = listOf(
+        "-javaagent:${mockitoAgent.asPath}",
+        "--add-opens=java.base/java.time=ALL-UNNAMED",
+        "--add-opens=java.base/java.lang=ALL-UNNAMED",
+        "-XX:+EnableDynamicAgentLoading"
+    )
 }
