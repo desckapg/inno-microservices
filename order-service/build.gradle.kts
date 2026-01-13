@@ -4,8 +4,6 @@ plugins {
 }
 val springCloudVersion by extra("2025.1.0")
 
-extra["testcontainers.version"] = "1.21.4"
-
 configurations {
     compileOnly {
         extendsFrom(configurations.annotationProcessor.get())
@@ -51,20 +49,20 @@ dependencies {
     testImplementation(libs.mockito)
     mockitoAgent(libs.mockito) { isTransitive = false }
     testImplementation("org.springframework.boot:spring-boot-starter-test")
-    testImplementation("org.testcontainers:junit-jupiter")
+    testImplementation("org.testcontainers:testcontainers-junit-jupiter")
     testImplementation("org.springframework.boot:spring-boot-testcontainers")
     testImplementation("org.springframework.boot:spring-boot-starter-security-test")
     testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
     testImplementation("org.springframework.boot:spring-boot-starter-data-jpa-test")
     testImplementation("org.springframework.security:spring-security-test")
-    testImplementation("org.testcontainers:postgresql")
+    testImplementation("org.testcontainers:testcontainers-postgresql")
     testImplementation("org.projectlombok:lombok")
     testImplementation(libs.fixture.monkey.starter)
     testImplementation(libs.fixture.monkey.datafaker)
     testImplementation(libs.datafaker)
     testImplementation(libs.system.stubs.jupiter)
     testImplementation("org.springframework.kafka:spring-kafka-test")
-    testImplementation("org.testcontainers:kafka")
+    testImplementation("org.testcontainers:testcontainers-kafka")
     testImplementation(libs.awaitility)
     testImplementation("com.redis:testcontainers-redis")
 
