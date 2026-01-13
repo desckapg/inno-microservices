@@ -2,3 +2,42 @@ logging {
   level = "info"
   format = "logfmt"
 }
+
+otelcol.receiver.otlp "default" {
+  http {}
+  grpc {}
+
+  output {
+    metrics = [otelcol.processor.transform.add_labels.input]
+  }
+}
+
+otelcol.exporter.debug "default" {
+    verbosity = "detailed"
+}
+
+otelcol.processor.transform "add_labels" {
+  error_mode = "ignore"
+  metric_statements {
+    context = "datapoint"
+    statements = [
+      "set(attributes[\"service_name\"], resource.attributes[\"service.name\"])",
+      "set(attributes[\"instance_id\"], resource.attributes[\"service.instance.id\"])",
+    ]
+  }
+  output {
+    metrics = [otelcol.processor.batch.default.input]
+  }
+}
+
+otelcol.processor.batch "default" {
+  output {
+    metrics = [otelcol.exporter.otlphttp.prometheus.input]
+  }
+}
+
+otelcol.exporter.otlphttp "prometheus" {
+  client {
+    endpoint = "http://prometheus:9090/api/v1/otlp"
+  }
+}
