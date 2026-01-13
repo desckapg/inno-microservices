@@ -4,8 +4,6 @@ plugins {
 }
 val springCloudVersion by extra("2025.1.0")
 
-extra["testcontainers.version"] = "1.21.4"
-
 dependencies {
     implementation(project(":common"))
     implementation(project(":auth-spring-boot-starter"))
@@ -40,9 +38,9 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-data-jpa-test")
     testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
     testImplementation("org.springframework.boot:spring-boot-security-test")
-    testImplementation("org.testcontainers:postgresql")
+    testImplementation("org.testcontainers:testcontainers-postgresql")
     testImplementation("com.redis:testcontainers-redis")
-    testImplementation("org.testcontainers:junit-jupiter")
+    testImplementation("org.testcontainers:testcontainers-junit-jupiter")
 
     testCompileOnly("org.projectlombok:lombok")
     testAnnotationProcessor("org.projectlombok:lombok")
