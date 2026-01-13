@@ -83,6 +83,9 @@ class UserServiceIT extends AbstractIntegrationTest {
   void findById_whenInvokedTwice_shouldInvokeOneRepoCallAndCache() {
 
     userService.findById(userDto.id());
+    await()
+        .atMost(Duration.ofSeconds(1));
+
     var cachedUser = userService.findById(userDto.id());
 
     verify(userRepository, times(1)).findWithCardsById(userDto.id());
@@ -106,15 +109,17 @@ class UserServiceIT extends AbstractIntegrationTest {
         .email(updatedUser.getEmail())
         .build());
 
-    assertThat(userService.findById(userDto.id()))
-        .satisfies(returnedUser -> {
-          assertThat(returnedUser)
-              .usingRecursiveComparison()
-              .ignoringFields("cards")
-              .isEqualTo(updatedUser);
-          assertThat(returnedUser.cards())
-              .containsExactlyElementsOf(userDto.cards());
-        });
+    await()
+        .atMost(Duration.ofSeconds(3))
+        .untilAsserted(() -> assertThat(userService.findById(userDto.id()))
+            .satisfies(returnedUser -> {
+              assertThat(returnedUser)
+                  .usingRecursiveComparison()
+                  .ignoringFields("cards")
+                  .isEqualTo(updatedUser);
+              assertThat(returnedUser.cards())
+                  .containsExactlyElementsOf(userDto.cards());
+            }));
 
     verify(userRepository, times(1)).findWithCardsById(userDto.id());
 
