@@ -2,12 +2,13 @@ package com.innowise.userservice.integration.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.awaitility.Awaitility.await;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-import com.innowise.userservice.cache.CacheHelper;
 import com.innowise.common.exception.ResourceAlreadyExistsException;
 import com.innowise.common.exception.ResourceNotFoundException;
+import com.innowise.userservice.cache.CacheHelper;
 import com.innowise.userservice.integration.AbstractIntegrationTest;
 import com.innowise.userservice.integration.annotation.IT;
 import com.innowise.userservice.model.dto.user.UserDto;
@@ -18,6 +19,7 @@ import com.innowise.userservice.service.UserService;
 import com.innowise.userservice.testutil.Cards;
 import com.innowise.userservice.testutil.Users;
 import jakarta.persistence.EntityManager;
+import java.time.Duration;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.AfterAll;
@@ -49,15 +51,15 @@ class UserServiceIT extends AbstractIntegrationTest {
     var userFixture = Users.buildWithoutId();
     Cards.buildWithoutId(userFixture);
     Cards.buildWithoutId(userFixture);
-    transactionTemplate.executeWithoutResult(status ->
+    transactionTemplate.executeWithoutResult(_ ->
         entityManager.persist(userFixture));
     userDto = userMapper.toDto(userFixture);
-    
+
   }
 
   @AfterAll
   void cleanupFixtures() {
-    transactionTemplate.executeWithoutResult(status ->
+    transactionTemplate.executeWithoutResult(_ ->
         entityManager.remove(entityManager.find(User.class, userDto.id())));
   }
 
@@ -238,7 +240,9 @@ class UserServiceIT extends AbstractIntegrationTest {
     userService.findById(userDto.id());
 
     userService.delete(userDto.id());
-    assertThat(cacheHelper.isUserCached(userDto.id())).isFalse();
     assertThat(entityManager.find(User.class, userDto.id())).isNull();
+    await()
+        .atMost(Duration.ofSeconds(3))
+        .untilAsserted(() -> assertThat(cacheHelper.isUserCached(userDto.id())).isFalse());
   }
 }

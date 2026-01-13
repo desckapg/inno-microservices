@@ -41,6 +41,7 @@ dependencies {
     testImplementation("org.testcontainers:testcontainers-postgresql")
     testImplementation("com.redis:testcontainers-redis")
     testImplementation("org.testcontainers:testcontainers-junit-jupiter")
+    testImplementation("org.awaitility:awaitility")
 
     testCompileOnly("org.projectlombok:lombok")
     testAnnotationProcessor("org.projectlombok:lombok")

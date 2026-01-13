@@ -66,6 +66,7 @@ public class UserServiceImpl implements UserService {
     );
   }
 
+  @Transactional(readOnly = true)
   @Cacheable(value = CacheHelper.USER_CACHE, key = "#id")
   public UserDto findById(Long id) {
     return userRepository.findWithCardsById(id)
