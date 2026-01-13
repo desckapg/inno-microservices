@@ -1,6 +1,6 @@
 services:
   postgres:
-    image: 'postgres:latest'
+    image: postgres:18.1-alpine
     volumes:
       - db:/var/lib/postgresql
     environment:
@@ -52,7 +52,7 @@ services:
     ports:
       - '9092:9092'
   redis:
-    image: 'redis:latest'
+    image: redis:8.4-alpine
     volumes:
       - redis:/data
     environment:

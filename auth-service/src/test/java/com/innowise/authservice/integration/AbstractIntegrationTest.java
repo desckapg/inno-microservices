@@ -33,7 +33,7 @@ public abstract class AbstractIntegrationTest {
       .build();
 
   static PostgreSQLContainer<?> postgres =
-      new PostgreSQLContainer<>("postgres:latest");
+      new PostgreSQLContainer<>("postgres:18.1-alpine");
 
   static {
     Startables.deepStart(postgres).join();

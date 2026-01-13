@@ -9,10 +9,10 @@ import org.testcontainers.lifecycle.Startables;
 public abstract class AbstractIntegrationTest {
 
   static PostgreSQLContainer<?> postgres =
-      new PostgreSQLContainer<>("postgres:latest");
+      new PostgreSQLContainer<>("postgres:18.1-alpine");
 
   static RedisContainer redis =
-      new RedisContainer("redis:latest");
+      new RedisContainer("redis:8.4-alpine");
 
   static {
     Startables.deepStart(postgres, redis).join();

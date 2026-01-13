@@ -17,11 +17,11 @@ public abstract class AbstractIntegrationTest {
   protected static final Faker FAKER = new Faker();
 
   static PostgreSQLContainer<?> postgres =
-      new PostgreSQLContainer<>("postgres:latest");
+      new PostgreSQLContainer<>("postgres:18.1-alpine");
 
   static KafkaContainer kafka = new KafkaContainer("apache/kafka-native:latest");
 
-  static RedisContainer redis = new RedisContainer("redis:latest");
+  static RedisContainer redis = new RedisContainer("redis:8.4-alpine");
 
   static {
     Startables.deepStart(postgres, kafka, redis).join();
