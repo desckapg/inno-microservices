@@ -140,13 +140,27 @@ services:
       - "8084:8084"
   grafana:
     image: grafana/grafana-enterprise:12.4.0-20904407122
+    container_name: grafana
     restart: unless-stopped
     ports:
       - "3000:3000"
     volumes:
       - grafana-storage:/var/lib/grafana
+  prometheus:
+    image: prom/prometheus:v3.9.1
+    container_name: prometheus
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yaml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
 volumes:
   postgres-data:
   redis-data:
   mongo-data:
   grafana-storage:
+  prometheus-data:
