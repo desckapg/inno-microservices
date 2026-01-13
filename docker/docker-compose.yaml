@@ -95,6 +95,9 @@ services:
       - postgres
       - redis
       - discovery-service
+      - grafana-alloy
+      - prometheus
+      - grafana
     build:
       context: ../user-service
     env_file:
@@ -146,6 +149,7 @@ services:
       - "3000:3000"
     volumes:
       - grafana-storage:/var/lib/grafana
+      - ./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
   prometheus:
     image: prom/prometheus:v3.9.1
     container_name: prometheus
@@ -158,11 +162,16 @@ services:
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
+      - '--web.enable-otlp-receiver'
   grafana-alloy:
     image: grafana/alloy:v1.12.2
     container_name: grafana-alloy
+    depends_on:
+      - prometheus
     ports:
       - "12345:12345"
+      - "4318:4318"
+      - "4317:4317"
     volumes:
       - grafana-alloy:/var/lib/alloy/data
       - ./grafana-alloy/config.alloy:/etc/alloy/config.alloy
@@ -171,6 +180,16 @@ services:
       - '/etc/alloy/config.alloy'
       - '--server.http.listen-addr=0.0.0.0:12345'
       - '--storage.path=/var/lib/alloy/data'
+  loki:
+    image: grafana/loki:main-c7c1411
+    container_name: loki
+    volumes:
+      - ./loki/config.yaml:/etc/loki/local-config.yaml
+    ports:
+      - "3100:3100"
+    command:
+      '-config.file=/etc/loki/local-config.yaml'
+
 volumes:
   postgres-data:
   redis-data:
@@ -178,3 +197,4 @@ volumes:
   grafana-storage:
   prometheus-data:
   grafana-alloy:
+  loki-data:
