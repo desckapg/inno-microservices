@@ -78,7 +78,7 @@ services:
     build:
       context: ../discovery-service
     ports:
-        - "8761:8761"
+      - "8761:8761"
   api-gateway:
     image: api-gateway:latest
     depends_on:
@@ -138,8 +138,15 @@ services:
       - .env.payment-service
     ports:
       - "8084:8084"
-
+  grafana:
+    image: grafana/grafana-enterprise:12.4.0-20904407122
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana-storage:/var/lib/grafana
 volumes:
   postgres-data:
   redis-data:
   mongo-data:
+  grafana-storage:
