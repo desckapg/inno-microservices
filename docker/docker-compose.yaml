@@ -158,9 +158,23 @@ services:
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
+  grafana-alloy:
+    image: grafana/alloy:v1.12.2
+    container_name: grafana-alloy
+    ports:
+      - "12345:12345"
+    volumes:
+      - grafana-alloy:/var/lib/alloy/data
+      - ./grafana-alloy/config.alloy:/etc/alloy/config.alloy
+    command:
+      - 'run'
+      - '/etc/alloy/config.alloy'
+      - '--server.http.listen-addr=0.0.0.0:12345'
+      - '--storage.path=/var/lib/alloy/data'
 volumes:
   postgres-data:
   redis-data:
   mongo-data:
   grafana-storage:
   prometheus-data:
+  grafana-alloy:
