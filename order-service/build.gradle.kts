@@ -29,7 +29,8 @@ dependencies {
     implementation(libs.mapstruct)
     implementation("org.springframework.boot:spring-boot-starter-kafka")
     implementation("org.springframework.boot:spring-boot-starter-data-redis")
-
+    implementation("org.springframework.boot:spring-boot-starter-opentelemetry")
+    implementation(libs.opentelemetry.logback.appender)
 
     compileOnly("org.projectlombok:lombok")
 
