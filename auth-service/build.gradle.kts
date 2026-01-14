@@ -30,6 +30,8 @@ dependencies {
     implementation("org.springframework.cloud:spring-cloud-starter-openfeign")
     implementation("org.springframework.cloud:spring-cloud-starter-circuitbreaker-resilience4j")
     implementation(libs.spring.boot.starter.aop)
+    implementation("org.springframework.boot:spring-boot-starter-opentelemetry")
+    implementation(libs.opentelemetry.logback.appender)
 
     compileOnly("org.projectlombok:lombok")
     compileOnly(libs.mapstruct)
@@ -74,15 +76,15 @@ dependencyManagement {
 }
 
 sonar {
-        properties {
-            property("sonar.sources", "src/main/java")
-            property("sonar.tests", "src/test/java")
-            property(
-                "sonar.coverage.jacoco.xmlReportPaths",
-                "build/reports/jacoco/test/jacocoTestReport.xml"
-            )
-        }
+    properties {
+        property("sonar.sources", "src/main/java")
+        property("sonar.tests", "src/test/java")
+        property(
+            "sonar.coverage.jacoco.xmlReportPaths",
+            "build/reports/jacoco/test/jacocoTestReport.xml"
+        )
     }
+}
 
 tasks.jacocoTestReport {
     classDirectories.setFrom(
