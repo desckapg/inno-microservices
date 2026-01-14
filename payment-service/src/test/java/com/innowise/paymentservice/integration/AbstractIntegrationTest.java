@@ -8,9 +8,9 @@ import java.util.List;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
-import org.testcontainers.containers.MongoDBContainer;
 import org.testcontainers.kafka.KafkaContainer;
 import org.testcontainers.lifecycle.Startables;
+import org.testcontainers.mongodb.MongoDBContainer;
 
 public abstract class AbstractIntegrationTest {
 
@@ -21,7 +21,7 @@ public abstract class AbstractIntegrationTest {
 
   static MongoDBContainer mongo = new MongoDBContainer("mongo:8.2");
 
-  static KafkaContainer kafka = new KafkaContainer("apache/kafka-native:4.1.1");
+  static KafkaContainer kafka = new KafkaContainer("apache/kafka:4.1.1");
 
   static RedisContainer redis = new RedisContainer("redis:8.4-alpine");
 

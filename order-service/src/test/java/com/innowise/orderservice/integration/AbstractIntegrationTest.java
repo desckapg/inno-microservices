@@ -19,7 +19,7 @@ public abstract class AbstractIntegrationTest {
   static PostgreSQLContainer<?> postgres =
       new PostgreSQLContainer<>("postgres:18.1-alpine");
 
-  static KafkaContainer kafka = new KafkaContainer("apache/kafka-native:latest");
+  static KafkaContainer kafka = new KafkaContainer("apache/kafka:latest");
 
   static RedisContainer redis = new RedisContainer("redis:8.4-alpine");
 

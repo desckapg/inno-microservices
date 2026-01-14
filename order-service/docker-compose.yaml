@@ -34,7 +34,7 @@ services:
     tty: true
     stdin_open: true
   kafka:
-    image: apache/kafka-native
+    image: apache/kafka
     environment:
       - CLUSTER_ID='LOCAL'
       - KAFKA_NODE_ID=1
