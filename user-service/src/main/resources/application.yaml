@@ -29,7 +29,6 @@ eureka:
   instance:
     prefer-ip-address: true
 
-
 management:
   opentelemetry:
     tracing:
