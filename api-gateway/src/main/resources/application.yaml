@@ -79,24 +79,5 @@ resilience4j:
         ignore-exceptions:
           - com.innowise.common.exception.ExternalApiException
 
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,circuitbreakers
-  opentelemetry:
-    tracing:
-      export:
-        otlp:
-          endpoint: ${OLTP_EXPORT_SERVER}/v1/traces
-    logging:
-      export:
-        otlp:
-          endpoint: ${OLTP_EXPORT_SERVER}/v1/logs
-  otlp:
-    metrics:
-      export:
-        url: ${OLTP_EXPORT_SERVER}/v1/metrics
-
 server:
   port: 8080

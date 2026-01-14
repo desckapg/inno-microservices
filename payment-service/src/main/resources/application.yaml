@@ -84,20 +84,6 @@ management:
       exposure:
         include: health,circuitbreakers
         exclude: errors
-  opentelemetry:
-    tracing:
-      export:
-        otlp:
-          endpoint: ${OTLP_EXPORT_SERVER}/v1/traces
-    logging:
-      export:
-        otlp:
-          endpoint: ${OTLP_EXPORT_SERVER}/v1/logs
-  otlp:
-    metrics:
-      export:
-        url: ${OTLP_EXPORT_SERVER}/v1/metrics
-
 
 eureka:
   instance:
