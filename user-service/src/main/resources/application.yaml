@@ -28,3 +28,19 @@ eureka:
       defaultZone: http://${EUREKA_HOST}:${EUREKA_PORT}/eureka
   instance:
     prefer-ip-address: true
+
+
+management:
+  opentelemetry:
+    tracing:
+      export:
+        otlp:
+          endpoint: ${OLTP_EXPORT_SERVER}/v1/traces
+    logging:
+      export:
+        otlp:
+          endpoint: ${OLTP_EXPORT_SERVER}/v1/logs
+  otlp:
+    metrics:
+      export:
+        url: ${OLTP_EXPORT_SERVER}/v1/metrics
