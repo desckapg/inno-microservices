@@ -9,11 +9,23 @@ otelcol.receiver.otlp "default" {
 
   output {
     metrics = [otelcol.processor.transform.add_labels.input]
+    logs = [otelcol.processor.transform.add_log_attributes.input]
+    traces = [otelcol.processor.batch.default.input]
   }
 }
 
-otelcol.exporter.debug "default" {
-    verbosity = "detailed"
+otelcol.processor.transform "add_log_attributes" {
+  error_mode = "ignore"
+  log_statements {
+    context = "log"
+    statements = [
+      "set(attributes[\"service_name\"], resource.attributes[\"service.name\"])",
+      "set(body, Concat([body, \" trace_id=\", trace_id], \"\")) where trace_id != nil and trace_id != \"\"",
+    ]
+  }
+  output {
+    logs = [otelcol.processor.batch.default.input]
+  }
 }
 
 otelcol.processor.transform "add_labels" {
@@ -33,11 +45,36 @@ otelcol.processor.transform "add_labels" {
 otelcol.processor.batch "default" {
   output {
     metrics = [otelcol.exporter.otlphttp.prometheus.input]
+    logs = [otelcol.exporter.loki.default.input]
+    traces = [otelcol.exporter.otlp.tempo.input]
+  }
+}
+
+otelcol.exporter.otlp "tempo" {
+  client {
+    endpoint = "grafana-tempo:4317"
+    tls {
+      insecure = true
+    }
   }
 }
 
 otelcol.exporter.otlphttp "prometheus" {
   client {
     endpoint = "http://prometheus:9090/api/v1/otlp"
+  }
+}
+
+otelcol.exporter.loki "default" {
+  forward_to = [loki.process.spring_logs.receiver]
+}
+
+loki.process "spring_logs" {
+    forward_to = [loki.write.local.receiver]
+}
+
+loki.write "local" {
+  endpoint {
+    url = "http://loki:3100/loki/api/v1/push"
   }
 }

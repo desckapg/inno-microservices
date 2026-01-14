@@ -95,8 +95,6 @@ services:
       - postgres
       - redis
       - discovery-service
-      - grafana-alloy
-      - prometheus
       - grafana
     build:
       context: ../user-service
@@ -141,10 +139,31 @@ services:
       - .env.payment-service
     ports:
       - "8084:8084"
+  init-permissions:
+    image: busybox:latest
+    user: root
+    command: >
+      sh -c "chown -R 10001:10001 /var/tempo && chown -R 10001:10001 /hadoop/loki"
+    volumes:
+      - ./tempo-data:/var/tempo
+      - loki-data:/hadoop/loki
+  grafana-tempo:
+    image: grafana/tempo:latest
+    command: [ "-config.file=/etc/tempo.yaml" ]
+    volumes:
+      - ./grafana-tempo/tempo.yaml:/etc/tempo.yaml
+      - grafana-tempo:/var/tempo
+    ports:
+      - "3200:3200"
+    depends_on:
+      init-permissions:
+        condition: service_completed_successfully
   grafana:
     image: grafana/grafana-enterprise:12.4.0-20904407122
     container_name: grafana
     restart: unless-stopped
+    depends_on:
+      - grafana-alloy
     ports:
       - "3000:3000"
     volumes:
@@ -168,6 +187,8 @@ services:
     container_name: grafana-alloy
     depends_on:
       - prometheus
+      - loki
+      - grafana-tempo
     ports:
       - "12345:12345"
       - "4318:4318"
@@ -183,7 +204,11 @@ services:
   loki:
     image: grafana/loki:main-c7c1411
     container_name: loki
+    depends_on:
+      init-permissions:
+        condition: service_completed_successfully
     volumes:
+      - loki-data:/hadoop/loki
       - ./loki/config.yaml:/etc/loki/local-config.yaml
     ports:
       - "3100:3100"
@@ -198,3 +223,4 @@ volumes:
   prometheus-data:
   grafana-alloy:
   loki-data:
+  grafana-tempo:

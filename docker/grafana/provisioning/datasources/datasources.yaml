@@ -6,7 +6,6 @@ datasources:
     uid: prometheus-datasource
     access: proxy
     url: http://prometheus:9090
-    isDefault: true
     editable: true
     jsonData:
       httpMethod: POST
@@ -20,3 +19,24 @@ datasources:
     jsonData:
       httpMethod: POST
       timeInterval: "5s"
+      derivedFields:
+        - datasourceUid: tempo-datasource
+          matcherRegex: "trace_id=(\\w+)"
+          name: TraceID
+          url: '$${__value.raw}'
+  - name: Tempo
+    type: tempo
+    uid: tempo-datasource
+    access: proxy
+    url: http://grafana-tempo:3200
+    editable: true
+    jsonData:
+      httpMethod: GET
+      serviceMap:
+        datasourceUid: prometheus-datasource
+      nodeGraph:
+        enabled: true
+      search:
+        filters:
+          - tag: service.name
+          - tag: http.method
