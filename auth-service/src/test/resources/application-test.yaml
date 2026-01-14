@@ -1,8 +1,18 @@
 eureka:
   client:
     enabled: false
-    register-with-eureka: false
-    fetch-registry: false
+
+management:
+  logging:
+    export:
+      enabled: false
+  tracing:
+    export:
+      enabled: false
+  otlp:
+    metrics:
+      export:
+        enabled: false
 
 spring:
   main:

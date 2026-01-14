@@ -22,6 +22,8 @@ dependencies {
     implementation(libs.spring.boot.starter.aop)
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.cloud:spring-cloud-starter-circuitbreaker-reactor-resilience4j")
+    implementation("org.springframework.boot:spring-boot-starter-opentelemetry")
+    implementation(libs.opentelemetry.logback.appender)
 
     compileOnly("org.projectlombok:lombok")
 

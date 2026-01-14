@@ -85,7 +85,6 @@ management:
         include: health,circuitbreakers
         exclude: errors
 
-
 eureka:
   instance:
     prefer-ip-address: true

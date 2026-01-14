@@ -7,7 +7,7 @@ spec:
     spec:
       containers:
         - name: kafka
-          image: apache/kafka-native:latest
+          image: apache/kafka:latest
           ports:
             - containerPort: 9092
               name: kafka
