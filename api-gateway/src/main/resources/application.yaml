@@ -84,11 +84,19 @@ management:
     web:
       exposure:
         include: health,circuitbreakers
+  opentelemetry:
+    tracing:
+      export:
+        otlp:
+          endpoint: ${OLTP_EXPORT_SERVER}/v1/traces
+    logging:
+      export:
+        otlp:
+          endpoint: ${OLTP_EXPORT_SERVER}/v1/logs
+  otlp:
+    metrics:
+      export:
+        url: ${OLTP_EXPORT_SERVER}/v1/metrics
 
 server:
   port: 8080
-
-logging:
-  level:
-    org.springframework.cloud.circuitbreaker.*: DEBUG
-    io.github.resilience4j.*: DEBUG
