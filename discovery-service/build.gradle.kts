@@ -7,6 +7,8 @@ extra["springCloudVersion"] = "2025.1.0"
 
 dependencies {
     implementation("org.springframework.cloud:spring-cloud-starter-netflix-eureka-server")
+    implementation("org.springframework.boot:spring-boot-starter-opentelemetry")
+    implementation(libs.opentelemetry.logback.appender)
 
     developmentOnly("org.springframework.boot:spring-boot-docker-compose")
 
