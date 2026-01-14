@@ -9,8 +9,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
-import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.lifecycle.Startables;
+import org.testcontainers.postgresql.PostgreSQLContainer;
 import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
 import uk.org.webcompere.systemstubs.jupiter.SystemStub;
 import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
@@ -32,8 +32,8 @@ public abstract class AbstractIntegrationTest {
       .options(wireMockConfig().dynamicPort())
       .build();
 
-  static PostgreSQLContainer<?> postgres =
-      new PostgreSQLContainer<>("postgres:18.1-alpine");
+  static PostgreSQLContainer postgres =
+      new PostgreSQLContainer("postgres:18.1-alpine");
 
   static {
     Startables.deepStart(postgres).join();

@@ -6,9 +6,9 @@ import net.datafaker.Faker;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
-import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.kafka.KafkaContainer;
 import org.testcontainers.lifecycle.Startables;
+import org.testcontainers.postgresql.PostgreSQLContainer;
 import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
 
 @ExtendWith(SystemStubsExtension.class)
@@ -16,10 +16,10 @@ public abstract class AbstractIntegrationTest {
 
   protected static final Faker FAKER = new Faker();
 
-  static PostgreSQLContainer<?> postgres =
-      new PostgreSQLContainer<>("postgres:18.1-alpine");
+  static PostgreSQLContainer postgres =
+      new PostgreSQLContainer("postgres:18.1-alpine");
 
-  static KafkaContainer kafka = new KafkaContainer("apache/kafka:latest");
+  static KafkaContainer kafka = new KafkaContainer("apache/kafka:4.1.1");
 
   static RedisContainer redis = new RedisContainer("redis:8.4-alpine");
 
