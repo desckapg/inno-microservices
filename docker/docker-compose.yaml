@@ -183,7 +183,8 @@ services:
       - "3000:3000"
     volumes:
       - grafana-storage:/var/lib/grafana
-      - ./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - ./grafana/dashboards:/var/lib/grafana/dashboards
   prometheus:
     image: prom/prometheus:v3.9.1
     container_name: prometheus
@@ -200,8 +201,10 @@ services:
   grafana-alloy:
     image: grafana/alloy:v1.12.2
     container_name: grafana-alloy
+    env_file: .env.grafana-alloy
     depends_on:
       - prometheus
+      - postgres
       - loki
       - grafana-tempo
     ports:

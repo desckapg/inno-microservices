@@ -38,3 +38,30 @@ if [ -n "$GRAFANA_POSTGRES_USERNAME" ]; then
       GRANT SELECT ON ALL TABLES IN SCHEMA public TO $GRAFANA_POSTGRES_USERNAME;
 EOSQL
 fi
+
+
+# Create prometheus collector user
+if [ -n "$PROMETHEUS_EXPORTER_POSTGRES_USERNAME" ]; then
+    echo "  Creating prometheus collector user"
+    psql -U "${POSTGRES_USERNAME}" <<-EOSQL
+    CREATE OR REPLACE FUNCTION __tmp_create_user() returns void as \$\$
+    BEGIN
+      IF NOT EXISTS (
+          SELECT                       -- SELECT list can stay empty for this
+          FROM   pg_catalog.pg_user
+          WHERE  usename = '$PROMETHEUS_EXPORTER_POSTGRES_USERNAME') THEN
+        CREATE USER $PROMETHEUS_EXPORTER_POSTGRES_USERNAME;
+      END IF;
+    END;
+    \$\$ language plpgsql;
+
+    SELECT __tmp_create_user();
+    DROP FUNCTION __tmp_create_user();
+
+    ALTER USER $PROMETHEUS_EXPORTER_POSTGRES_USERNAME WITH PASSWORD '$PROMETHEUS_EXPORTER_POSTGRES_PASSWORD';
+    ALTER USER $PROMETHEUS_EXPORTER_POSTGRES_USERNAME SET SEARCH_PATH TO $PROMETHEUS_EXPORTER_POSTGRES_USERNAME,pg_catalog;
+
+    GRANT CONNECT ON DATABASE postgres TO $PROMETHEUS_EXPORTER_POSTGRES_USERNAME;
+    GRANT pg_monitor to $PROMETHEUS_EXPORTER_POSTGRES_USERNAME;
+EOSQL
+fi

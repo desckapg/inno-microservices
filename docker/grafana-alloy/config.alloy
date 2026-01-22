@@ -3,6 +3,16 @@ logging {
   format = "logfmt"
 }
 
+//
+// Receivers
+//
+
+otelcol.receiver.prometheus "default" {
+  output {
+    metrics = [otelcol.processor.batch.default.input]
+  }
+}
+
 otelcol.receiver.otlp "default" {
   http {}
   grpc {}
@@ -13,6 +23,10 @@ otelcol.receiver.otlp "default" {
     traces = [otelcol.processor.batch.default.input]
   }
 }
+
+//
+// Processors
+//
 
 otelcol.processor.transform "add_log_attributes" {
   error_mode = "ignore"
@@ -50,6 +64,10 @@ otelcol.processor.batch "default" {
   }
 }
 
+//
+// Exporters
+//
+
 otelcol.exporter.otlp "tempo" {
   client {
     endpoint = "grafana-tempo:4317"
@@ -69,6 +87,10 @@ otelcol.exporter.loki "default" {
   forward_to = [loki.process.spring_logs.receiver]
 }
 
+//
+// Loki
+//
+
 loki.process "spring_logs" {
     forward_to = [loki.write.local.receiver]
 }
@@ -77,4 +99,26 @@ loki.write "local" {
   endpoint {
     url = "http://loki:3100/loki/api/v1/push"
   }
+}
+
+//
+// Prometheus
+//
+
+prometheus.exporter.postgres "default" {
+  data_source_names = [
+    "postgresql://" + env("PROMETHEUS_EXPORTER_POSTGRES_USERNAME") + ":" + env("PROMETHEUS_EXPORTER_POSTGRES_PASSWORD") + "@postgres:5432/postgres?sslmode=disable",
+  ]
+
+  autodiscovery {
+    enabled = true
+  }
+}
+
+prometheus.scrape "postgres" {
+  targets    = prometheus.exporter.postgres.default.targets
+  forward_to = [otelcol.receiver.prometheus.default.receiver]
+
+  scrape_interval = "10s"
+  scrape_timeout  = "10s"
 }
