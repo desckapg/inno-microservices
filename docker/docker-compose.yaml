@@ -176,6 +176,7 @@ services:
     image: grafana/grafana-enterprise:12.4.0-20904407122
     container_name: grafana
     restart: unless-stopped
+    env_file: .env.grafana
     depends_on:
       - grafana-alloy
     ports:

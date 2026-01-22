@@ -1,3 +1,5 @@
+#file: noinspection SpellCheckingInspection
+# nonk8s
 apiVersion: 1
 
 datasources:
@@ -40,3 +42,57 @@ datasources:
         filters:
           - tag: service.name
           - tag: http.method
+  - name: PostgreSQL-User-Service
+    type: postgres
+    uid: postgres-user-service-datasource
+    access: proxy
+    url: postgres:5432
+    database: $USER_SERVICE_POSTGRES_DATABASE
+    user: $GRAFANA_POSTGRES_USERNAME
+    secureJsonData:
+      password: $GRAFANA_POSTGRES_PASSWORD
+    editable: true
+    jsonData:
+      sslmode: "disable"
+      maxOpenConns: 100
+      maxIdleConns: 100
+      maxIdleConnsAuto: true
+      connMaxLifetime: 14400
+      postgresVersion: 1500
+      timescaledb: false
+  - name: PostgreSQL-Auth-Service
+    type: postgres
+    uid: postgres-auth-service-datasource
+    access: proxy
+    url: postgres:5432
+    database: $AUTH_SERVICE_POSTGRES_DATABASE
+    user: $GRAFANA_POSTGRES_USERNAME
+    secureJsonData:
+      password: $GRAFANA_POSTGRES_PASSWORD
+    editable: true
+    jsonData:
+      sslmode: "disable"
+      maxOpenConns: 100
+      maxIdleConns: 100
+      maxIdleConnsAuto: true
+      connMaxLifetime: 14400
+      postgresVersion: 1500
+      timescaledb: false
+  - name: PostgreSQL-Order-Service
+    type: postgres
+    uid: postgres-order-service-datasource
+    access: proxy
+    url: postgres:5432
+    database: $ORDER_SERVICE_POSTGRES_DATABASE
+    user: $GRAFANA_POSTGRES_USERNAME
+    secureJsonData:
+      password: $GRAFANA_POSTGRES_PASSWORD
+    editable: true
+    jsonData:
+      sslmode: "disable"
+      maxOpenConns: 100
+      maxIdleConns: 100
+      maxIdleConnsAuto: true
+      connMaxLifetime: 14400
+      postgresVersion: 1500
+      timescaledb: false

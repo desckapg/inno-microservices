@@ -2,7 +2,7 @@
 set -e
 
 # Function to create user and database
-create_user_and_database() {
+create_service_user_and_database() {
 	local database=$1
 	local user=$2
 	local password=$3
@@ -17,16 +17,24 @@ EOSQL
 
 # Create User Service DB
 if [ -n "$USER_SERVICE_POSTGRES_DATABASE" ]; then
-	create_user_and_database $USER_SERVICE_POSTGRES_DATABASE $USER_SERVICE_POSTGRES_USERNAME $USER_SERVICE_POSTGRES_PASSWORD
+	create_service_user_and_database "$USER_SERVICE_POSTGRES_DATABASE" "$USER_SERVICE_POSTGRES_USERNAME" "$USER_SERVICE_POSTGRES_PASSWORD"
 fi
 
 # Create Auth Service DB
 if [ -n "$AUTH_SERVICE_POSTGRES_DATABASE" ]; then
-	create_user_and_database $AUTH_SERVICE_POSTGRES_DATABASE $AUTH_SERVICE_POSTGRES_USERNAME $AUTH_SERVICE_POSTGRES_PASSWORD
+	create_service_user_and_database "$AUTH_SERVICE_POSTGRES_DATABASE" "$AUTH_SERVICE_POSTGRES_USERNAME" "$AUTH_SERVICE_POSTGRES_PASSWORD"
 fi
 
 # Create Order Service DB
 if [ -n "$ORDER_SERVICE_POSTGRES_DATABASE" ]; then
-	create_user_and_database $ORDER_SERVICE_POSTGRES_DATABASE $ORDER_SERVICE_POSTGRES_USERNAME $ORDER_SERVICE_POSTGRES_PASSWORD
+	create_service_user_and_database "$ORDER_SERVICE_POSTGRES_DATABASE" "$ORDER_SERVICE_POSTGRES_USERNAME" "$ORDER_SERVICE_POSTGRES_PASSWORD"
 fi
 
+# Create grafana user
+if [ -n "$GRAFANA_POSTGRES_USERNAME" ]; then
+    echo "  Creating grafana user"
+    psql -U "${POSTGRES_USERNAME}" <<-EOSQL
+      CREATE USER $GRAFANA_POSTGRES_USERNAME WITH PASSWORD '$GRAFANA_POSTGRES_PASSWORD';
+      GRANT SELECT ON ALL TABLES IN SCHEMA public TO $GRAFANA_POSTGRES_USERNAME;
+EOSQL
+fi
