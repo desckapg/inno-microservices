@@ -77,6 +77,8 @@ services:
     image: discovery-service:latest
     environment:
       - SPRING_PROFILES_ACTIVE=prod
+    env_file:
+      - .env.discovery-service
     build:
       context: ../discovery-service
     ports:
