@@ -96,3 +96,17 @@ datasources:
       connMaxLifetime: 14400
       postgresVersion: 1500
       timescaledb: false
+  - name: Redis
+    type: redis-datasource
+    uid: redis-datasource
+    access: proxy
+    url: redis:6379
+    secureJsonData:
+      password: $GRAFANA_REDIS_PASSWORD
+    editable: true
+    jsonData:
+      client: standalone
+      poolSize: 5
+      timeout: 10
+      pingInterval: 0
+      pipelineWindow: 0

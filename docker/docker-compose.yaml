@@ -159,8 +159,8 @@ services:
     command: >
       sh -c "chown -R 10001:10001 /var/tempo && chown -R 10001:10001 /hadoop/loki"
     volumes:
-      - ./tempo-data:/var/tempo
       - loki-data:/hadoop/loki
+      - grafana-tempo:/var/tempo
   grafana-tempo:
     image: grafana/tempo:latest
     command: [ "-config.file=/etc/tempo.yaml" ]
@@ -205,6 +205,7 @@ services:
     depends_on:
       - prometheus
       - postgres
+      - redis
       - loki
       - grafana-tempo
     ports:
@@ -232,6 +233,17 @@ services:
       - "3100:3100"
     command:
       '-config.file=/etc/loki/local-config.yaml'
+  opentelemetry-collector:
+    image: otel/opentelemetry-collector-contrib:0.144.0
+    container_name: otel-collector
+    env_file: .env.otel-collector
+    depends_on:
+      - redis
+      - grafana-alloy
+    volumes:
+      - ./otel-collector/config.yaml:/etc/otel-collector/config.yaml
+    command:
+      '--config /etc/otel-collector/config.yaml'
 
 volumes:
   postgres-data:
@@ -242,3 +254,4 @@ volumes:
   grafana-alloy:
   loki-data:
   grafana-tempo:
+  otel-collector:

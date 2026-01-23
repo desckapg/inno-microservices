@@ -14,10 +14,6 @@ distributor:
 ingester:
   max_block_duration: 5m
 
-compactor:
-  compaction:
-    block_retention: 1h
-
 metrics_generator:
   registry:
     external_labels:
@@ -29,6 +25,8 @@ metrics_generator:
       - url: http://prometheus:9090/api/v1/write
         send_exemplars: true
   processor:
+    service_graphs: {}
+    span_metrics: {}
     local_blocks:
       filter_server_spans: false
 
@@ -39,6 +37,3 @@ storage:
       path: /var/tempo/wal
     local:
       path: /var/tempo/blocks
-
-overrides:
-  metrics_generator_processors: [service-graphs, span-metrics, local-blocks]
