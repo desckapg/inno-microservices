@@ -115,10 +115,19 @@ prometheus.exporter.postgres "default" {
   }
 }
 
-prometheus.scrape "kafka_minion" {
-  targets    = [
-    {__address__ = "kafka-minion:9999"},
-  ]
+prometheus.scrape "mongo" {
+  targets = [{ __address__ = "mongo-exporter:9216" }]
+  metrics_path="/metrics"
+
+  forward_to = [otelcol.receiver.prometheus.default.receiver]
+
+  scrape_interval = "10s"
+  scrape_timeout  = "10s"
+}
+
+prometheus.scrape "kafka" {
+  targets =  [{ __address__ = "kafka-minion:9999" }]
+
   forward_to = [otelcol.receiver.prometheus.default.receiver]
 
   scrape_interval = "10s"
@@ -126,7 +135,8 @@ prometheus.scrape "kafka_minion" {
 }
 
 prometheus.scrape "postgres" {
-  targets    = prometheus.exporter.postgres.default.targets
+  targets =  prometheus.exporter.postgres.default.targets
+
   forward_to = [otelcol.receiver.prometheus.default.receiver]
 
   scrape_interval = "10s"

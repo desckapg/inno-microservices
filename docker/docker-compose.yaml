@@ -49,12 +49,38 @@ services:
   mongo:
     image: mongo:8.2
     environment:
+      - MONGO_INITDB_DATABASE=admin
       - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
       - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
+      - PROMETHEUS_EXPORTER_MONGO_USERNAME=${PROMETHEUS_EXPORTER_MONGO_USERNAME}
+      - PROMETHEUS_EXPORTER_MONGO_PASSWORD=${PROMETHEUS_EXPORTER_MONGO_USERNAME}
     volumes:
+      - ./mongo-init:/docker-entrypoint-initdb.d
       - mongo-data:/data/db
     ports:
       - '27017:27017'
+  mongo-exporter:
+    image: percona/mongodb_exporter:0.47.2
+    container_name: mongo-exporter
+    depends_on:
+      mongo:
+        condition: service_started
+    environment:
+      - MONGODB_USER=${PROMETHEUS_EXPORTER_MONGO_USERNAME}
+      - MONGODB_PASSWORD=${PROMETHEUS_EXPORTER_MONGO_PASSWORD}
+    command:
+      - '--mongodb.uri=mongodb://mongo:27017'
+      - '--log.level=info'
+      - '--collector.diagnosticdata'
+      - '--collector.dbstats'
+      - '--collector.dbstatsfreestorage'
+      - '--collector.topmetrics'
+      - '--collector.currentopmetrics'
+      - '--collector.indexstats'
+      - '--collector.collstats'
+    ports:
+      - '9216:9216'
+
   kafka:
     image: apache/kafka:4.1.1
     environment:
@@ -217,6 +243,7 @@ services:
       - postgres
       - redis
       - kafka-minion
+      - mongo-exporter
       - loki
       - grafana-tempo
     ports:
