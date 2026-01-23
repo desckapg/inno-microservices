@@ -73,6 +73,16 @@ services:
       - KAFKA_NUM_PARTITIONS=1
     ports:
       - '9092:9092'
+  kafka-minion:
+    image: redpandadata/kminion:v2.2.15
+    container_name: kafka-minion
+    depends_on:
+      kafka:
+        condition: service_started
+    environment:
+      KAFKA_BROKERS: kafka:9092
+      EXPORTER_PORT: 9999
+    restart: unless-stopped
   discovery-service:
     image: discovery-service:latest
     environment:
@@ -206,6 +216,7 @@ services:
       - prometheus
       - postgres
       - redis
+      - kafka-minion
       - loki
       - grafana-tempo
     ports:

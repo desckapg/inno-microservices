@@ -110,3 +110,9 @@ datasources:
       timeout: 10
       pingInterval: 0
       pipelineWindow: 0
+  - name: Kafka
+    type: hamedkarbasi93-kafka-datasource
+    access: proxy
+    editable: True
+    jsonData:
+      bootstrapServers: 'kafka:9092'
