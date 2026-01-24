@@ -23,8 +23,10 @@ datasources:
       timeInterval: "5s"
       derivedFields:
         - datasourceUid: tempo-datasource
-          matcherRegex: "trace_id=(\\w+)"
-          name: TraceID
+          name: traceId
+          matcherType: label
+          matcherRegex: "traceid"
+          urlDisplayLabel: 'View Trace'
           url: '$${__value.raw}'
   - name: Tempo
     type: tempo

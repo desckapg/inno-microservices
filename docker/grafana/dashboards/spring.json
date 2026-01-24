@@ -1027,7 +1027,7 @@
         "showControls": false,
         "showLabels": false,
         "showTime": false,
-        "sortOrder": "Descending",
+        "sortOrder": "Ascending",
         "wrapLogMessage": true
       },
       "pluginVersion": "12.4.0-20904407122",
@@ -1037,9 +1037,9 @@
             "type": "loki",
             "uid": "loki-datasource"
           },
-          "direction": "backward",
+          "direction": "forward",
           "editorMode": "code",
-          "expr": "{service_name=\"$service_name\", service_instance_id=~\"$instance_id\"} \n|= \"$log_keyword\" \n| json \n| line_format \"{{.service_name}}\\t{{.severity}}\\ttrace_id={{.trace_id}}\\t{{.body}}\"",
+          "expr": "{service_name=\"$service_name\", service_instance_id=~\"$instance_id\"} \n|= \"$log_keyword\" \n| json \n| line_format \"{{.service_name}}\\t{{.severity}}\\ttrace_id={{.traceid}}\\t{{.body}}\"",
           "queryType": "range",
           "refId": "A"
         }
@@ -1134,6 +1134,6 @@
   "timezone": "browser",
   "title": "Spring Boot",
   "uid": "dLsDQIUnzb",
-  "version": 9,
+  "version": 11,
   "weekStart": ""
 }

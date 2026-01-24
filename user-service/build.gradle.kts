@@ -23,6 +23,8 @@ dependencies {
     implementation(libs.mapstruct)
     implementation("org.springframework.boot:spring-boot-starter-opentelemetry")
     implementation(libs.opentelemetry.logback.appender)
+    implementation("io.micrometer:micrometer-tracing-bridge-brave")
+    implementation("net.ttddyy.observation:datasource-micrometer-spring-boot:2.0.1")
 
     compileOnly("org.projectlombok:lombok")
 
