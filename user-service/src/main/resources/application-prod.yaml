@@ -15,6 +15,8 @@ management:
       export:
         otlp:
           endpoint: ${OLTP_EXPORT_SERVER}/v1/logs
+    resource-attributes:
+      service.instance.id: ${SERVICE_INSTANCE_ID:${HOSTNAME:unknown}}
   otlp:
     metrics:
       export:

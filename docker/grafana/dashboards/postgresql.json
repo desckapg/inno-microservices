@@ -43,9 +43,9 @@
         "#d44a3a"
       ],
       "datasource": {
-  "type": "prometheus",
-  "uid": "prometheus-datasource"
-},
+        "type": "prometheus",
+        "uid": "prometheus-datasource"
+      },
       "format": "none",
       "gauge": {
         "maxValue": 100,

@@ -3,6 +3,10 @@ logging {
   format = "logfmt"
 }
 
+otelcol.exporter.debug "default" {
+  verbosity = "detailed"
+}
+
 //
 // Receivers
 //
@@ -19,7 +23,7 @@ otelcol.receiver.otlp "default" {
 
   output {
     metrics = [otelcol.processor.transform.add_labels.input]
-    logs = [otelcol.processor.transform.add_log_attributes.input]
+    logs = [otelcol.processor.attributes.default.input]
     traces = [otelcol.processor.batch.default.input]
   }
 }
@@ -28,12 +32,22 @@ otelcol.receiver.otlp "default" {
 // Processors
 //
 
+otelcol.processor.attributes "default" {
+  action {
+    key = "loki.resource.labels"
+    action = "insert"
+    value = "service.name, service.instance.id"
+  }
+  output {
+    logs = [otelcol.processor.batch.default.input]
+  }
+}
+
 otelcol.processor.transform "add_log_attributes" {
   error_mode = "ignore"
   log_statements {
     context = "log"
     statements = [
-      "set(attributes[\"service_name\"], resource.attributes[\"service.name\"])",
       "set(body, Concat([body, \" trace_id=\", trace_id], \"\")) where trace_id != nil and trace_id != \"\"",
     ]
   }
@@ -93,6 +107,9 @@ otelcol.exporter.loki "default" {
 
 loki.process "spring_logs" {
     forward_to = [loki.write.local.receiver]
+    stage.label_drop {
+      values = [ "job", "instance" ]
+    }
 }
 
 loki.write "local" {
