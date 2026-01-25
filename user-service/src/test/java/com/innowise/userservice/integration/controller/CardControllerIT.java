@@ -65,7 +65,7 @@ class CardControllerIT extends AbstractIntegrationTest {
 
   @BeforeAll
   void prepareFixtures() {
-    userFixture = Users.buildWithoutId();
+    userFixture = Users.build();
     cardFixture = Cards.buildWithoutId(userFixture);
     transactionTemplate.executeWithoutResult(status -> entityManager.persist(userFixture));
   }
