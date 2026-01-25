@@ -2,7 +2,6 @@ package com.innowise.auth.security.filter;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.exceptions.JWTDecodeException;
-import com.auth0.jwt.interfaces.Claim;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.innowise.auth.model.AuthConstants;
 import com.innowise.auth.model.JwtUserDetails;
@@ -44,16 +43,12 @@ public class JwtAuthenticationConverter implements AuthenticationConverter {
 
   private Optional<JwtUserDetails> extractUserDetails(DecodedJWT jwt) {
     var id = jwt.getSubject();
-    var userId = Optional.ofNullable(jwt.getClaim(AuthConstants.USER_SERVICE_ID_CLAIM))
-        .map(Claim::asLong)
-        .orElse(null);
     var roles = extractAuthorities(jwt);
-    if (id == null || id.isBlank() || userId == null || roles.isEmpty()) {
+    if (id == null || id.isBlank() || roles.isEmpty()) {
       return Optional.empty();
     }
     return Optional.of(JwtUserDetails.builder()
         .id(Long.parseUnsignedLong(id))
-        .userId(userId)
         .login(id)
         .authorities(roles)
         .build()

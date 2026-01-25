@@ -23,7 +23,6 @@ public class TestJwtTokenProvider {
         .withExpiresAt(Instant.from(ZonedDateTime.now().plusHours(1)))
         .withIssuer("test")
         .withSubject(userDetails.id().toString())
-        .withClaim(AuthConstants.USER_SERVICE_ID_CLAIM, userDetails.userId().toString())
         .withArrayClaim(AuthConstants.USER_ROLES_CLAIM, userDetails.authorities().stream()
             .map(GrantedAuthority::getAuthority).toArray(String[]::new))
         .withClaim("type", "access")
