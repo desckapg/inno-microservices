@@ -22,9 +22,6 @@ spring:
       hibernate:
         show_sql: true
         format_sql: true
-  cloud:
-    discovery:
-      enabled: false
 
 logging:
   level:

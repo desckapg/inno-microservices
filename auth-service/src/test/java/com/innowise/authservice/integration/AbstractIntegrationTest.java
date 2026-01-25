@@ -46,7 +46,7 @@ public abstract class AbstractIntegrationTest {
     registry.add("spring.datasource.username", postgres::getUsername);
     registry.add("spring.datasource.password", postgres::getPassword);
 
-    registry.add("services.user-service.url", userServiceClientServer::baseUrl);
+    registry.add("spring.cloud.discovery.client.simple.instances.user-service[0].uri", userServiceClientServer::baseUrl);
   }
 
   @SystemStub
