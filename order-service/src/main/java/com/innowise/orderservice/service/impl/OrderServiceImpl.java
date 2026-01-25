@@ -110,7 +110,7 @@ public class OrderServiceImpl implements OrderService {
         )
     );
 
-    var userId = authTokenProvider.get().getPrincipal().userId();
+    var userId = authTokenProvider.get().getPrincipal().id();
     var user = userServiceClient.findById(userId,
         AuthConstants.AUTH_SCHEME + authTokenProvider.get().getJwtToken());
     orderEntity.setStatus(OrderStatus.NEW);

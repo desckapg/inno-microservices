@@ -118,7 +118,7 @@ class OrderControllerIT extends AbstractIntegrationTest {
   void findById_orderExists_returnOk() throws Exception {
 
     var userDto = userDtosSut.giveMeBuilder(UserDto.class)
-        .set("id", authTokenProvider.get().getPrincipal().userId())
+        .set("id", authTokenProvider.get().getPrincipal().id())
         .sample();
 
     var order = ordersSut.giveMeBuilder(Order.class)
@@ -158,7 +158,7 @@ class OrderControllerIT extends AbstractIntegrationTest {
   )
   void delete_orderExists_delete() throws Exception {
     var userDto = userDtosSut.giveMeBuilder(UserDto.class)
-        .set("id", authTokenProvider.get().getPrincipal().userId())
+        .set("id", authTokenProvider.get().getPrincipal().id())
         .sample();
 
     var order = ordersSut.giveMeBuilder(Order.class)
