@@ -92,7 +92,6 @@ public class UserController {
    * @return created user
    */
   @PostMapping
-  @PreAuthorize("hasAuthority(T(com.innowise.auth.model.Role).MANAGER.getAuthority())")
   public ResponseEntity<UserDto> create(@RequestBody @Validated(OnCreate.class) UserDto dto) {
     return ResponseEntity.status(HttpStatus.CREATED).body(userService.create(dto));
   }

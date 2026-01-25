@@ -31,9 +31,10 @@ public class JwtAuthenticationConverter implements AuthenticationConverter {
       throw new BadCredentialsException("Wrong auth scheme.");
     }
     try {
-      var decodedJwt = JWT.decode(authHeader.substring(AuthConstants.AUTH_SCHEME.length()));
+      String jwtToken = authHeader.substring(AuthConstants.AUTH_SCHEME.length());
+      var decodedJwt = JWT.decode(jwtToken);
       return extractUserDetails(decodedJwt)
-        .map(userDetails -> new LoginRolesJwtAuthenticationToken(userDetails, authHeader))
+        .map(userDetails -> new LoginRolesJwtAuthenticationToken(userDetails, jwtToken))
         .orElseThrow(() -> new BadCredentialsException("JWT is malformed."));
     } catch (JWTDecodeException _) {
       throw new BadCredentialsException("JWT is malformed.");

@@ -104,14 +104,18 @@ public class OrderServiceImpl implements OrderService {
     var orderEntity = orderMapper.toEntity(orderDto);
 
     orderEntity.getOrderItems().forEach(orderItem ->
-        orderItem.setItem(itemRepository.getReferenceById(orderItem.getItem().getId())));
+        orderItem.setItem(
+            itemRepository.findById(orderItem.getItem().getId())
+                .orElseThrow(() -> ResourceNotFoundException.byId("Item", orderItem.getItem().getId()))
+        )
+    );
 
     var userId = authTokenProvider.get().getPrincipal().userId();
     var user = userServiceClient.findById(userId,
         AuthConstants.AUTH_SCHEME + authTokenProvider.get().getJwtToken());
     orderEntity.setStatus(OrderStatus.NEW);
     orderEntity.setUserId(userId);
-    var savedOrderDto = orderMapper.toDto(orderRepository.save(orderEntity), user);
+    var savedOrderDto = orderMapper.toFullDto(orderRepository.save(orderEntity), user);
     orderProducer.sendOrderCreated(savedOrderDto);
     return savedOrderDto;
   }

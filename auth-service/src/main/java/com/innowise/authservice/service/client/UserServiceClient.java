@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 
 @FeignClient(
     name = "user-service",
-    url = "${services.user-service.url:lb://user-service}",
     fallbackFactory = UserServiceClientFallbackFactory.class
 )
 public interface UserServiceClient {
