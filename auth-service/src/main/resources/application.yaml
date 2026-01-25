@@ -37,13 +37,6 @@ logging:
   level:
     com.innowise.authservice.service.client.UserServiceClient: DEBUG
 
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,circuitbreakers
-        exclude: errors
-
 resilience4j:
   timelimiter:
     configs:
@@ -65,3 +58,4 @@ resilience4j:
         failureRateThreshold: 50
         waitDurationInOpenState: 10s
         permittedNumberOfCallsInHalfOpenState: 3
+

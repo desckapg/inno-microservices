@@ -3,13 +3,13 @@ package com.innowise.userservice.integration;
 import com.redis.testcontainers.RedisContainer;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
-import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.lifecycle.Startables;
+import org.testcontainers.postgresql.PostgreSQLContainer;
 
 public abstract class AbstractIntegrationTest {
 
-  static PostgreSQLContainer<?> postgres =
-      new PostgreSQLContainer<>("postgres:18.1-alpine");
+  static PostgreSQLContainer postgres =
+      new PostgreSQLContainer("postgres:18.1-alpine");
 
   static RedisContainer redis =
       new RedisContainer("redis:8.4-alpine");

@@ -1,6 +1,7 @@
 package com.innowise.auth.security.filter;
 
 import com.auth0.jwt.JWT;
+import com.auth0.jwt.exceptions.JWTDecodeException;
 import com.auth0.jwt.interfaces.Claim;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.innowise.auth.model.AuthConstants;
@@ -29,9 +30,16 @@ public class JwtAuthenticationConverter implements AuthenticationConverter {
     if (!authHeader.startsWith(AuthConstants.AUTH_SCHEME)) {
       throw new BadCredentialsException("Wrong auth scheme.");
     }
-    return extractUserDetails(JWT.decode(authHeader))
-        .map(userDetails -> new LoginRolesJwtAuthenticationToken(userDetails, authHeader))
+    try {
+      String jwtToken = authHeader.substring(AuthConstants.AUTH_SCHEME.length());
+      var decodedJwt = JWT.decode(jwtToken);
+      return extractUserDetails(decodedJwt)
+        .map(userDetails -> new LoginRolesJwtAuthenticationToken(userDetails, jwtToken))
         .orElseThrow(() -> new BadCredentialsException("JWT is malformed."));
+    } catch (JWTDecodeException _) {
+      throw new BadCredentialsException("JWT is malformed.");
+    }
+
   }
 
   private Optional<JwtUserDetails> extractUserDetails(DecodedJWT jwt) {

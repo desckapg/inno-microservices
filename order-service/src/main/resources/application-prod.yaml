@@ -1,0 +1,30 @@
+management:
+  tracing:
+    sampling:
+      probability: 1
+  endpoints:
+    web:
+      exposure:
+        include: health,circuitbreakers
+  opentelemetry:
+    tracing:
+      export:
+        otlp:
+          endpoint: ${OLTP_EXPORT_SERVER}/v1/traces
+    logging:
+      export:
+        otlp:
+          endpoint: ${OLTP_EXPORT_SERVER}/v1/logs
+    resource-attributes:
+      service.instance.id: ${SERVICE_INSTANCE_ID:${HOSTNAME:unknown}}
+  otlp:
+    metrics:
+      export:
+        url: ${OLTP_EXPORT_SERVER}/v1/metrics
+
+spring:
+  kafka:
+    listener:
+      observation-enabled: true
+    template:
+      observation-enabled: true

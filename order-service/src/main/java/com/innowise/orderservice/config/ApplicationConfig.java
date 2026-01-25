@@ -2,6 +2,7 @@ package com.innowise.orderservice.config;
 
 import feign.FeignException;
 import feign.Logger;
+import feign.Logger.Level;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerConfig;
 import org.springframework.cloud.circuitbreaker.resilience4j.Resilience4JCircuitBreakerFactory;
 import org.springframework.cloud.circuitbreaker.resilience4j.Resilience4JConfigBuilder;
@@ -30,7 +31,7 @@ public class ApplicationConfig {
 
   @Bean
   public Logger.Level feignLoggerLevel() {
-    return Logger.Level.BASIC;
+    return Level.HEADERS;
   }
 
 }

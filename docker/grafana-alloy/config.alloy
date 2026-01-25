@@ -1,0 +1,161 @@
+logging {
+  level = "info"
+  format = "logfmt"
+}
+
+otelcol.exporter.debug "default" {
+  verbosity = "detailed"
+}
+
+//
+// Receivers
+//
+
+otelcol.receiver.prometheus "default" {
+  output {
+    metrics = [otelcol.processor.batch.default.input]
+  }
+}
+
+otelcol.receiver.otlp "default" {
+  http {}
+  grpc {}
+
+  output {
+    metrics = [otelcol.processor.transform.add_labels.input]
+    logs = [otelcol.processor.attributes.default.input]
+    traces = [otelcol.processor.batch.default.input]
+  }
+}
+
+//
+// Processors
+//
+
+otelcol.processor.attributes "default" {
+  action {
+    key = "loki.resource.labels"
+    action = "insert"
+    value = "service.name, service.instance.id"
+  }
+  output {
+    logs = [otelcol.processor.batch.default.input]
+  }
+}
+
+otelcol.processor.transform "add_log_attributes" {
+  error_mode = "ignore"
+  log_statements {
+    context = "log"
+    statements = [
+      "set(body, Concat([body, \" trace_id=\", trace_id], \"\")) where trace_id != nil and trace_id != \"\"",
+    ]
+  }
+  output {
+    logs = [otelcol.processor.batch.default.input]
+  }
+}
+
+otelcol.processor.transform "add_labels" {
+  error_mode = "ignore"
+  metric_statements {
+    context = "datapoint"
+    statements = [
+      "set(attributes[\"service_name\"], resource.attributes[\"service.name\"])",
+      "set(attributes[\"instance_id\"], resource.attributes[\"service.instance.id\"])",
+    ]
+  }
+  output {
+    metrics = [otelcol.processor.batch.default.input]
+  }
+}
+
+otelcol.processor.batch "default" {
+  output {
+    metrics = [otelcol.exporter.otlphttp.prometheus.input]
+    logs = [otelcol.exporter.loki.default.input]
+    traces = [otelcol.exporter.otlp.tempo.input]
+  }
+}
+
+//
+// Exporters
+//
+
+otelcol.exporter.otlp "tempo" {
+  client {
+    endpoint = "grafana-tempo:4317"
+    tls {
+      insecure = true
+    }
+  }
+}
+
+otelcol.exporter.otlphttp "prometheus" {
+  client {
+    endpoint = "http://prometheus:9090/api/v1/otlp"
+  }
+}
+
+otelcol.exporter.loki "default" {
+  forward_to = [loki.process.spring_logs.receiver]
+}
+
+//
+// Loki
+//
+
+loki.process "spring_logs" {
+    forward_to = [loki.write.local.receiver]
+    stage.label_drop {
+      values = [ "job", "instance" ]
+    }
+}
+
+loki.write "local" {
+  endpoint {
+    url = "http://loki:3100/loki/api/v1/push"
+  }
+}
+
+//
+// Prometheus
+//
+
+prometheus.exporter.postgres "default" {
+  data_source_names = [
+    "postgresql://" + env("PROMETHEUS_EXPORTER_POSTGRES_USERNAME") + ":" + env("PROMETHEUS_EXPORTER_POSTGRES_PASSWORD") + "@postgres:5432/postgres?sslmode=disable",
+  ]
+
+  autodiscovery {
+    enabled = true
+  }
+}
+
+prometheus.scrape "mongo" {
+  targets = [{ __address__ = "mongo-exporter:9216" }]
+  metrics_path="/metrics"
+
+  forward_to = [otelcol.receiver.prometheus.default.receiver]
+
+  scrape_interval = "10s"
+  scrape_timeout  = "10s"
+}
+
+prometheus.scrape "kafka" {
+  targets =  [{ __address__ = "kafka-minion:9999" }]
+
+  forward_to = [otelcol.receiver.prometheus.default.receiver]
+
+  scrape_interval = "10s"
+  scrape_timeout  = "10s"
+}
+
+prometheus.scrape "postgres" {
+  targets =  prometheus.exporter.postgres.default.targets
+
+  forward_to = [otelcol.receiver.prometheus.default.receiver]
+
+  scrape_interval = "10s"
+  scrape_timeout  = "10s"
+}

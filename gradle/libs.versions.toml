@@ -1,7 +1,6 @@
 [versions]
 mapstruct="1.6.3"
 mockito="5.19.0"
-jackson2-core="2.20.0-rc1"
 java-jwt="4.5.0"
 sytstem-stubs-jupiter="2.1.8"
 fixture-monkey-starter="1.1.15"
@@ -9,18 +8,17 @@ fixture-monkey-datafaker="1.1.15"
 fixture-monkey-jakarta-validation="1.1.15"
 datafaker="2.5.1"
 bcrypt="0.10.2"
-lombok="1.18.42"
 spring-boot-starter-aop="4.0.0-M2"
 wiremock-standalone="3.13.1"
 liquibase="5.0.1"
 awaitility="4.3.0"
 rgxgen="1.4"
+opentelemetry-logback-appender="2.23.0-alpha"
 
 [libraries]
 mockito = {module = "org.mockito:mockito-core", version.ref = "mockito"}
 mapstruct = { module = "org.mapstruct:mapstruct", version.ref = "mapstruct" }
 mapstruct-processor = { module = "org.mapstruct:mapstruct-processor", version.ref = "mapstruct" }
-jackson2-core = { module = "com.fasterxml.jackson.core:jackson-core", version.ref = "jackson2-core" }
 java-jwt = { module = "com.auth0:java-jwt", version.ref = "java-jwt" }
 system-stubs-jupiter = { module = "uk.org.webcompere:system-stubs-jupiter", version.ref = "sytstem-stubs-jupiter" }
 fixture-monkey-starter = { module = "com.navercorp.fixturemonkey:fixture-monkey-starter", version.ref = "fixture-monkey-starter" }
@@ -33,3 +31,4 @@ wiremock-standalone = {module = "org.wiremock:wiremock-standalone", version.ref 
 liquibase-mongodb = {module = "org.liquibase.ext:liquibase-mongodb", version.ref = "liquibase"}
 awaitility = {module = "org.awaitility:awaitility", version.ref = "awaitility"}
 rgxgen = {module = "com.github.curious-odd-man:rgxgen", version.ref = "rgxgen"}
+opentelemetry-logback-appender = {module = "io.opentelemetry.instrumentation:opentelemetry-logback-appender-1.0", version.ref = "opentelemetry-logback-appender"}

@@ -1,3 +1,19 @@
+eureka:
+  client:
+    enabled: false
+
+management:
+  logging:
+    export:
+      enabled: false
+  tracing:
+    export:
+      enabled: false
+  otlp:
+    metrics:
+      export:
+        enabled: false
+
 logging:
   level:
     org.springframework.kafka.*: DEBUG

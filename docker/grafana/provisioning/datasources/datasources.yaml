@@ -1,0 +1,120 @@
+#file: noinspection SpellCheckingInspection
+# nonk8s
+apiVersion: 1
+
+datasources:
+  - name: Prometheus
+    type: prometheus
+    uid: prometheus-datasource
+    access: proxy
+    url: http://prometheus:9090
+    editable: true
+    jsonData:
+      httpMethod: POST
+      timeInterval: "5s"
+  - name: Loki
+    type: loki
+    uid: loki-datasource
+    access: proxy
+    url: http://loki:3100
+    editable: true
+    jsonData:
+      httpMethod: POST
+      timeInterval: "5s"
+      derivedFields:
+        - datasourceUid: tempo-datasource
+          name: traceId
+          matcherType: label
+          matcherRegex: "traceid"
+          urlDisplayLabel: 'View Trace'
+          url: '$${__value.raw}'
+  - name: Tempo
+    type: tempo
+    uid: tempo-datasource
+    access: proxy
+    url: http://grafana-tempo:3200
+    editable: true
+    jsonData:
+      httpMethod: GET
+      serviceMap:
+        datasourceUid: prometheus-datasource
+      nodeGraph:
+        enabled: true
+      search:
+        filters:
+          - tag: service.name
+          - tag: http.method
+  - name: PostgreSQL-User-Service
+    type: postgres
+    uid: postgres-user-service-datasource
+    access: proxy
+    url: postgres:5432
+    database: $USER_SERVICE_POSTGRES_DATABASE
+    user: $GRAFANA_POSTGRES_USERNAME
+    secureJsonData:
+      password: $GRAFANA_POSTGRES_PASSWORD
+    editable: true
+    jsonData:
+      sslmode: "disable"
+      maxOpenConns: 100
+      maxIdleConns: 100
+      maxIdleConnsAuto: true
+      connMaxLifetime: 14400
+      postgresVersion: 1500
+      timescaledb: false
+  - name: PostgreSQL-Auth-Service
+    type: postgres
+    uid: postgres-auth-service-datasource
+    access: proxy
+    url: postgres:5432
+    database: $AUTH_SERVICE_POSTGRES_DATABASE
+    user: $GRAFANA_POSTGRES_USERNAME
+    secureJsonData:
+      password: $GRAFANA_POSTGRES_PASSWORD
+    editable: true
+    jsonData:
+      sslmode: "disable"
+      maxOpenConns: 100
+      maxIdleConns: 100
+      maxIdleConnsAuto: true
+      connMaxLifetime: 14400
+      postgresVersion: 1500
+      timescaledb: false
+  - name: PostgreSQL-Order-Service
+    type: postgres
+    uid: postgres-order-service-datasource
+    access: proxy
+    url: postgres:5432
+    database: $ORDER_SERVICE_POSTGRES_DATABASE
+    user: $GRAFANA_POSTGRES_USERNAME
+    secureJsonData:
+      password: $GRAFANA_POSTGRES_PASSWORD
+    editable: true
+    jsonData:
+      sslmode: "disable"
+      maxOpenConns: 100
+      maxIdleConns: 100
+      maxIdleConnsAuto: true
+      connMaxLifetime: 14400
+      postgresVersion: 1500
+      timescaledb: false
+  - name: Redis
+    type: redis-datasource
+    uid: redis-datasource
+    access: proxy
+    url: redis:6379
+    secureJsonData:
+      password: $GRAFANA_REDIS_PASSWORD
+    editable: true
+    jsonData:
+      client: standalone
+      poolSize: 5
+      timeout: 10
+      pingInterval: 0
+      pipelineWindow: 0
+  - name: Kafka
+    type: hamedkarbasi93-kafka-datasource
+    access: proxy
+    editable: True
+    jsonData:
+      bootstrapServers: 'kafka:9092'

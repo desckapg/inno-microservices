@@ -7,7 +7,7 @@ echo "appendonly yes" >> /usr/local/etc/redis/redis.conf
 echo "appendfsync everysec" >> /usr/local/etc/redis/redis.conf
 
 # Start ACL file with default user
-echo "user default on nopass ~* +@all" > /usr/local/etc/redis/users.acl
+echo "user default on >$REDIS_PASSWORD ~* +@all" > /usr/local/etc/redis/users.acl
 
 # Collect users to add
 touch /tmp/users_to_add

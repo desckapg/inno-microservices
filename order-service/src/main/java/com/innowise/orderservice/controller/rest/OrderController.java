@@ -51,6 +51,7 @@ public class OrderController {
   }
 
   @PostMapping
+  @PreAuthorize("hasAuthority(T(com.innowise.auth.model.Role).USER)")
   public ResponseEntity<OrderDto> create(
       @RequestBody
       @Validated(value = OrdersConstraints.Create.class)

@@ -26,6 +26,11 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-redis")
     implementation("org.springframework.boot:spring-boot-starter-webclient")
     implementation("org.springframework.cloud:spring-cloud-starter-circuitbreaker-reactor-resilience4j")
+    implementation("org.springframework.cloud:spring-cloud-starter-netflix-eureka-client")
+    implementation("org.springframework.boot:spring-boot-starter-opentelemetry")
+    implementation(libs.opentelemetry.logback.appender)
+    implementation("io.micrometer:micrometer-tracing-bridge-brave")
+    implementation("net.ttddyy.observation:datasource-micrometer-spring-boot:2.0.1")
 
     compileOnly("org.projectlombok:lombok")
 

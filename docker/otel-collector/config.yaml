@@ -1,0 +1,16 @@
+receivers:
+  redis:
+    endpoint: redis:6379
+    password: $REDIS_PASSWORD
+
+exporters:
+  otlp_grpc:
+    endpoint: http://grafana-alloy:4317
+    tls:
+      insecure: true
+
+service:
+  pipelines:
+    metrics:
+      receivers: [redis]
+      exporters: [otlp_grpc]

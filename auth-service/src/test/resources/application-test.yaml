@@ -1,8 +1,18 @@
 eureka:
   client:
     enabled: false
-    register-with-eureka: false
-    fetch-registry: false
+
+management:
+  logging:
+    export:
+      enabled: false
+  tracing:
+    export:
+      enabled: false
+  otlp:
+    metrics:
+      export:
+        enabled: false
 
 spring:
   main:
@@ -12,9 +22,6 @@ spring:
       hibernate:
         show_sql: true
         format_sql: true
-  cloud:
-    discovery:
-      enabled: false
 
 logging:
   level:

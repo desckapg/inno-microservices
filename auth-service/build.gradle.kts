@@ -30,6 +30,11 @@ dependencies {
     implementation("org.springframework.cloud:spring-cloud-starter-openfeign")
     implementation("org.springframework.cloud:spring-cloud-starter-circuitbreaker-resilience4j")
     implementation(libs.spring.boot.starter.aop)
+    implementation("org.springframework.boot:spring-boot-starter-opentelemetry")
+    implementation(libs.opentelemetry.logback.appender)
+    implementation("io.micrometer:micrometer-tracing-bridge-brave")
+    implementation("net.ttddyy.observation:datasource-micrometer-spring-boot:2.0.1")
+    implementation("io.github.openfeign:feign-micrometer")
 
     compileOnly("org.projectlombok:lombok")
     compileOnly(libs.mapstruct)
@@ -74,15 +79,15 @@ dependencyManagement {
 }
 
 sonar {
-        properties {
-            property("sonar.sources", "src/main/java")
-            property("sonar.tests", "src/test/java")
-            property(
-                "sonar.coverage.jacoco.xmlReportPaths",
-                "build/reports/jacoco/test/jacocoTestReport.xml"
-            )
-        }
+    properties {
+        property("sonar.sources", "src/main/java")
+        property("sonar.tests", "src/test/java")
+        property(
+            "sonar.coverage.jacoco.xmlReportPaths",
+            "build/reports/jacoco/test/jacocoTestReport.xml"
+        )
     }
+}
 
 tasks.jacocoTestReport {
     classDirectories.setFrom(
