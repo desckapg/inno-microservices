@@ -14,7 +14,6 @@ import com.innowise.authservice.service.UserService;
 import com.innowise.common.exception.ResourceNotFoundException;
 import java.time.Instant;
 import java.time.ZonedDateTime;
-import java.util.List;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,15 +32,13 @@ public class TokenServiceImpl implements TokenService {
   @Value("${spring.application.name}")
   private String issuer;
 
-  private static final String USER_SERVICE_ID_CLAIM = "id";
   private static final String USER_ROLES_CLAIM = "roles";
 
-  private String createAccessToken(Long userAuthId, Long userProfileId, Set<String> roles) {
+  private String createAccessToken(Long userAuthId, Set<String> roles) {
     return JWT.create()
         .withExpiresAt(Instant.from(ZonedDateTime.now().plusSeconds(getExpiration())))
         .withIssuer(issuer)
         .withSubject(userAuthId.toString())
-        .withClaim(USER_SERVICE_ID_CLAIM, userProfileId)
         .withArrayClaim(USER_ROLES_CLAIM, roles.toArray(new String[0]))
         .withClaim("type", "access")
         .sign(Algorithm.HMAC256(getAccessSecretKey()));
@@ -66,7 +63,6 @@ public class TokenServiceImpl implements TokenService {
       return TokenDto.builder()
           .accessToken(createAccessToken(
               userAuthDto.id(),
-              userAuthDto.userId(),
               userAuthDto.roles()
           ))
           .build();
@@ -80,7 +76,6 @@ public class TokenServiceImpl implements TokenService {
     return TokenDto.builder()
         .accessToken(createAccessToken(
             user.id(),
-            user.userId(),
             user.roles()
         ))
         .refreshToken(createRefreshToken(user.id()))
@@ -105,7 +100,6 @@ public class TokenServiceImpl implements TokenService {
   private JWTVerifier createAccessTokenJwtVerifier() {
     return JWT.require(Algorithm.HMAC256(getAccessSecretKey()))
         .withIssuer(issuer)
-        .withClaimPresence(USER_SERVICE_ID_CLAIM)
         .withClaimPresence(USER_ROLES_CLAIM)
         .withClaim("type", "access")
         .build();

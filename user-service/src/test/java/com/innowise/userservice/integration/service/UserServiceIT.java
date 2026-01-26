@@ -48,7 +48,7 @@ class UserServiceIT extends AbstractIntegrationTest {
 
   @BeforeAll
   void prepareFixtures() {
-    var userFixture = Users.buildWithoutId();
+    var userFixture = Users.build();
     Cards.buildWithoutId(userFixture);
     Cards.buildWithoutId(userFixture);
     transactionTemplate.executeWithoutResult(_ ->
@@ -105,6 +105,7 @@ class UserServiceIT extends AbstractIntegrationTest {
     userService.update(userDto.id(), UserDto.builder()
         .name(updatedUser.getName())
         .surname(updatedUser.getSurname())
+        .birthDate(updatedUser.getBirthDate())
         .birthDate(updatedUser.getBirthDate())
         .email(updatedUser.getEmail())
         .build());
@@ -167,7 +168,7 @@ class UserServiceIT extends AbstractIntegrationTest {
   @Test
   @Transactional
   void create_whenUserWithEmailExists_shouldThrowUserWithEmailExistsException() {
-    var creatingdUser = Users.buildWithoutId();
+    var creatingdUser = Users.build();
     var createDto = UserDto.builder()
         .name(creatingdUser.getName())
         .surname(creatingdUser.getSurname())
@@ -185,6 +186,7 @@ class UserServiceIT extends AbstractIntegrationTest {
   void create_whenUserWithEmailNotExists_shouldReturnCreatedUserResponseDto() {
     var newUser = Users.build();
     var createDto = UserDto.builder()
+        .id(newUser.getId())
         .name(newUser.getName())
         .surname(newUser.getSurname())
         .birthDate(newUser.getBirthDate())

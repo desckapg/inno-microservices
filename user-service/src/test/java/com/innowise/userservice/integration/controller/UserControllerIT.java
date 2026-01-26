@@ -65,7 +65,7 @@ class UserControllerIT extends AbstractIntegrationTest {
 
   @BeforeAll
   void prepareFixtures() {
-    userFixture = Users.buildWithoutId();
+    userFixture = Users.build();
     Cards.buildWithoutId(userFixture);
     transactionTemplate.executeWithoutResult(status ->
         entityManager.persist(userFixture));
@@ -173,6 +173,7 @@ class UserControllerIT extends AbstractIntegrationTest {
         post(BASE_URL)
             .contentType(MediaType.APPLICATION_JSON)
             .content(jsonMapper.writeValueAsString(UserDto.builder()
+                .id(1L)
                 .name(creatingUser.getName())
                 .surname(creatingUser.getSurname())
                 .birthDate(creatingUser.getBirthDate())

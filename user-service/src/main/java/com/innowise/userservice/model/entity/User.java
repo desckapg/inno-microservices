@@ -4,9 +4,12 @@ import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
+import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import java.io.Serializable;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -16,6 +19,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.proxy.HibernateProxy;
 
 @Entity
@@ -26,7 +31,11 @@ import org.hibernate.proxy.HibernateProxy;
 @Setter
 @Builder
 @ToString(exclude = "cards")
-public class User extends BaseEntity {
+public class User implements Serializable {
+
+  @Id
+  @Column(name = "id", updatable = false, nullable = false)
+  protected Long id;
 
   @Column(name = "name", nullable = false)
   private String name;
@@ -39,6 +48,14 @@ public class User extends BaseEntity {
 
   @Column(name = "email", nullable = false, unique = true)
   private String email;
+
+  @CreationTimestamp
+  @Column(name = "created_at", nullable = false, updatable = false)
+  protected LocalDateTime createdAt;
+
+  @UpdateTimestamp
+  @Column(name = "updated_at", nullable = false)
+  protected LocalDateTime updatedAt;
 
   @Builder.Default
   @OneToMany(fetch = FetchType.LAZY, mappedBy = "user",

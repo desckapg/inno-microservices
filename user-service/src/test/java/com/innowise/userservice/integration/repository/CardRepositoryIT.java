@@ -33,7 +33,7 @@ class CardRepositoryIT extends AbstractIntegrationTest {
 
   @BeforeAll
   void prepareFixtures() {
-    userFixture = Users.buildWithoutId();
+    userFixture = Users.build();
     cardFixture = Cards.buildWithoutId(userFixture);
     userFixture.addCard(cardFixture);
     transactionTemplate.executeWithoutResult(_ -> entityManager.persist(userFixture));

@@ -31,16 +31,6 @@ public class Users {
     return user;
   }
 
-  public static User buildWithoutId() {
-    long n = SEQ.getAndIncrement();
-    return User.builder()
-        .name("John" + n)
-        .surname("Doe" + n)
-        .birthDate(LocalDate.now().minusYears(20))
-        .email("john" + n + "@example.com")
-        .build();
-  }
-
   public static User build(String name, String surname, String email) {
     return user(name, surname, email).build();
   }

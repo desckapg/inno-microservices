@@ -7,7 +7,6 @@ import com.innowise.userservice.validation.group.OnUpdate;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Null;
 import jakarta.validation.constraints.Past;
 import jakarta.validation.constraints.Size;
 import java.io.Serializable;
@@ -18,8 +17,8 @@ import lombok.Builder;
 @Builder
 public record UserDto(
 
-    @Null(groups = OnCreate.class,
-        message = "Id must be null for new users"
+    @NotNull(groups = OnCreate.class,
+        message = "Id must be not null for new users"
     )
     Long id,
 

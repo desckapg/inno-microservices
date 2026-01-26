@@ -24,7 +24,6 @@ public class TestUserSecurityContextFactory implements WithSecurityContextFactor
     SecurityContext context = SecurityContextHolder.createEmptyContext();
     var userDetails = JwtUserDetails.builder()
             .id(annotation.id())
-            .userId(annotation.userId())
             .login(annotation.login())
             .authorities(Arrays.stream(annotation.roles()).map(SimpleGrantedAuthority::new).toList())
             .build();

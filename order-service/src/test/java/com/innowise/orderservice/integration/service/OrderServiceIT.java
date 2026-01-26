@@ -148,7 +148,7 @@ class OrderServiceIT extends AbstractIntegrationTest {
   )
   void findById_orderExistsAndUserHadUserAuthorityAndRequestOwnedOrder_returnOrder() {
     var userDto = userDtosSut.giveMeBuilder(UserDto.class)
-        .set("id", authTokenProvider.get().getPrincipal().userId())
+        .set("id", authTokenProvider.get().getPrincipal().id())
         .sample();
 
     var order = ordersSut.giveMeBuilder(Order.class)
@@ -173,7 +173,7 @@ class OrderServiceIT extends AbstractIntegrationTest {
   )
   void findById_orderExistsAndUserHasUserAuthorityAndRequestNowOwnedOrder_accessDenied() {
     var userDto = userDtosSut.giveMeBuilder(UserDto.class)
-        .set("id", authTokenProvider.get().getPrincipal().userId())
+        .set("id", authTokenProvider.get().getPrincipal().id())
         .sample();
 
     var order = ordersSut.giveMeBuilder(Order.class)
@@ -354,7 +354,7 @@ class OrderServiceIT extends AbstractIntegrationTest {
   )
   void findAll_byUserIdAndUserHasUserAuthorityAndOwnedOrders_returnOrders() {
     var ownedUserDto = userDtosSut.giveMeBuilder(UserDto.class)
-        .set("id", authTokenProvider.get().getPrincipal().userId())
+        .set("id", authTokenProvider.get().getPrincipal().id())
         .sample();
 
     var orders = ordersSut.giveMeBuilder(Order.class)

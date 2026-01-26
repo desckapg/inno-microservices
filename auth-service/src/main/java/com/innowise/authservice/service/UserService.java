@@ -1,7 +1,8 @@
 package com.innowise.authservice.service;
 
 import com.innowise.authservice.model.dto.user.UserAuthDto;
-import com.innowise.authservice.model.dto.user.UserAuthInfoDto;
+import com.innowise.authservice.model.dto.user.UserRegisterRequestDto;
+import com.innowise.authservice.model.dto.user.UserRegisterResponseDto;
 import org.jspecify.annotations.NullMarked;
 
 /**
@@ -49,7 +50,7 @@ public interface UserService {
    * @param userDto user data payload
    * @return created user data
    */
-  UserAuthInfoDto register(UserAuthInfoDto userDto);
+  UserRegisterResponseDto register(UserRegisterRequestDto userDto);
 
 
 }

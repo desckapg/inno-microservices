@@ -1,5 +1,6 @@
 package com.innowise.authservice.model.dto.user;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import com.fasterxml.jackson.annotation.JsonView;
 import com.innowise.authservice.model.dto.UserConstraints;
@@ -11,6 +12,7 @@ import org.jspecify.annotations.NullMarked;
 
 @NullMarked
 @Builder
+@JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonView(UserConstraints.BaseAuth.class)
 public record UserAuthDto(
 
@@ -23,10 +25,7 @@ public record UserAuthDto(
     CredentialDto credentials,
 
     @JsonView(UserConstraints.FindAuth.class)
-    Set<String> roles,
-
-    @JsonView(UserConstraints.FindAuth.class)
-    Long userId
+    Set<String> roles
 
 ) {
 

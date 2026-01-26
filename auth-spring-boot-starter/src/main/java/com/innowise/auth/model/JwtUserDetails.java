@@ -11,7 +11,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 @Builder
 public record JwtUserDetails(
     Long id,
-    Long userId,
     String login,
     Collection<? extends GrantedAuthority> authorities) implements UserDetails, CredentialsContainer {
 

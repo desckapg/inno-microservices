@@ -138,9 +138,12 @@ services:
   user-service:
     image: user-service:latest
     depends_on:
-      - postgres
-      - redis
-      - discovery-service
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      discovery-service:
+        condition: service_started
     build:
       context: ../user-service
     environment:
