@@ -1,8 +1,11 @@
 package com.innowise.authservice.service.impl;
 
 import com.innowise.authservice.exception.AuthFailedException;
+import com.innowise.authservice.model.dto.credential.CredentialDto;
 import com.innowise.authservice.model.dto.user.UserAuthDto;
-import com.innowise.authservice.model.dto.user.UserAuthInfoDto;
+import com.innowise.authservice.model.dto.user.UserProfileDto;
+import com.innowise.authservice.model.dto.user.UserRegisterRequestDto;
+import com.innowise.authservice.model.dto.user.UserRegisterResponseDto;
 import com.innowise.authservice.model.entity.Credentials;
 import com.innowise.authservice.model.entity.Role;
 import com.innowise.authservice.model.entity.User;
@@ -36,30 +39,45 @@ public class UserServiceImpl implements UserService {
   @Transactional
   public void delete(Long id) {
     userRepository.findById(id)
-        .ifPresent(user -> {
+        .ifPresent(_ -> {
           userRepository.deleteById(id);
-          userServiceClient.delete(user.getUserId());
+          userServiceClient.delete(id);
         });
 
   }
 
   @Override
   @Transactional
-  public UserAuthInfoDto register(UserAuthInfoDto userAuthInfoDto) {
-    var createdUserInfoDto = userServiceClient.create(userAuthInfoDto.infoDto());
+  public UserRegisterResponseDto register(UserRegisterRequestDto userRegisterDto) {
+    var createdUserAuthDto = saveCredentials(UserAuthDto.builder()
+        .credentials(CredentialDto.builder()
+            .login(userRegisterDto.login())
+            .password(userRegisterDto.password())
+            .build())
+        .roles(Set.of(Role.USER.name()))
+        .build());
+
+    var userProfileDto = UserProfileDto.builder()
+        .id(createdUserAuthDto.id())
+        .name(userRegisterDto.name())
+        .surname(userRegisterDto.surname())
+        .email(userRegisterDto.email())
+        .birthDate(userRegisterDto.birthDate())
+        .build();
 
     try {
-      var createdUserAuthDto = saveCredentials(UserAuthDto.builder()
-          .credentials(userAuthInfoDto.authDto().credentials())
-          .roles(Set.of(Role.USER.getAuthority()))
-          .userId(createdUserInfoDto.id())
-          .build());
-      return UserAuthInfoDto.builder()
-          .authDto(createdUserAuthDto)
-          .infoDto(createdUserInfoDto)
+      var createdUserInfoDto = userServiceClient.create(userProfileDto);
+      return UserRegisterResponseDto.builder()
+          .id(createdUserAuthDto.id())
+          .name(createdUserInfoDto.getName())
+          .surname(createdUserInfoDto.getSurname())
+          .birthDate(createdUserInfoDto.getBirthDate())
+          .email(createdUserInfoDto.getEmail())
+          .login(userRegisterDto.login())
+          .roles(createdUserAuthDto.roles())
           .build();
     } catch (Exception ex) {
-      userServiceClient.delete(createdUserInfoDto.id());
+      userServiceClient.delete(createdUserAuthDto.id());
       throw ex;
     }
   }
@@ -75,7 +93,6 @@ public class UserServiceImpl implements UserService {
             .passwordHash(passwordEncoder.encode(userAuthDto.credentials().password()))
             .build()
         )
-        .userId(userAuthDto.userId())
         .roles(userAuthDto.roles().stream().map(Role::valueOf).collect(Collectors.toSet()))
         .build()
     ));

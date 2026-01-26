@@ -2,10 +2,10 @@ package com.innowise.authservice.controller;
 
 import com.innowise.authservice.exception.TokenException;
 import com.innowise.authservice.model.dto.CredentialsConstraints;
-import com.innowise.authservice.model.dto.UserConstraints;
 import com.innowise.authservice.model.dto.credential.CredentialDto;
 import com.innowise.authservice.model.dto.token.TokenDto;
-import com.innowise.authservice.model.dto.user.UserAuthInfoDto;
+import com.innowise.authservice.model.dto.user.UserRegisterRequestDto;
+import com.innowise.authservice.model.dto.user.UserRegisterResponseDto;
 import com.innowise.authservice.service.TokenService;
 import com.innowise.authservice.service.UserService;
 import jakarta.validation.constraints.NotBlank;
@@ -34,13 +34,13 @@ public class AuthController {
   private final UserService userService;
 
   @PostMapping("/register")
-  public ResponseEntity<UserAuthInfoDto> register(
+  public ResponseEntity<UserRegisterResponseDto> register(
       @RequestBody
-      @Validated(UserConstraints.Register.class)
-      UserAuthInfoDto userAuthInfoDto
+      @Validated
+      UserRegisterRequestDto userRegisterDto
   ) {
     return ResponseEntity.status(HttpStatus.CREATED)
-        .body(userService.register(userAuthInfoDto));
+        .body(userService.register(userRegisterDto));
   }
 
   @PostMapping("/login")

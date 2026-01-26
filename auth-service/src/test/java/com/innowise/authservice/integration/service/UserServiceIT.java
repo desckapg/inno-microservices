@@ -1,8 +1,5 @@
 package com.innowise.authservice.integration.service;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.deleteRequestedFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatException;
 import static org.assertj.core.api.Assertions.assertThatNoException;
@@ -18,8 +15,8 @@ import com.innowise.authservice.integration.AbstractIntegrationTest;
 import com.innowise.authservice.integration.annotation.IT;
 import com.innowise.authservice.model.dto.credential.CredentialDto;
 import com.innowise.authservice.model.dto.user.UserAuthDto;
-import com.innowise.authservice.model.dto.user.UserAuthInfoDto;
-import com.innowise.authservice.model.dto.user.UserInfoDto;
+import com.innowise.authservice.model.dto.user.UserProfileDto;
+import com.innowise.authservice.model.dto.user.UserRegisterRequestDto;
 import com.innowise.authservice.model.entity.Credentials;
 import com.innowise.authservice.model.entity.Role;
 import com.innowise.authservice.model.entity.User;
@@ -29,6 +26,7 @@ import com.innowise.authservice.service.UserService;
 import com.innowise.common.exception.ResourceNotFoundException;
 import com.navercorp.fixturemonkey.FixtureMonkey;
 import com.navercorp.fixturemonkey.api.introspector.BuilderArbitraryIntrospector;
+import com.navercorp.fixturemonkey.api.introspector.ConstructorPropertiesArbitraryIntrospector;
 import com.navercorp.fixturemonkey.api.introspector.FailoverIntrospector;
 import java.time.LocalDate;
 import java.util.List;
@@ -58,18 +56,19 @@ class UserServiceIT extends AbstractIntegrationTest {
       .defaultNotNull(true)
       .objectIntrospector(new FailoverIntrospector(
           List.of(
-              BuilderArbitraryIntrospector.INSTANCE
+            BuilderArbitraryIntrospector.INSTANCE,
+            ConstructorPropertiesArbitraryIntrospector.INSTANCE
           )
       ))
       .register(CredentialDto.class, fm -> fm.giveMeBuilder(CredentialDto.class)
-          .setLazy("login", () -> FAKER.credentials().username())
-          .setLazy("password", () -> FAKER.credentials().password())
+        .setLazy("login", () -> FAKER.credentials().username())
+        .setLazy("password", () -> FAKER.credentials().password())
       )
       .register(UserAuthDto.class, fm -> fm.giveMeBuilder(UserAuthDto.class)
           .setNull("id")
           .set("userId", 1L)
       )
-      .register(UserInfoDto.class, fm -> fm.giveMeBuilder(UserInfoDto.class)
+      .register(UserProfileDto.class, fm -> fm.giveMeBuilder(UserProfileDto.class)
           .setNull("id")
           .setLazy("name", () -> FAKER.name().firstName())
           .setLazy("surname", () -> FAKER.name().lastName())
@@ -80,6 +79,14 @@ class UserServiceIT extends AbstractIntegrationTest {
           .setLazy("login", () -> FAKER.credentials().username())
           .setLazy("passwordHash", () -> FAKER.credentials().password())
       )
+      .register(UserRegisterRequestDto.class, fm -> fm.giveMeBuilder(UserRegisterRequestDto.class)
+          .setLazy("login", () -> FAKER.credentials().username())
+          .setLazy("password", () -> FAKER.credentials().password())
+          .setLazy("name", () -> FAKER.name().firstName())
+          .setLazy("surname", () -> FAKER.name().lastName())
+          .set("birthDate", LocalDate.of(1970, 12, 1))
+          .setLazy("email", () -> FAKER.internet().emailAddress())
+      )
       .register(User.class, fm -> fm.giveMeBuilder(User.class)
           .setNull("id")
           .size("roles", 1)
@@ -89,14 +96,14 @@ class UserServiceIT extends AbstractIntegrationTest {
 
   @Test
   void register_createNewUser() {
-    var userAuthInfoDto = SUT.giveMeOne(UserAuthInfoDto.class);
+    var userRegisterDto = SUT.giveMeOne(UserRegisterRequestDto.class);
 
-    var createdUserInfoDto = UserInfoDto.builder()
+    var createdUserInfoDto = UserProfileDto.builder()
         .id(1L)
-        .name(userAuthInfoDto.infoDto().name())
-        .surname(userAuthInfoDto.infoDto().surname())
-        .birthDate(userAuthInfoDto.infoDto().birthDate())
-        .email(userAuthInfoDto.infoDto().email())
+        .name(userRegisterDto.name())
+        .surname(userRegisterDto.surname())
+        .birthDate(userRegisterDto.birthDate())
+        .email(userRegisterDto.email())
         .build();
 
     userServiceClientServer.stubFor(
@@ -110,90 +117,33 @@ class UserServiceIT extends AbstractIntegrationTest {
             )
     );
 
-    assertThat(userService.register(userAuthInfoDto)).satisfies(createdUserAuthInfoDto -> {
+    assertThat(userService.register(userRegisterDto)).satisfies(createdUserAuthInfoDto -> {
+
       assertThat(createdUserAuthInfoDto).isNotNull();
 
-      assertThat(createdUserAuthInfoDto.infoDto()).isEqualTo(createdUserInfoDto);
-
-      assertThat(createdUserAuthInfoDto.authDto().id()).isNotNull();
-      assertThat(createdUserAuthInfoDto.authDto().userId()).isEqualTo(createdUserInfoDto.id());
-      assertThat(createdUserAuthInfoDto.authDto())
+      assertThat(createdUserAuthInfoDto.id()).isNotNull();
+      assertThat(createdUserAuthInfoDto)
           .usingRecursiveComparison()
-          .ignoringFields("id", "userId", "roles", "credentials.password")
-          .isEqualTo(userAuthInfoDto.authDto());
+          .ignoringFields("id", "roles", "credentials.password")
+          .isEqualTo(userRegisterDto);
     });
 
   }
 
   @Test
   void register_exceptionArisen_rollbackCreation() {
-    var userAuthInfoDto = SUT.giveMeOne(UserAuthInfoDto.class);
-
-    var createdUserInfoDto = UserInfoDto.builder()
-        .id(1L)
-        .name(userAuthInfoDto.infoDto().name())
-        .surname(userAuthInfoDto.infoDto().surname())
-        .birthDate(userAuthInfoDto.infoDto().birthDate())
-        .email(userAuthInfoDto.infoDto().email())
-        .build();
-
-    userServiceClientServer.stubFor(
-        WireMock.post("/api/v1/users")
-            .willReturn(WireMock.aResponse()
-                .withStatus(HttpStatus.CREATED.value())
-                .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .withResponseBody(Body.fromJsonBytes(
-                    objectMapper.writeValueAsBytes(createdUserInfoDto))
-                )
-            )
-    );
-
-    userServiceClientServer.stubFor(
-        WireMock.delete("/api/v1/users/1")
-            .willReturn(WireMock.aResponse()
-                .withStatus(HttpStatus.NO_CONTENT.value())
-            )
-    );
+    var userRegisterDto = SUT.giveMeOne(UserRegisterRequestDto.class);
 
     doThrow(new RuntimeException())
         .when(userRepository)
         .save(any(User.class));
 
-    assertThatException().isThrownBy(() -> userService.register(userAuthInfoDto));
-
-    userServiceClientServer.verify(1, deleteRequestedFor(urlEqualTo("/api/v1/users/1")));
-
+    assertThatException().isThrownBy(() -> userService.register(userRegisterDto));
   }
 
   @Test
   void register_userWithThatLoginExists_rollbackCreation() {
-    var userAuthInfoDto = SUT.giveMeOne(UserAuthInfoDto.class);
-
-    var createdUserInfoDto = UserInfoDto.builder()
-        .id(1L)
-        .name(userAuthInfoDto.infoDto().name())
-        .surname(userAuthInfoDto.infoDto().surname())
-        .birthDate(userAuthInfoDto.infoDto().birthDate())
-        .email(userAuthInfoDto.infoDto().email())
-        .build();
-
-    userServiceClientServer.stubFor(
-        WireMock.post("/api/v1/users")
-            .willReturn(WireMock.aResponse()
-                .withStatus(HttpStatus.CREATED.value())
-                .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .withResponseBody(Body.fromJsonBytes(
-                    objectMapper.writeValueAsBytes(createdUserInfoDto))
-                )
-            )
-    );
-
-    userServiceClientServer.stubFor(
-        WireMock.delete("/api/v1/users/1")
-            .willReturn(WireMock.aResponse()
-                .withStatus(HttpStatus.NO_CONTENT.value())
-            )
-    );
+    var userRegisterDto = SUT.giveMeOne(UserRegisterRequestDto.class);
 
     when(userRepository.existsByLogin(anyString())).thenReturn(true);
 
@@ -201,10 +151,7 @@ class UserServiceIT extends AbstractIntegrationTest {
         .when(userRepository)
         .save(any(User.class));
 
-    assertThatException().isThrownBy(() -> userService.register(userAuthInfoDto));
-
-    userServiceClientServer.verify(1, postRequestedFor(urlEqualTo("/api/v1/users")));
-    userServiceClientServer.verify(1, deleteRequestedFor(urlEqualTo("/api/v1/users/" + createdUserInfoDto.id())));
+    assertThatException().isThrownBy(() -> userService.register(userRegisterDto));
 
   }
 
@@ -215,19 +162,12 @@ class UserServiceIT extends AbstractIntegrationTest {
 
   @Test
   void delete_userExists_deleteUser() {
-    var userInfoId = 1L;
-    var userInfoDto = SUT.giveMeBuilder(UserInfoDto.class)
-        .set("id", userInfoId)
-        .sample();
-
-    var user = SUT.giveMeBuilder(User.class)
-        .set("userId", userInfoDto.id())
-        .sample();
+    var user = SUT.giveMeBuilder(User.class).sample();
 
     em.persistAndFlush(user);
 
     userServiceClientServer.stubFor(
-        WireMock.delete("/api/v1/users/" + userInfoId)
+        WireMock.delete("/api/v1/users/" + user.getId())
             .willReturn(WireMock.aResponse()
                 .withStatus(HttpStatus.NO_CONTENT.value())
             )

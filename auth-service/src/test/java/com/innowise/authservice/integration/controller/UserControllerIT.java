@@ -43,7 +43,6 @@ class UserControllerIT extends AbstractIntegrationTest {
   private static final String BASE_URL = "/api/v1/auth/users";
 
   private final MockMvc mockMvc;
-  private final MockMvcTester mockMvcTester;
   private final TestEntityManager em;
   private final PasswordEncoder passwordEncoder;
 
@@ -93,7 +92,7 @@ class UserControllerIT extends AbstractIntegrationTest {
     em.persistAndFlush(user);
 
     userServiceClientServer.stubFor(
-        WireMock.delete(WireMock.urlEqualTo("/api/v1/users/" + user.getUserId()))
+        WireMock.delete(WireMock.urlEqualTo("/api/v1/users/" + user.getId()))
             .willReturn(aResponse().withStatus(HttpStatus.NO_CONTENT.value()))
     );
 

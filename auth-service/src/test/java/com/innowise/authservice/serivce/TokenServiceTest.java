@@ -78,11 +78,11 @@ class TokenServiceTest {
   }
 
   @SneakyThrows
-  private String createAccessToken(Long userAuthId, Long userProfileId, Set<String> roles) {
+  private String createAccessToken(Long userAuthId, Set<String> roles) {
     Method method = tokenService.getClass()
-        .getDeclaredMethod("createAccessToken", Long.class, Long.class, Set.class);
+        .getDeclaredMethod("createAccessToken", Long.class, Set.class);
     method.setAccessible(true);
-    return (String) method.invoke(tokenService, userAuthId, userProfileId, roles);
+    return (String) method.invoke(tokenService, userAuthId, roles);
   }
 
   @SneakyThrows
@@ -185,7 +185,7 @@ class TokenServiceTest {
   void validateAccessToken_whenTokenValid_shouldThrowNoExceptions() {
 
     var userDto = SUT.giveMeOne(UserAuthDto.class);
-    String accessToken = createAccessToken(userDto.id(), userDto.userId(), userDto.roles());
+    String accessToken = createAccessToken(userDto.id(), userDto.roles());
 
     assertThatNoException().isThrownBy(() -> tokenService.validateAccessToken(accessToken));
   }
@@ -196,7 +196,7 @@ class TokenServiceTest {
     var userDto = SUT.giveMeOne(UserAuthDto.class);
 
     envVariables.set("JWT_ACCESS_KEY", TEST_ANOTHER_ACCESS_KEY);
-    String accessToken = createAccessToken(userDto.id(), userDto.userId(), userDto.roles());
+    String accessToken = createAccessToken(userDto.id(), userDto.roles());
 
     envVariables.set("JWT_ACCESS_KEY", TEST_ACCESS_KEY);
     assertThatException().isThrownBy(() -> tokenService.validateAccessToken(accessToken))
@@ -211,7 +211,7 @@ class TokenServiceTest {
 
     envVariables.set("JWT_EXPIRATION", 0);
 
-    String accessToken = createAccessToken(userDto.id(), userDto.userId(), userDto.roles());
+    String accessToken = createAccessToken(userDto.id(), userDto.roles());
 
     assertThatException().isThrownBy(() -> tokenService.validateAccessToken(accessToken))
         .isInstanceOfSatisfying(TokenException.class,

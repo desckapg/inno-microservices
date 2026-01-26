@@ -36,9 +36,6 @@ public class User extends BaseEntity {
   @Embedded
   private Credentials credentials;
 
-  @Column(name = "user_id", unique = true)
-  private Long userId;
-
   @Builder.Default
   @ElementCollection(fetch = FetchType.EAGER)
   @Enumerated(EnumType.STRING)
