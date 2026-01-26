@@ -68,7 +68,7 @@ class ItemControllerIT extends AbstractIntegrationTest {
     em.clear();
 
     mockMvc.perform(
-        get(URI.create("/api/v1/orders/items/" + item.getId()))
+        get(URI.create("/api/v1/items/" + item.getId()))
     ).andExpectAll(
         status().isOk(),
         jsonPath("$.id").value(item.getId())
@@ -79,7 +79,7 @@ class ItemControllerIT extends AbstractIntegrationTest {
   @WithMockCustomUser
   void findById_itemNotExists_returnNotFound() throws Exception {
     mockMvc.perform(
-        get(URI.create("/api/v1/orders/items/" + Long.MAX_VALUE))
+        get(URI.create("/api/v1/items/" + Long.MAX_VALUE))
     ).andExpectAll(
         status().isNotFound()
     );
@@ -96,7 +96,7 @@ class ItemControllerIT extends AbstractIntegrationTest {
     em.clear();
 
     mockMvc.perform(
-        get(URI.create("/api/v1/orders/items"))
+        get(URI.create("/api/v1/items"))
     ).andExpectAll(
         status().isOk(),
         jsonPath("$").isArray()
@@ -119,7 +119,7 @@ class ItemControllerIT extends AbstractIntegrationTest {
         .sample();
 
     mockMvc.perform(
-        get(URI.create("/api/v1/orders/items"))
+        get(URI.create("/api/v1/items"))
             .param("ids",
                 findingItems.stream().map(i -> i.getId().toString()).toArray(String[]::new))
     ).andExpectAll(
@@ -143,7 +143,7 @@ class ItemControllerIT extends AbstractIntegrationTest {
     em.clear();
 
     mockMvc.perform(
-        post(URI.create("/api/v1/orders/items"))
+        post(URI.create("/api/v1/items"))
             .contentType(MediaType.APPLICATION_JSON)
             .content(jsonMapper.writeValueAsString(itemMapper.toDto(item)))
     ).andExpectAll(
@@ -165,7 +165,7 @@ class ItemControllerIT extends AbstractIntegrationTest {
     em.clear();
 
     mockMvc.perform(
-        delete(URI.create("/api/v1/orders/items/" + item.getId()))
+        delete(URI.create("/api/v1/items/" + item.getId()))
     ).andExpectAll(
         status().isNoContent()
     );
@@ -191,7 +191,7 @@ class ItemControllerIT extends AbstractIntegrationTest {
         .build();
 
     mockMvc.perform(
-        put(URI.create("/api/v1/orders/items/" + item.getId()))
+        put(URI.create("/api/v1/items/" + item.getId()))
             .contentType(MediaType.APPLICATION_JSON)
             .content(jsonMapper.writeValueAsString(updateItemDto))
     ).andExpectAll(
@@ -217,7 +217,7 @@ class ItemControllerIT extends AbstractIntegrationTest {
         .build();
 
     mockMvc.perform(
-        put(URI.create("/api/v1/orders/items/" + Long.MAX_VALUE))
+        put(URI.create("/api/v1/items/" + Long.MAX_VALUE))
             .contentType(MediaType.APPLICATION_JSON)
             .content(jsonMapper.writeValueAsString(updateItemDto))
     ).andExpectAll(

@@ -17,6 +17,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.logout.LogoutFilter;
 import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
+import org.springframework.security.web.util.matcher.AndRequestMatcher;
 
 @Configuration
 @RequiredArgsConstructor
@@ -38,12 +39,13 @@ public class SecurityConfig {
         .authorizeHttpRequests(authz -> {
           authz.requestMatchers("/actuator/**").permitAll();
           authz.requestMatchers("/api/v1/orders/**").authenticated();
+          authz.requestMatchers("/api/v1/items/**").authenticated();
         })
         .addFilterAfter(new JwtAuthenticationFilter(
-                PathPatternRequestMatcher.pathPattern("/api/v1/orders/**"),
-                authenticationManager,
-                authTokenProvider
-            ), LogoutFilter.class
+            new AndRequestMatcher(
+              PathPatternRequestMatcher.pathPattern("/api/v1/orders/**"),
+              PathPatternRequestMatcher.pathPattern("/api/v1/items/**")
+            ), authenticationManager, authTokenProvider), LogoutFilter.class
         );
     return http.build();
   }
