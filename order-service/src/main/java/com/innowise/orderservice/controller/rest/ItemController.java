@@ -25,7 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 @NullMarked
 @RestController
-@RequestMapping("/api/v1/orders/items")
+@RequestMapping("/api/v1/items")
 public class ItemController {
 
   private final ItemService itemService;
@@ -57,7 +57,7 @@ public class ItemController {
       ItemDto itemDto) {
     var createdItemDto = itemService.create(itemDto);
     return ResponseEntity
-        .created(URI.create("api/v1/orders/items/" + createdItemDto.id()))
+        .created(URI.create("api/v1/items/" + createdItemDto.id()))
         .body(createdItemDto);
   }
 
@@ -77,7 +77,7 @@ public class ItemController {
   public ResponseEntity<Void> delete(@PathVariable Long id) {
     itemService.delete(id);
     return ResponseEntity.noContent()
-        .location(URI.create("api/v1/orders/items/" + id))
+        .location(URI.create("api/v1/items/" + id))
         .build();
   }
 }
