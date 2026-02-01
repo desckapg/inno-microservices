@@ -1,5 +1,5 @@
 import {type FormEvent, useMemo, useState} from 'react'
-import {login as loginRequest} from '../api/services/auth-service'
+import {register as registerRequest} from '../api/services/auth-service'
 
 type FieldErrors = {
   name?: string
@@ -22,7 +22,7 @@ function validate(values: { name: string, surname: string, email: string, birthD
   const password = values.password
   const confirmedPassword = values.confirmedPassword
 
-  if (!name) errors.name = 'Names is required'
+  if (!name) errors.name = 'Name is required'
 
   if (!surname) errors.surname = 'Surname is required'
 
@@ -35,7 +35,7 @@ function validate(values: { name: string, surname: string, email: string, birthD
 
   if (!password) errors.password = 'Password is required.'
 
-  if (!confirmedPassword) errors.confirmedPassword = 'Confirmed passwords is required'
+  if (!confirmedPassword) errors.confirmedPassword = 'Confirmed password is required'
   else if (password !== confirmedPassword) errors.confirmedPassword = 'Passwords do not match'
 
   return errors
@@ -43,7 +43,7 @@ function validate(values: { name: string, surname: string, email: string, birthD
 
 function getErrorMessage(err: unknown): string {
   if (err instanceof Error) return err.message
-  return 'Login failed. Please check your credentials and try again.'
+  return 'Registration failed. Please check your information and try again.'
 }
 
 export function RegisterPage() {
@@ -74,7 +74,11 @@ export function RegisterPage() {
 
     setIsLoading(true)
     try {
-      const response = await loginRequest({
+      const response = await registerRequest({
+        name: name.trim(),
+        surname: surname.trim(),
+        email: email.trim(),
+        birthDate,
         login: login.trim(),
         password,
       })
@@ -95,8 +99,8 @@ export function RegisterPage() {
             <div className="card shadow border-0">
               <div className="card-body p-4 p-md-5">
                 <div className="text-center mb-4">
-                  <h1 className="h3 fw-bold mb-3">Welcome Back</h1>
-                  <p className="text-muted">Sign in to your account</p>
+                  <h1 className="h3 fw-bold mb-3">Create Account</h1>
+                  <p className="text-muted">Sign up for a new account</p>
                 </div>
 
                 {formError ? (
@@ -112,7 +116,7 @@ export function RegisterPage() {
                     </label>
                     <input
                         type="text"
-                        className={`form-control form-control-lg ${errors.surname ? 'is-invalid' : ''}`}
+                        className={`form-control form-control-lg ${errors.name ? 'is-invalid' : ''}`}
                         id="name"
                         placeholder="Enter your name"
                         value={name}
@@ -124,6 +128,11 @@ export function RegisterPage() {
                         aria-invalid={Boolean(errors.name)}
                         aria-describedby={errors.name ? 'nameError' : undefined}
                     />
+                    {errors.name ? (
+                        <div id="nameError" className="invalid-feedback">
+                          {errors.name}
+                        </div>
+                    ) : null}
                   </div>
                   <div className="mb-3">
                     <label htmlFor="surname" className="form-label fw-semibold">
@@ -141,8 +150,13 @@ export function RegisterPage() {
                         }}
                         disabled={isLoading}
                         aria-invalid={Boolean(errors.surname)}
-                        aria-describedby={errors.surname ? 'nameError' : undefined}
+                        aria-describedby={errors.surname ? 'surnameError' : undefined}
                     />
+                    {errors.surname ? (
+                        <div id="surnameError" className="invalid-feedback">
+                          {errors.surname}
+                        </div>
+                    ) : null}
                   </div>
                   <div className="mb-3">
                     <label htmlFor="email" className="form-label fw-semibold">
@@ -153,15 +167,20 @@ export function RegisterPage() {
                         className={`form-control form-control-lg ${errors.email ? 'is-invalid' : ''}`}
                         id="email"
                         placeholder="Enter your email"
-                        value={name}
+                        value={email}
                         onChange={(e) => {
                           setEmail(e.target.value)
                           if (errors.email) setErrors((prev) => ({...prev, email: undefined}))
                         }}
                         disabled={isLoading}
-                        aria-invalid={Boolean(errors.name)}
-                        aria-describedby={errors.name ? 'nameError' : undefined}
+                        aria-invalid={Boolean(errors.email)}
+                        aria-describedby={errors.email ? 'emailError' : undefined}
                     />
+                    {errors.email ? (
+                        <div id="emailError" className="invalid-feedback">
+                          {errors.email}
+                        </div>
+                    ) : null}
                   </div>
                   <div className="mb-3">
                     <label htmlFor="birthDate" className="form-label fw-semibold">
@@ -170,17 +189,22 @@ export function RegisterPage() {
                     <input
                         type="date"
                         className={`form-control form-control-lg ${errors.birthDate ? 'is-invalid' : ''}`}
-                        id="bithDate"
+                        id="birthDate"
                         placeholder="Enter your birth date"
-                        value={name}
+                        value={birthDate}
                         onChange={(e) => {
                           setBirthDate(e.target.value)
                           if (errors.birthDate) setErrors((prev) => ({...prev, birthDate: undefined}))
                         }}
                         disabled={isLoading}
-                        aria-invalid={Boolean(errors.email)}
-                        aria-describedby={errors.email ? 'nameError' : undefined}
+                        aria-invalid={Boolean(errors.birthDate)}
+                        aria-describedby={errors.birthDate ? 'birthDateError' : undefined}
                     />
+                    {errors.birthDate ? (
+                        <div id="birthDateError" className="invalid-feedback">
+                          {errors.birthDate}
+                        </div>
+                    ) : null}
                   </div>
                   <div className="mb-3">
                     <label htmlFor="login" className="form-label fw-semibold">
@@ -221,7 +245,7 @@ export function RegisterPage() {
                           if (errors.password) setErrors((prev) => ({...prev, password: undefined}))
                         }}
                         disabled={isLoading}
-                        autoComplete="current-password"
+                        autoComplete="new-password"
                         aria-invalid={Boolean(errors.password)}
                         aria-describedby={errors.password ? 'passwordError' : undefined}
                     />
@@ -234,26 +258,26 @@ export function RegisterPage() {
 
                   <div className="mb-3">
                     <label htmlFor="confirmedPassword" className="form-label fw-semibold">
-                      Password
+                      Confirm Password
                     </label>
                     <input
                         type="password"
                         className={`form-control form-control-lg ${errors.confirmedPassword ? 'is-invalid' : ''}`}
-                        id="confi"
+                        id="confirmedPassword"
                         placeholder="Confirm your password"
                         value={confirmedPassword}
                         onChange={(e) => {
                           setConfirmedPassword(e.target.value)
-                          if (errors.password) setErrors((prev) => ({...prev, password: undefined}))
+                          if (errors.confirmedPassword) setErrors((prev) => ({...prev, confirmedPassword: undefined}))
                         }}
                         disabled={isLoading}
-                        autoComplete="current-password"
-                        aria-invalid={Boolean(errors.password)}
-                        aria-describedby={errors.password ? 'passwordError' : undefined}
+                        autoComplete="new-password"
+                        aria-invalid={Boolean(errors.confirmedPassword)}
+                        aria-describedby={errors.confirmedPassword ? 'confirmedPasswordError' : undefined}
                     />
-                    {errors.password ? (
-                        <div id="passwordError" className="invalid-feedback">
-                          {errors.password}
+                    {errors.confirmedPassword ? (
+                        <div id="confirmedPasswordError" className="invalid-feedback">
+                          {errors.confirmedPassword}
                         </div>
                     ) : null}
                   </div>
@@ -269,7 +293,7 @@ export function RegisterPage() {
                           Signing up...
                         </>
                     ) : (
-                        'Sign In'
+                        'Sign Up'
                     )}
                   </button>
 

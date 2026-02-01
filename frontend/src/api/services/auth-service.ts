@@ -22,3 +22,36 @@ export async function login(
     throw err
   }
 }
+
+export async function register(
+    userData: {
+      name: string
+      surname: string
+      email: string
+      birthDate: string
+      login: string
+      password: string
+    },
+): Promise<LoginResponse> {
+  try {
+    const {data} = await apiClient.post<LoginResponse>('/api/v1/auth/register', userData)
+    return data
+  } catch (err: unknown) {
+    if (axios.isAxiosError(err)) {
+      const status = err.response?.status
+
+      if (status === 400) {
+        throw new Error('Invalid registration data.')
+      }
+
+      if (status === 409) {
+        throw new Error('User with this login or email already exists.')
+      }
+
+      throw new Error(err.response?.statusText ?? 'Request failed.')
+    }
+
+    throw err
+  }
+}
+
