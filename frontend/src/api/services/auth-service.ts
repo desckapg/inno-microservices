@@ -1,5 +1,6 @@
 import apiClient from '../axios-client.ts'
 import {type LoginResponse} from '../../types/LoginResponse.ts'
+import {type RefreshResponse} from '../../types/RefreshResponse.ts'
 import axios from 'axios'
 
 export async function login(
@@ -55,3 +56,17 @@ export async function register(
   }
 }
 
+export async function refreshToken(refreshToken: string): Promise<RefreshResponse> {
+  try {
+    const {data} = await axios.post<RefreshResponse>(
+        `${import.meta.env.VITE_BASE_URL}/api/v1/auth/refresh`,
+        {refreshToken}
+    )
+    return data
+  } catch (err: unknown) {
+    if (axios.isAxiosError(err)) {
+      throw new Error(err.response?.statusText ?? 'Token refresh failed.')
+    }
+    throw err
+  }
+}

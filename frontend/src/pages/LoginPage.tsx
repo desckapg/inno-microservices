@@ -1,5 +1,8 @@
 import {type FormEvent, useMemo, useState} from 'react'
 import {login as loginRequest} from '../api/services/auth-service'
+import {tokenStore} from '../utils/token-store'
+import {useNavigate} from 'react-router'
+import {AuthFormField} from '../components/AuthFormField'
 
 type FieldErrors = {
   login?: string
@@ -26,6 +29,7 @@ function getErrorMessage(err: unknown): string {
 }
 
 export function LoginPage() {
+  const navigate = useNavigate()
   const [login, setLogin] = useState('')
   const [password, setPassword] = useState('')
   const [rememberMe, setRememberMe] = useState(false)
@@ -38,6 +42,19 @@ export function LoginPage() {
     return isLoading
   }, [isLoading])
 
+  const clearFieldError = (field: keyof FieldErrors) => {
+    setErrors((prev) => ({...prev, [field]: undefined}))
+  }
+
+  const performLogin = async () => {
+    const response = await loginRequest({
+      login: login.trim(),
+      password,
+    })
+    tokenStore.setTokens(response.accessToken, response.refreshToken)
+    navigate('/')
+  }
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
     setFormError(null)
@@ -49,13 +66,7 @@ export function LoginPage() {
 
     setIsLoading(true)
     try {
-      const response = await loginRequest({
-        login: login.trim(),
-        password,
-      })
-
-      console.log('Login success:', response)
-      // TODO: store tokens, redirect, etc.
+      await performLogin()
     } catch (err) {
       setFormError(getErrorMessage(err))
     } finally {
@@ -81,56 +92,34 @@ export function LoginPage() {
                 ) : null}
 
                 <form onSubmit={handleSubmit} noValidate>
-                  <div className="mb-3">
-                    <label htmlFor="login" className="form-label fw-semibold">
-                      Login
-                    </label>
-                    <input
-                        type="text"
-                        className={`form-control form-control-lg ${errors.login ? 'is-invalid' : ''}`}
-                        id="login"
-                        placeholder="Enter your login"
-                        value={login}
-                        onChange={(e) => {
-                          setLogin(e.target.value)
-                          if (errors.login) setErrors((prev) => ({...prev, login: undefined}))
-                        }}
-                        disabled={isLoading}
-                        aria-invalid={Boolean(errors.login)}
-                        aria-describedby={errors.login ? 'loginError' : undefined}
-                    />
-                    {errors.login ? (
-                        <div id="loginError" className="invalid-feedback">
-                          {errors.login}
-                        </div>
-                    ) : null}
-                  </div>
+                  <AuthFormField
+                      id="login"
+                      label="Login"
+                      type="text"
+                      placeholder="Enter your login"
+                      value={login}
+                      error={errors.login}
+                      disabled={isLoading}
+                      onChange={(e) => {
+                        setLogin(e.target.value)
+                        clearFieldError('login')
+                      }}
+                  />
 
-                  <div className="mb-3">
-                    <label htmlFor="password" className="form-label fw-semibold">
-                      Password
-                    </label>
-                    <input
-                        type="password"
-                        className={`form-control form-control-lg ${errors.password ? 'is-invalid' : ''}`}
-                        id="password"
-                        placeholder="Enter your password"
-                        value={password}
-                        onChange={(e) => {
-                          setPassword(e.target.value)
-                          if (errors.password) setErrors((prev) => ({...prev, password: undefined}))
-                        }}
-                        disabled={isLoading}
-                        autoComplete="current-password"
-                        aria-invalid={Boolean(errors.password)}
-                        aria-describedby={errors.password ? 'passwordError' : undefined}
-                    />
-                    {errors.password ? (
-                        <div id="passwordError" className="invalid-feedback">
-                          {errors.password}
-                        </div>
-                    ) : null}
-                  </div>
+                  <AuthFormField
+                      id="password"
+                      label="Password"
+                      type="password"
+                      placeholder="Enter your password"
+                      value={password}
+                      error={errors.password}
+                      disabled={isLoading}
+                      autoComplete="current-password"
+                      onChange={(e) => {
+                        setPassword(e.target.value)
+                        clearFieldError('password')
+                      }}
+                  />
 
                   <div className="d-flex justify-content-between align-items-center mb-4">
                     <div className="form-check">

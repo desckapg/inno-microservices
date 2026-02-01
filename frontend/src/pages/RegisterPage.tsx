@@ -1,5 +1,8 @@
 import {type FormEvent, useMemo, useState} from 'react'
 import {register as registerRequest} from '../api/services/auth-service'
+import {tokenStore} from '../utils/token-store'
+import {useNavigate} from 'react-router'
+import {AuthFormField} from '../components/AuthFormField'
 
 type FieldErrors = {
   name?: string
@@ -11,7 +14,13 @@ type FieldErrors = {
   confirmedPassword?: string
 }
 
-function validate(values: { name: string, surname: string, email: string, birthDate: string, login: string; password: string, confirmedPassword: string }): FieldErrors {
+function validate(values: { name: string,
+                    surname: string,
+                    email: string,
+                    birthDate: string,
+                    login: string;
+                    password: string,
+                    confirmedPassword: string }): FieldErrors {
   const errors: FieldErrors = {}
 
   const name = values.name.trim()
@@ -47,6 +56,7 @@ function getErrorMessage(err: unknown): string {
 }
 
 export function RegisterPage() {
+  const navigate = useNavigate()
   const [name, setName] = useState('')
   const [surname, setSurname] = useState('')
   const [email, setEmail] = useState('')
@@ -63,6 +73,23 @@ export function RegisterPage() {
     return isLoading
   }, [isLoading])
 
+  const clearFieldError = (field: keyof FieldErrors) => {
+    setErrors((prev) => ({...prev, [field]: undefined}))
+  }
+
+  const performRegistration = async () => {
+    const response = await registerRequest({
+      name: name.trim(),
+      surname: surname.trim(),
+      email: email.trim(),
+      birthDate,
+      login: login.trim(),
+      password,
+    })
+    tokenStore.setTokens(response.accessToken, response.refreshToken)
+    navigate('/')
+  }
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
     setFormError(null)
@@ -74,17 +101,7 @@ export function RegisterPage() {
 
     setIsLoading(true)
     try {
-      const response = await registerRequest({
-        name: name.trim(),
-        surname: surname.trim(),
-        email: email.trim(),
-        birthDate,
-        login: login.trim(),
-        password,
-      })
-
-      console.log('Register success:', response)
-      // TODO: store tokens, redirect, etc.
+      await performRegistration()
     } catch (err) {
       setFormError(getErrorMessage(err))
     } finally {
@@ -95,7 +112,7 @@ export function RegisterPage() {
   return (
       <div className="container">
         <div className="row justify-content-center align-items-center min-vh-100">
-          <div className="col-12 col-sm-10 col-md-8 col-lg-5 col-xl-4">
+          <div className="col-12 col-sm-10 col-md-10 col-lg-8 col-xl-7">
             <div className="card shadow border-0">
               <div className="card-body p-4 p-md-5">
                 <div className="text-center mb-4">
@@ -110,177 +127,128 @@ export function RegisterPage() {
                 ) : null}
 
                 <form onSubmit={handleSubmit} noValidate>
-                  <div className="mb-3">
-                    <label htmlFor="name" className="form-label fw-semibold">
-                      Name
-                    </label>
-                    <input
-                        type="text"
-                        className={`form-control form-control-lg ${errors.name ? 'is-invalid' : ''}`}
-                        id="name"
-                        placeholder="Enter your name"
-                        value={name}
-                        onChange={(e) => {
-                          setName(e.target.value)
-                          if (errors.name) setErrors((prev) => ({...prev, name: undefined}))
-                        }}
-                        disabled={isLoading}
-                        aria-invalid={Boolean(errors.name)}
-                        aria-describedby={errors.name ? 'nameError' : undefined}
-                    />
-                    {errors.name ? (
-                        <div id="nameError" className="invalid-feedback">
-                          {errors.name}
-                        </div>
-                    ) : null}
-                  </div>
-                  <div className="mb-3">
-                    <label htmlFor="surname" className="form-label fw-semibold">
-                      Surname
-                    </label>
-                    <input
-                        type="text"
-                        className={`form-control form-control-lg ${errors.surname ? 'is-invalid' : ''}`}
-                        id="surname"
-                        placeholder="Enter your surname"
-                        value={surname}
-                        onChange={(e) => {
-                          setSurname(e.target.value)
-                          if (errors.surname) setErrors((prev) => ({...prev, surname: undefined}))
-                        }}
-                        disabled={isLoading}
-                        aria-invalid={Boolean(errors.surname)}
-                        aria-describedby={errors.surname ? 'surnameError' : undefined}
-                    />
-                    {errors.surname ? (
-                        <div id="surnameError" className="invalid-feedback">
-                          {errors.surname}
-                        </div>
-                    ) : null}
-                  </div>
-                  <div className="mb-3">
-                    <label htmlFor="email" className="form-label fw-semibold">
-                      Email
-                    </label>
-                    <input
-                        type="email"
-                        className={`form-control form-control-lg ${errors.email ? 'is-invalid' : ''}`}
-                        id="email"
-                        placeholder="Enter your email"
-                        value={email}
-                        onChange={(e) => {
-                          setEmail(e.target.value)
-                          if (errors.email) setErrors((prev) => ({...prev, email: undefined}))
-                        }}
-                        disabled={isLoading}
-                        aria-invalid={Boolean(errors.email)}
-                        aria-describedby={errors.email ? 'emailError' : undefined}
-                    />
-                    {errors.email ? (
-                        <div id="emailError" className="invalid-feedback">
-                          {errors.email}
-                        </div>
-                    ) : null}
-                  </div>
-                  <div className="mb-3">
-                    <label htmlFor="birthDate" className="form-label fw-semibold">
-                      Birth date
-                    </label>
-                    <input
-                        type="date"
-                        className={`form-control form-control-lg ${errors.birthDate ? 'is-invalid' : ''}`}
-                        id="birthDate"
-                        placeholder="Enter your birth date"
-                        value={birthDate}
-                        onChange={(e) => {
-                          setBirthDate(e.target.value)
-                          if (errors.birthDate) setErrors((prev) => ({...prev, birthDate: undefined}))
-                        }}
-                        disabled={isLoading}
-                        aria-invalid={Boolean(errors.birthDate)}
-                        aria-describedby={errors.birthDate ? 'birthDateError' : undefined}
-                    />
-                    {errors.birthDate ? (
-                        <div id="birthDateError" className="invalid-feedback">
-                          {errors.birthDate}
-                        </div>
-                    ) : null}
-                  </div>
-                  <div className="mb-3">
-                    <label htmlFor="login" className="form-label fw-semibold">
-                      Login
-                    </label>
-                    <input
-                        type="text"
-                        className={`form-control form-control-lg ${errors.login ? 'is-invalid' : ''}`}
-                        id="login"
-                        placeholder="Enter your login"
-                        value={login}
-                        onChange={(e) => {
-                          setLogin(e.target.value)
-                          if (errors.login) setErrors((prev) => ({...prev, login: undefined}))
-                        }}
-                        disabled={isLoading}
-                        aria-invalid={Boolean(errors.login)}
-                        aria-describedby={errors.login ? 'loginError' : undefined}
-                    />
-                    {errors.login ? (
-                        <div id="loginError" className="invalid-feedback">
-                          {errors.login}
-                        </div>
-                    ) : null}
-                  </div>
-                  <div className="mb-3">
-                    <label htmlFor="password" className="form-label fw-semibold">
-                      Password
-                    </label>
-                    <input
-                        type="password"
-                        className={`form-control form-control-lg ${errors.password ? 'is-invalid' : ''}`}
-                        id="password"
-                        placeholder="Enter your password"
-                        value={password}
-                        onChange={(e) => {
-                          setPassword(e.target.value)
-                          if (errors.password) setErrors((prev) => ({...prev, password: undefined}))
-                        }}
-                        disabled={isLoading}
-                        autoComplete="new-password"
-                        aria-invalid={Boolean(errors.password)}
-                        aria-describedby={errors.password ? 'passwordError' : undefined}
-                    />
-                    {errors.password ? (
-                        <div id="passwordError" className="invalid-feedback">
-                          {errors.password}
-                        </div>
-                    ) : null}
+                  <div className="row mb-3">
+                    <div className="col-sm-6">
+                      <label htmlFor="name" className="form-label fw-semibold">
+                        Name
+                      </label>
+                      <input
+                          type="text"
+                          className={`form-control form-control-lg ${errors.name ? 'is-invalid' : ''}`}
+                          id="name"
+                          placeholder="Enter your name"
+                          value={name}
+                          onChange={(e) => {
+                            setName(e.target.value)
+                            clearFieldError('name')
+                          }}
+                          disabled={isLoading}
+                          aria-invalid={Boolean(errors.name)}
+                          aria-describedby={errors.name ? 'nameError' : undefined}
+                      />
+                      {errors.name ? (
+                          <div id="nameError" className="invalid-feedback">
+                            {errors.name}
+                          </div>
+                      ) : null}
+                    </div>
+                    <div className="col-sm-6">
+                      <label htmlFor="surname" className="form-label fw-semibold">
+                        Surname
+                      </label>
+                      <input
+                          type="text"
+                          className={`form-control form-control-lg ${errors.surname ? 'is-invalid' : ''}`}
+                          id="surname"
+                          placeholder="Enter your surname"
+                          value={surname}
+                          onChange={(e) => {
+                            setSurname(e.target.value)
+                            clearFieldError('surname')
+                          }}
+                          disabled={isLoading}
+                          aria-invalid={Boolean(errors.surname)}
+                          aria-describedby={errors.surname ? 'surnameError' : undefined}
+                      />
+                      {errors.surname ? (
+                          <div id="surnameError" className="invalid-feedback">
+                            {errors.surname}
+                          </div>
+                      ) : null}
+                    </div>
                   </div>
 
-                  <div className="mb-3">
-                    <label htmlFor="confirmedPassword" className="form-label fw-semibold">
-                      Confirm Password
-                    </label>
-                    <input
-                        type="password"
-                        className={`form-control form-control-lg ${errors.confirmedPassword ? 'is-invalid' : ''}`}
-                        id="confirmedPassword"
-                        placeholder="Confirm your password"
-                        value={confirmedPassword}
-                        onChange={(e) => {
-                          setConfirmedPassword(e.target.value)
-                          if (errors.confirmedPassword) setErrors((prev) => ({...prev, confirmedPassword: undefined}))
-                        }}
-                        disabled={isLoading}
-                        autoComplete="new-password"
-                        aria-invalid={Boolean(errors.confirmedPassword)}
-                        aria-describedby={errors.confirmedPassword ? 'confirmedPasswordError' : undefined}
-                    />
-                    {errors.confirmedPassword ? (
-                        <div id="confirmedPasswordError" className="invalid-feedback">
-                          {errors.confirmedPassword}
-                        </div>
-                    ) : null}
-                  </div>
+                  <AuthFormField
+                      id="email"
+                      label="Email"
+                      type="email"
+                      placeholder="Enter your email"
+                      value={email}
+                      error={errors.email}
+                      disabled={isLoading}
+                      onChange={(e) => {
+                        setEmail(e.target.value)
+                        clearFieldError('email')
+                      }}
+                  />
+
+                  <AuthFormField
+                      id="birthDate"
+                      label="Birth date"
+                      type="date"
+                      placeholder="Enter your birth date"
+                      value={birthDate}
+                      error={errors.birthDate}
+                      disabled={isLoading}
+                      onChange={(e) => {
+                        setBirthDate(e.target.value)
+                        clearFieldError('birthDate')
+                      }}
+                  />
+
+                  <AuthFormField
+                      id="login"
+                      label="Login"
+                      type="text"
+                      placeholder="Enter your login"
+                      value={login}
+                      error={errors.login}
+                      disabled={isLoading}
+                      onChange={(e) => {
+                        setLogin(e.target.value)
+                        clearFieldError('login')
+                      }}
+                  />
+
+                  <AuthFormField
+                      id="password"
+                      label="Password"
+                      type="password"
+                      placeholder="Enter your password"
+                      value={password}
+                      error={errors.password}
+                      disabled={isLoading}
+                      autoComplete="new-password"
+                      onChange={(e) => {
+                        setPassword(e.target.value)
+                        clearFieldError('password')
+                      }}
+                  />
+
+                  <AuthFormField
+                      id="confirmedPassword"
+                      label="Confirm Password"
+                      type="password"
+                      placeholder="Confirm your password"
+                      value={confirmedPassword}
+                      error={errors.confirmedPassword}
+                      disabled={isLoading}
+                      autoComplete="new-password"
+                      onChange={(e) => {
+                        setConfirmedPassword(e.target.value)
+                        clearFieldError('confirmedPassword')
+                      }}
+                  />
 
                   <button
                       type="submit"
