@@ -32,6 +32,13 @@ spring:
               filters:
                 - 'Authorization'
                 - 'CircuitBreaker=order-service'
+            - id: order-service
+              uri: lb://order-service
+              predicates:
+                - 'Path=/api/v1/items/**'
+              filters:
+                - 'Authorization'
+                - 'CircuitBreaker=order-service'
             - id: others
               uri: no://op
               predicates:
