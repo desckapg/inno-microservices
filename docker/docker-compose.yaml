@@ -176,8 +176,6 @@ services:
       context: ../order-service
     environment:
       - SPRING_PROFILES_ACTIVE=prod
-      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY=TRACE
-      - LOGGING_LEVEL_COM_INNOWISE_AUTH_SECURITY=TRACE
     env_file:
       - .env.order-service
     ports:

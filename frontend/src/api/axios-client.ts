@@ -80,7 +80,12 @@ apiClient.interceptors.response.use(
       try {
         const {data} = await axios.post(
             `${import.meta.env.VITE_BASE_URL}/api/v1/auth/refresh`,
-            {refreshToken}
+            {},
+            {
+              headers: {
+                'X-Refresh-Token': refreshToken
+              }
+            }
         )
 
         const {accessToken} = data

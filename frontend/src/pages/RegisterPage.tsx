@@ -87,7 +87,7 @@ export function RegisterPage() {
       password,
     })
     tokenStore.setTokens(response.accessToken, response.refreshToken)
-    navigate('/')
+    navigate('/orders')
   }
 
   const handleSubmit = async (e: FormEvent) => {

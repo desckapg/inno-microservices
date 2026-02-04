@@ -32,7 +32,6 @@ export function LoginPage() {
   const navigate = useNavigate()
   const [login, setLogin] = useState('')
   const [password, setPassword] = useState('')
-  const [rememberMe, setRememberMe] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
 
   const [errors, setErrors] = useState<FieldErrors>({})
@@ -52,7 +51,7 @@ export function LoginPage() {
       password,
     })
     tokenStore.setTokens(response.accessToken, response.refreshToken)
-    navigate('/')
+    navigate('/orders')
   }
 
   const handleSubmit = async (e: FormEvent) => {
@@ -121,21 +120,6 @@ export function LoginPage() {
                       }}
                   />
 
-                  <div className="d-flex justify-content-between align-items-center mb-4">
-                    <div className="form-check">
-                      <input
-                          type="checkbox"
-                          className="form-check-input"
-                          id="rememberMe"
-                          checked={rememberMe}
-                          onChange={(e) => setRememberMe(e.target.checked)}
-                          disabled={isLoading}
-                      />
-                      <label className="form-check-label" htmlFor="rememberMe">
-                        Remember me
-                      </label>
-                    </div>
-                  </div>
 
                   <button
                       type="submit"

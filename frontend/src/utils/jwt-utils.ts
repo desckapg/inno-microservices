@@ -58,5 +58,11 @@ export const jwtUtils = {
     }
 
     return Date.now() >= payload.exp * 1000
+  },
+
+  hasManagerAuthority(): boolean {
+    const roles = this.getCurrentUserRoles()
+    // Check if user has MANAGER or ADMIN role
+    return roles.some(role => role === 'ROLE_MANAGER' || role === 'ROLE_ADMIN')
   }
 }

@@ -13,7 +13,3 @@ management:
     metrics:
       export:
         enabled: false
-
-logging:
-  level:
-    org.springframework.kafka.*: DEBUG

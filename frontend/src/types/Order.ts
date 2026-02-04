@@ -1,22 +1,6 @@
-export type OrderStatus = 'NEW' | 'PROCESSING' | 'DELIVERING' | 'CANCELLED' | 'SHIPPED'
-
-export interface Item {
-  id: number
-  name: string
-  price: number
-}
-
-export interface OrderItem {
-  item: Item
-  quantity: number
-}
-
-export interface User {
-  id: number
-  name: string
-  surname: string
-  email: string
-}
+import type { OrderStatus } from './OrderStatus'
+import type { User } from './User'
+import type { OrderItem } from './OrderItem'
 
 export interface Order {
   id?: number
@@ -44,3 +28,4 @@ export interface OrderFilters {
   ids?: number[]
   statuses?: OrderStatus[]
 }
+
