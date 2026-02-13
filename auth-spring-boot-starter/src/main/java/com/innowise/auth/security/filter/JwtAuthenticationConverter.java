@@ -49,7 +49,6 @@ public class JwtAuthenticationConverter implements AuthenticationConverter {
     }
     return Optional.of(JwtUserDetails.builder()
         .id(Long.parseUnsignedLong(id))
-        .login(id)
         .authorities(roles)
         .build()
     );

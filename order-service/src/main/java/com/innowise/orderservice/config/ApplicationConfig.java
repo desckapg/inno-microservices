@@ -31,7 +31,7 @@ public class ApplicationConfig {
 
   @Bean
   public Logger.Level feignLoggerLevel() {
-    return Level.HEADERS;
+    return Level.BASIC;
   }
 
 }

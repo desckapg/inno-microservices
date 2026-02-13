@@ -19,7 +19,7 @@ public class LoginRolesJwtAuthenticationToken extends AbstractAuthenticationToke
   private final JwtUserDetails user;
 
   public LoginRolesJwtAuthenticationToken(JwtUserDetails user, String jwtToken) {
-    super(user.getAuthorities());
+    super(user.authorities());
     this.user = user;
     this.jwtToken = jwtToken;
     super.setAuthenticated(true);

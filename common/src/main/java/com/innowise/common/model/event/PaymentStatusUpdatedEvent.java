@@ -8,9 +8,11 @@ import java.io.Serial;
 import java.io.Serializable;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.ToString;
 
 @Getter
 @RequiredArgsConstructor
+@ToString
 public class PaymentStatusUpdatedEvent extends BaseEvent implements Serializable {
 
   @Serial

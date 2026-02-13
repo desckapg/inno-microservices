@@ -9,6 +9,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.util.Objects;
 import lombok.Builder;
 
 @Builder
@@ -49,4 +50,33 @@ public record ItemDto(
 
 ) implements Serializable {
 
+    // Sometimes Hibernate BigDecimal type convertor can add trailing zeros,
+    // so with just equals "43.10" and "43.1" big decimals will be not equal.
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        ItemDto itemDto = (ItemDto) o;
+
+        boolean idAndNameEquality = Objects.equals(id(), itemDto.id())
+            && Objects.equals(name(), itemDto.name());
+
+        if (price == null && itemDto.price() == null) {
+            return idAndNameEquality;
+        }
+
+        if (price != null && itemDto.price() != null) {
+            return idAndNameEquality && price.compareTo(itemDto.price()) == 0;
+        }
+
+        return false;
+    }
+
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id(), name(), price());
+    }
 }

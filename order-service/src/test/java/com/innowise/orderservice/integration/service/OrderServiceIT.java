@@ -65,7 +65,7 @@ class OrderServiceIT extends AbstractIntegrationTest {
             .setNull("id")
             .setLazy("name", () -> FAKER.commerce().productName())
             .setLazy("price",
-                () -> BigDecimal.valueOf(Double.parseDouble(FAKER.commerce().price())))
+                () -> BigDecimal.valueOf(Double.parseDouble(FAKER.commerce().price())).stripTrailingZeros())
         )
         .build();
 
@@ -242,7 +242,7 @@ class OrderServiceIT extends AbstractIntegrationTest {
     assertThat(orderService.findAll(OrderSpecsDto.builder()
         .ids(orders.stream().map(Order::getId).toList())
         .build())
-    ).containsAll(orders.stream().map(order -> orderMapper.toDto(order, ownedUserDto)).toList());
+    ).containsExactlyInAnyOrderElementsOf(orders.stream().map(order -> orderMapper.toDto(order, ownedUserDto)).toList());
   }
 
   @Test
@@ -343,15 +343,11 @@ class OrderServiceIT extends AbstractIntegrationTest {
     assertThat(orderService.findAll(OrderSpecsDto.builder()
         .userId(ownedUserDto.id())
         .build())
-    ).containsAll(orders.stream().map(order -> orderMapper.toDto(order, ownedUserDto)).toList());
+    ).containsExactlyInAnyOrderElementsOf(orders.stream().map(order -> orderMapper.toDto(order, ownedUserDto)).toList());
   }
 
   @Test
-  @WithMockCustomUser(
-      roles = {
-          "USER"
-      }
-  )
+  @WithMockCustomUser
   void findAll_byUserIdAndUserHasUserAuthorityAndOwnedOrders_returnOrders() {
     var ownedUserDto = userDtosSut.giveMeBuilder(UserDto.class)
         .set("id", authTokenProvider.get().getPrincipal().id())
@@ -376,15 +372,11 @@ class OrderServiceIT extends AbstractIntegrationTest {
     assertThat(orderService.findAll(OrderSpecsDto.builder()
         .userId(ownedUserDto.id())
         .build())
-    ).containsAll(orders.stream().map(order -> orderMapper.toDto(order, ownedUserDto)).toList());
+    ).containsExactlyInAnyOrderElementsOf(orders.stream().map(order -> orderMapper.toDto(order, ownedUserDto)).toList());
   }
 
   @Test
-  @WithMockCustomUser(
-      roles = {
-          "USER"
-      }
-  )
+  @WithMockCustomUser
   void findAll_byUserIdAndUserHasUserAuthorityAndOwnedOrders_accessDenied() {
 
     var ownedUserDto = userDtosSut.giveMeOne(UserDto.class);

@@ -17,7 +17,6 @@ import org.mapstruct.MappingTarget;
 public interface OrderMapper {
 
   @Mapping(target = "user", expression = "java(userDto)")
-  @Mapping(target = "orderItems", qualifiedByName = "toDtoIdOnly")
   OrderDto toDto(Order order, @Context UserDto userDto);
 
   com.innowise.common.model.dto.order.OrderDto toExternalDto(OrderDto orderDto);

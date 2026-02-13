@@ -20,8 +20,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
-import org.hibernate.annotations.Fetch;
-import org.hibernate.annotations.FetchMode;
 import org.hibernate.proxy.HibernateProxy;
 
 @AllArgsConstructor
@@ -45,10 +43,9 @@ public class Order extends BaseEntity {
   @OneToMany(
       cascade = CascadeType.ALL,
       orphanRemoval = true,
-      fetch = FetchType.EAGER
+      fetch = FetchType.LAZY
   )
   @JoinColumn(name = "order_id")
-  @Fetch(FetchMode.JOIN)
   private List<OrderItem> orderItems = new ArrayList<>();
 
   public void addItem(OrderItem item) {
