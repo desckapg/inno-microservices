@@ -22,20 +22,20 @@ public interface UserService {
    * @param dto new data
    * @return updated user
    */
-  UserDto update(Long id, UserDto dto);
+  UserDto update(String id, UserDto dto);
 
   /**
    * Deletes a user by id.
    * @param id user identifier
    */
-  void delete(Long id);
+  void delete(String id);
 
   /**
    * Finds a user by id.
    * @param id user identifier
    * @return user DTO
    */
-  UserDto findById(Long id);
+  UserDto findById(String id);
 
   /**
    * Finds a user by email.
@@ -49,7 +49,7 @@ public interface UserService {
    * @param ids list of user ids
    * @return list of users
    */
-  List<UserDto> findAllByIdIn(List<Long> ids);
+  List<UserDto> findAllByIdIn(List<String> ids);
 
   /**
    * Returns all users.

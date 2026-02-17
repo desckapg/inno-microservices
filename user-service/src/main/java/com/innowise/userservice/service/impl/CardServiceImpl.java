@@ -88,7 +88,7 @@ public class CardServiceImpl implements CardService {
         .toList();
   }
 
-  public List<CardDto> findUserCards(Long userId) {
+  public List<CardDto> findUserCards(String userId) {
     if (cacheHelper.isUserCached(userId)) {
       return cacheHelper.getCardsFromCache(userId);
     }

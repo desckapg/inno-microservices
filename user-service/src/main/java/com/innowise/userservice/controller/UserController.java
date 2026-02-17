@@ -53,7 +53,7 @@ public class UserController {
   @GetMapping
   public ResponseEntity<List<UserDto>> find(
       @Nullable @RequestParam(name = "email", required = false) @Email String email,
-      @Nullable @RequestParam(name = "ids", required = false) List<Long> ids) {
+      @Nullable @RequestParam(name = "ids", required = false) List<String> ids) {
 
     boolean hasEmail = email != null && !email.isBlank();
     boolean hasIds = ids != null && !ids.isEmpty();
@@ -82,7 +82,7 @@ public class UserController {
       "hasAuthority(T(com.innowise.auth.model.Role).USER.getAuthority()) and #id == authentication.principal.id or " +
       "hasAuthority(T(com.innowise.auth.model.Role).MANAGER.getAuthority())"
   )
-  public ResponseEntity<UserDto> findById(@PathVariable Long id) {
+  public ResponseEntity<UserDto> findById(@PathVariable String id) {
     return ResponseEntity.ok(userService.findById(id));
   }
 
@@ -105,7 +105,7 @@ public class UserController {
   @PutMapping("/{id}")
   @PreAuthorize("hasAuthority(T(com.innowise.auth.model.Role).MANAGER.getAuthority())")
   public ResponseEntity<UserDto> update(
-      @PathVariable Long id,
+      @PathVariable String id,
       @RequestBody @Validated(OnUpdate.class) UserDto dto) {
     return ResponseEntity.ok(userService.update(id, dto));
   }
@@ -117,7 +117,7 @@ public class UserController {
    */
   @DeleteMapping("/{id}")
   @PreAuthorize("hasAuthority(T(com.innowise.auth.model.Role).MANAGER.getAuthority())")
-  public ResponseEntity<Void> delete(@PathVariable Long id) {
+  public ResponseEntity<Void> delete(@PathVariable String id) {
     userService.delete(id);
     return ResponseEntity.noContent().build();
   }
@@ -132,7 +132,7 @@ public class UserController {
       "hasAuthority(T(com.innowise.auth.model.Role).USER.getAuthority()) and #userId == authentication.principal.id or " +
       "hasAuthority(T(com.innowise.auth.model.Role).MANAGER.getAuthority())"
   )
-  public ResponseEntity<List<CardDto>> findUserCards(@PathVariable Long userId) {
+  public ResponseEntity<List<CardDto>> findUserCards(@PathVariable String userId) {
     return ResponseEntity.ok(cardService.findUserCards(userId));
   }
 

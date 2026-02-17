@@ -26,7 +26,7 @@ public class CacheHelper {
     }
   }
 
-  public void addCardToCache(Long userId, CardDto newCard) {
+  public void addCardToCache(String userId, CardDto newCard) {
     UserDto cached = getFromCache(userId);
     if (cached != null) {
       List<CardDto> cards = new ArrayList<>(Optional.ofNullable(cached.cards()).orElse(List.of()));
@@ -46,7 +46,7 @@ public class CacheHelper {
     );
 }
 
-  public List<CardDto> getCardsFromCache(Long userId) {
+  public List<CardDto> getCardsFromCache(String userId) {
     UserDto cached = getFromCache(userId);
     if (cached != null && cached.cards() != null) {
       return cached.cards();
@@ -54,7 +54,7 @@ public class CacheHelper {
     return List.of();
   }
 
-  public void removeCardFromCache(Long userId, Long cardId) {
+  public void removeCardFromCache(String userId, Long cardId) {
     UserDto cached = getFromCache(userId);
     if (cached != null && cached.cards() != null) {
       List<CardDto> cards = new ArrayList<>(cached.cards());
@@ -70,11 +70,11 @@ public class CacheHelper {
     }
   }
 
-  public boolean isUserCached(Long userId) {
+  public boolean isUserCached(String userId) {
     return getFromCache(userId) != null;
   }
 
-  public void updateCardInCache(Long userId, CardDto updatedCard) {
+  public void updateCardInCache(String userId, CardDto updatedCard) {
     UserDto cached = getFromCache(userId);
     if (cached != null) {
       List<CardDto> cards = new ArrayList<>(Optional.ofNullable(cached.cards()).orElse(List.of()));
@@ -102,14 +102,14 @@ public class CacheHelper {
     });
   }
 
-  private void putInCache(Long key, UserDto value) {
+  private void putInCache(Object key, UserDto value) {
     Cache cache = cacheManager.getCache(CacheHelper.USER_CACHE);
     if (cache != null) {
       cache.put(key, value);
     }
   }
 
-  private UserDto getFromCache(Long key) {
+  private UserDto getFromCache(Object key) {
     Cache cache = cacheManager.getCache(CacheHelper.USER_CACHE);
     if (cache != null) {
       return cache.get(key, UserDto.class);

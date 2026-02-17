@@ -2,6 +2,7 @@ package com.innowise.userservice.testutil;
 
 import com.innowise.userservice.model.entity.User;
 import java.time.LocalDate;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class Users {
@@ -27,7 +28,7 @@ public class Users {
         .birthDate(LocalDate.now().minusYears(20))
         .email("john" + n + "@example.com")
         .build();
-    user.setId(n);
+    user.setId(UUID.randomUUID().toString());
     return user;
   }
 
@@ -35,13 +36,13 @@ public class Users {
     return user(name, surname, email).build();
   }
 
-  public static User buildWithId(Long id, String name, String surname, String email) {
+  public static User buildWithId(String id, String name, String surname, String email) {
     var user = build(name, surname, email);
     user.setId(id);
     return user;
   }
 
-  public static User buildWithId(Long id) {
+  public static User buildWithId(String id) {
     var user = build();
     user.setId(id);
     return user;

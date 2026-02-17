@@ -1,14 +1,5 @@
 package com.innowise.userservice.integration.controller;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 import com.innowise.auth.test.annotation.WithMockCustomUser;
 import com.innowise.userservice.cache.CacheHelper;
 import com.innowise.userservice.controller.CardController;
@@ -22,6 +13,7 @@ import com.innowise.userservice.testutil.Cards;
 import com.innowise.userservice.testutil.Users;
 import jakarta.persistence.EntityManager;
 import java.util.List;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -34,6 +26,15 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 import tools.jackson.databind.ObjectMapper;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @IT
 @RequiredArgsConstructor
@@ -67,13 +68,13 @@ class CardControllerIT extends AbstractIntegrationTest {
   void prepareFixtures() {
     userFixture = Users.build();
     cardFixture = Cards.buildWithoutId(userFixture);
-    transactionTemplate.executeWithoutResult(status -> entityManager.persist(userFixture));
+    transactionTemplate.executeWithoutResult(_ -> entityManager.persist(userFixture));
   }
 
   @AfterAll
   void cleanupFixtures() {
     transactionTemplate.executeWithoutResult(
-        status -> entityManager.remove(entityManager.find(User.class, userFixture.getId())));
+        _ -> entityManager.remove(entityManager.find(User.class, userFixture.getId())));
   }
 
   @AfterEach
@@ -111,7 +112,7 @@ class CardControllerIT extends AbstractIntegrationTest {
   @Transactional
   void create_whenUserNotExists_shouldReturnNotFoundStatus() throws Exception {
     var creatingCard = Cards.build();
-    creatingCard.setUser(entityManager.getReference(User.class, Long.MAX_VALUE));
+    creatingCard.setUser(entityManager.getReference(User.class, UUID.randomUUID().toString()));
     mockMvc.perform(
         post(BASE_URL)
             .contentType(MediaType.APPLICATION_JSON)

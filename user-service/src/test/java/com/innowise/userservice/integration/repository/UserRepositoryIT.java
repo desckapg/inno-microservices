@@ -1,7 +1,5 @@
 package com.innowise.userservice.integration.repository;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import com.innowise.userservice.integration.AbstractIntegrationTest;
 import com.innowise.userservice.integration.annotation.IT;
 import com.innowise.userservice.model.entity.Card;
@@ -11,6 +9,7 @@ import com.innowise.userservice.testutil.Cards;
 import com.innowise.userservice.testutil.Users;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Hibernate;
 import org.junit.jupiter.api.AfterAll;
@@ -20,6 +19,8 @@ import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
 import org.springframework.transaction.support.TransactionTemplate;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 @IT
 @RequiredArgsConstructor
@@ -71,7 +72,7 @@ class UserRepositoryIT extends AbstractIntegrationTest {
 
   @Test
   void findUserWithCardsById_whenUserNotExists_shouldEmptyOptional() {
-    assertThat(userRepository.findWithCardsById(Long.MAX_VALUE))
+    assertThat(userRepository.findWithCardsById(UUID.randomUUID().toString()))
         .isEmpty();
   }
 
@@ -111,7 +112,10 @@ class UserRepositoryIT extends AbstractIntegrationTest {
 
   @Test
   void findAllByIdIn_whenIdsNotExist_shouldReturnEmptyList() {
-    var nonExistentIds = List.of(999L, 1000L);
+    var nonExistentIds = List.of(
+        UUID.randomUUID().toString(),
+        UUID.randomUUID().toString()
+    );
 
     assertThat(userRepository.findAllByIdIn(nonExistentIds))
         .isEmpty();
@@ -125,7 +129,7 @@ class UserRepositoryIT extends AbstractIntegrationTest {
 
   @Test
   void findAllByIdIn_whenMixedIds_shouldReturnOnlyExistingUsers() {
-    var mixedIds = List.of(userFixture.getId(), 999L);
+    var mixedIds = List.of(userFixture.getId(), UUID.randomUUID().toString());
 
     assertThat(userRepository.findAllByIdIn(mixedIds))
         .hasSize(1)

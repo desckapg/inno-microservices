@@ -1,15 +1,8 @@
 package com.innowise.userservice.integration.service;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatNoException;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-
-import com.innowise.userservice.cache.CacheHelper;
 import com.innowise.common.exception.ResourceAlreadyExistsException;
 import com.innowise.common.exception.ResourceNotFoundException;
+import com.innowise.userservice.cache.CacheHelper;
 import com.innowise.userservice.integration.AbstractIntegrationTest;
 import com.innowise.userservice.integration.annotation.IT;
 import com.innowise.userservice.model.dto.card.CardDto;
@@ -23,6 +16,7 @@ import com.innowise.userservice.testutil.Cards;
 import com.innowise.userservice.testutil.Users;
 import jakarta.persistence.EntityManager;
 import java.util.List;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -31,6 +25,13 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatNoException;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 @IT
 @RequiredArgsConstructor
@@ -52,13 +53,13 @@ class CardServiceIT extends AbstractIntegrationTest {
   void prepareFixtures() {
     userFixture = Users.build();
     cardFixture = Cards.buildWithoutId(userFixture);
-    transactionTemplate.executeWithoutResult(status ->
+    transactionTemplate.executeWithoutResult(_ ->
         entityManager.persist(userFixture));
   }
 
   @AfterAll
   void cleanupFixtures() {
-    transactionTemplate.executeWithoutResult(status ->
+    transactionTemplate.executeWithoutResult(_ ->
         entityManager.remove(entityManager.find(User.class, userFixture.getId())));
   }
 
@@ -184,7 +185,8 @@ class CardServiceIT extends AbstractIntegrationTest {
 
   @Test
   void findUserCards_whenUserDoesNotExist_shouldThrowUserNotFoundException() {
-    assertThatThrownBy(() -> cardService.findUserCards(Long.MAX_VALUE))
+    var id = UUID.randomUUID().toString();
+    assertThatThrownBy(() -> cardService.findUserCards(id))
         .isInstanceOf(ResourceNotFoundException.class)
         .hasMessageContaining("User", "id");
   }
@@ -222,7 +224,7 @@ class CardServiceIT extends AbstractIntegrationTest {
         .number(cardFixture.getNumber())
         .holder(newCard.getHolder())
         .expirationDate(newCard.getExpirationDate())
-        .userId(Long.MAX_VALUE)
+        .userId(UUID.randomUUID().toString())
         .build();
 
     assertThatThrownBy(() -> cardService.create(createDto))
@@ -239,7 +241,7 @@ class CardServiceIT extends AbstractIntegrationTest {
         .number(newCardDto.getNumber())
         .holder(newCardDto.getHolder())
         .expirationDate(newCardDto.getExpirationDate())
-        .userId(Long.MAX_VALUE)
+        .userId(UUID.randomUUID().toString())
         .build();
 
     assertThatThrownBy(() -> cardService.create(createDto))

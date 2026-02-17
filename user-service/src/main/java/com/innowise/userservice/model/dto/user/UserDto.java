@@ -8,6 +8,7 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Past;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import java.io.Serializable;
 import java.time.LocalDate;
@@ -20,7 +21,12 @@ public record UserDto(
     @NotNull(groups = OnCreate.class,
         message = "Id must be not null for new users"
     )
-    Long id,
+    @Pattern(
+        groups = OnCreate.class,
+        regexp = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
+        message = "Id must be a valid UUID"
+    )
+    String id,
 
     @NotBlank(groups = {OnCreate.class, OnUpdate.class},
         message = "Name is required"

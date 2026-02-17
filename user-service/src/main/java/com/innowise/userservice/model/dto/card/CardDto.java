@@ -46,7 +46,7 @@ public record CardDto(
     )
     LocalDate expirationDate,
 
-    Long userId
+    String userId
 ) implements Serializable {
 
 }
