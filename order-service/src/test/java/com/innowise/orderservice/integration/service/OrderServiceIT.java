@@ -1,13 +1,5 @@
 package com.innowise.orderservice.integration.service;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.assertj.core.api.Assertions.assertThatNoException;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.when;
-
 import com.innowise.auth.security.provider.AuthTokenProvider;
 import com.innowise.auth.test.annotation.WithMockCustomUser;
 import com.innowise.common.exception.ResourceNotFoundException;
@@ -28,6 +20,7 @@ import com.navercorp.fixturemonkey.api.introspector.ConstructorPropertiesArbitra
 import com.navercorp.fixturemonkey.api.jqwik.JqwikPlugin;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import net.jqwik.api.Arbitraries;
 import org.junit.jupiter.api.AfterAll;
@@ -37,6 +30,13 @@ import org.mockito.Mockito;
 import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
 import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.transaction.support.TransactionTemplate;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatNoException;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.when;
 
 @IT
 @RequiredArgsConstructor
@@ -89,7 +89,7 @@ class OrderServiceIT extends AbstractIntegrationTest {
         .nullableContainer(false)
         .nullableElement(false)
         .register(UserDto.class, fm -> fm.giveMeBuilder(UserDto.class)
-            .set("id", Arbitraries.longs().greaterOrEqual(10000L))
+            .setLazy("id", () -> UUID.randomUUID().toString())
             .set("name", FAKER.name().firstName())
             .set("surname", FAKER.name().lastName())
             .set("birthDate", LocalDate.of(1970, 1, 1))
@@ -122,6 +122,7 @@ class OrderServiceIT extends AbstractIntegrationTest {
   @Test
   void delete_orderExists_delete() {
     var order = ordersSut.giveMeOne(Order.class);
+    order.getOrderItems().forEach(item -> item.setOrder(order));
     em.persist(order);
 
     assertThat(em.find(Order.class, order.getId())).isNotNull();
@@ -154,6 +155,7 @@ class OrderServiceIT extends AbstractIntegrationTest {
     var order = ordersSut.giveMeBuilder(Order.class)
         .set("userId", userDto.id())
         .sample();
+    order.getOrderItems().forEach(item -> item.setOrder(order));
 
     em.persist(order);
     em.flush();
@@ -178,6 +180,7 @@ class OrderServiceIT extends AbstractIntegrationTest {
 
     var order = ordersSut.giveMeBuilder(Order.class)
         .sample();
+    order.getOrderItems().forEach(item -> item.setOrder(order));
 
     em.persist(order);
     em.flush();
@@ -234,7 +237,7 @@ class OrderServiceIT extends AbstractIntegrationTest {
     em.clear();
 
     when(userServiceClient.findById(
-            anyLong(),
+            anyString(),
             anyString()
         )
     ).thenReturn(ownedUserDto);
@@ -246,11 +249,7 @@ class OrderServiceIT extends AbstractIntegrationTest {
   }
 
   @Test
-  @WithMockCustomUser(
-      roles = {
-          "USER"
-      }
-  )
+  @WithMockCustomUser
   void findAll_byIdsAndUserHasUserAuthority_accessDenied() {
 
     var orderSpecsDto = OrderSpecsDto.builder()
@@ -282,7 +281,7 @@ class OrderServiceIT extends AbstractIntegrationTest {
     em.clear();
 
     when(userServiceClient.findById(
-            anyLong(),
+            anyString(),
             anyString()
         )
     ).thenReturn(ownedUserDto);
@@ -335,7 +334,7 @@ class OrderServiceIT extends AbstractIntegrationTest {
     em.clear();
 
     when(userServiceClient.findById(
-            anyLong(),
+            anyString(),
             anyString()
         )
     ).thenReturn(ownedUserDto);
@@ -364,7 +363,7 @@ class OrderServiceIT extends AbstractIntegrationTest {
     em.clear();
 
     when(userServiceClient.findById(
-            anyLong(),
+            anyString(),
             anyString()
         )
     ).thenReturn(ownedUserDto);
@@ -392,7 +391,7 @@ class OrderServiceIT extends AbstractIntegrationTest {
     em.clear();
 
     when(userServiceClient.findById(
-            anyLong(),
+            anyString(),
             anyString()
         )
     ).thenReturn(ownedUserDto);
@@ -423,7 +422,7 @@ class OrderServiceIT extends AbstractIntegrationTest {
     em.clear();
 
     when(userServiceClient.findById(
-            anyLong(),
+            anyString(),
             anyString()
         )
     ).thenReturn(ownedUserDto);
@@ -456,7 +455,7 @@ class OrderServiceIT extends AbstractIntegrationTest {
     em.clear();
 
     when(userServiceClient.findById(
-            anyLong(),
+            anyString(),
             anyString()
         )
     ).thenReturn(ownedUserDto);

@@ -54,6 +54,7 @@ dependencies {
     testImplementation("org.testcontainers:testcontainers-junit-jupiter")
     testImplementation("org.testcontainers:testcontainers-mongodb")
     testImplementation("org.testcontainers:testcontainers-kafka")
+    testImplementation("org.springframework.kafka:spring-kafka-test")
     testImplementation(libs.awaitility)
     testImplementation("com.redis:testcontainers-redis")
     testImplementation(libs.fixture.monkey.jakarta.validation)

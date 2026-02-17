@@ -7,5 +7,5 @@ import org.springframework.security.core.GrantedAuthority;
 
 @Builder
 public record JwtUserDetails(
-    Long id,
+    String id,
     Collection<? extends GrantedAuthority> authorities) implements Serializable {}

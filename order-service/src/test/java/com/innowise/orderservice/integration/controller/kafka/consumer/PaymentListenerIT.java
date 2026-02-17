@@ -1,8 +1,5 @@
 package com.innowise.orderservice.integration.controller.kafka.consumer;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.awaitility.Awaitility.await;
-
 import com.innowise.common.model.dto.payment.PaymentDto;
 import com.innowise.common.model.enums.PaymentStatus;
 import com.innowise.common.model.event.PaymentCreatedEvent;
@@ -21,14 +18,21 @@ import lombok.RequiredArgsConstructor;
 import net.jqwik.api.Arbitraries;
 import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.kafka.config.KafkaListenerEndpointRegistry;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.listener.MessageListenerContainer;
 import org.springframework.kafka.support.KafkaHeaders;
+import org.springframework.kafka.test.utils.ContainerTestUtils;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.support.TransactionTemplate;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 
 @IT
 @RequiredArgsConstructor
@@ -58,8 +62,17 @@ class PaymentListenerIT extends AbstractIntegrationTest {
 
   private final OrderService orderService;
 
+  private final KafkaListenerEndpointRegistry registry;
+
   @Value("${spring.kafka.topics.payments.name}")
   private String paymentsTopic;
+
+  @BeforeAll
+  void waitConsumersAssignments() {
+    for (MessageListenerContainer messageListenerContainer : registry.getListenerContainers()) {
+      ContainerTestUtils.waitForAssignment(messageListenerContainer, 1);
+    }
+  }
 
   @AfterEach
   void clearOrderTable() {
@@ -72,6 +85,7 @@ class PaymentListenerIT extends AbstractIntegrationTest {
   @Test
   void consumePaymentCreatedEvent_updateOrderStatusToProcessing() {
     var order = ORDERS_SUT.giveMeOne(Order.class);
+    order.getOrderItems().forEach(item -> item.setOrder(order));
 
     tt.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
     tt.executeWithoutResult(_ -> em.persist(order));
@@ -102,6 +116,7 @@ class PaymentListenerIT extends AbstractIntegrationTest {
     var order = ORDERS_SUT.giveMeBuilder(Order.class)
         .set("status", OrderStatus.NEW)
         .sample();
+    order.getOrderItems().forEach(item -> item.setOrder(order));
 
     tt.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
     tt.executeWithoutResult(_ -> em.persist(order));
@@ -142,6 +157,7 @@ class PaymentListenerIT extends AbstractIntegrationTest {
     var order = ORDERS_SUT.giveMeBuilder(Order.class)
         .set("status", OrderStatus.PROCESSING)
         .sample();
+    order.getOrderItems().forEach(item -> item.setOrder(order));
 
     tt.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
     tt.executeWithoutResult(_ -> em.persist(order));
@@ -172,6 +188,7 @@ class PaymentListenerIT extends AbstractIntegrationTest {
     var order = ORDERS_SUT.giveMeBuilder(Order.class)
         .set("status", OrderStatus.PROCESSING)
         .sample();
+    order.getOrderItems().forEach(item -> item.setOrder(order));
 
     tt.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
     tt.executeWithoutResult(_ -> em.persist(order));
@@ -202,6 +219,7 @@ class PaymentListenerIT extends AbstractIntegrationTest {
     var order = ORDERS_SUT.giveMeBuilder(Order.class)
         .set("status", OrderStatus.PROCESSING)
         .sample();
+    order.getOrderItems().forEach(item -> item.setOrder(order));
 
     tt.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
     tt.executeWithoutResult(_ -> em.persist(order));

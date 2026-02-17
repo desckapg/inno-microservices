@@ -12,9 +12,7 @@ import org.springframework.security.test.context.support.WithSecurityContext;
 @WithSecurityContext(factory = TestUserSecurityContextFactory.class)
 public @interface WithMockCustomUser {
 
-  long id() default 1L;
-
-  long userId() default 1L;
+  String id() default "cc59a4ca-78bf-454c-a790-b2f132f69d93";
 
   String login() default "user";
 

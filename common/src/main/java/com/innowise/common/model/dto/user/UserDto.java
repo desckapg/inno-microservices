@@ -7,7 +7,7 @@ import java.util.List;
 
 public record UserDto(
 
-    Long id,
+    String id,
     String name,
     String surname,
     LocalDate birthDate,

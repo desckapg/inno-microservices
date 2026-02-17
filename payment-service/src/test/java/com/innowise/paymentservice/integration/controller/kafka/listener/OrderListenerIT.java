@@ -1,13 +1,5 @@
 package com.innowise.paymentservice.integration.controller.kafka.listener;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.get;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlPathTemplate;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.awaitility.Awaitility.await;
-import static org.springframework.data.mongodb.core.query.Criteria.where;
-import static org.springframework.data.mongodb.core.query.Query.query;
-
 import com.innowise.common.exception.ExternalApiException;
 import com.innowise.common.model.dto.order.OrderDto;
 import com.innowise.common.model.enums.PaymentStatus;
@@ -24,16 +16,28 @@ import com.navercorp.fixturemonkey.jakarta.validation.plugin.JakartaValidationPl
 import java.time.Duration;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.NonNull;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.kafka.config.KafkaListenerEndpointRegistry;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.listener.MessageListenerContainer;
 import org.springframework.kafka.support.KafkaHeaders;
+import org.springframework.kafka.test.utils.ContainerTestUtils;
 import org.springframework.messaging.support.MessageBuilder;
 import wiremock.org.eclipse.jetty.http.HttpHeader;
 import wiremock.org.eclipse.jetty.http.HttpStatus;
 import wiremock.org.eclipse.jetty.http.MimeTypes.Type;
+
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathTemplate;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
+import static org.springframework.data.mongodb.core.query.Criteria.where;
+import static org.springframework.data.mongodb.core.query.Query.query;
 
 @IT
 @RequiredArgsConstructor
@@ -61,6 +65,15 @@ class OrderListenerIT extends AbstractIntegrationTest {
 
   @Value("${spring.kafka.topics.orders.name}")
   private String orderTopic;
+
+  private final KafkaListenerEndpointRegistry registry;
+
+  @BeforeEach
+  void waitConsumersAssignments() {
+    for (MessageListenerContainer messageListenerContainer : registry.getListenerContainers()) {
+      ContainerTestUtils.waitForAssignment(messageListenerContainer, 1);
+    }
+  }
 
   @Test
   void consumeOrderCreatedEvent() {

@@ -21,6 +21,6 @@ public interface OrderRepository extends JpaRepository<Order, Long>,
   List<Order> findAll(Specification<Order> spec);
 
   @Query("SELECT o.userId FROM Order o WHERE o.id = :id")
-  Optional<Long> findUserIdById(Long id);
+  Optional<String> findUserIdById(Long id);
 
 }

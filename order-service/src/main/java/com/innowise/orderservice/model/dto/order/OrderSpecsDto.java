@@ -14,7 +14,7 @@ import org.springframework.data.jpa.domain.Specification;
 public record OrderSpecsDto(
     @Nullable List<Long> ids,
     @Nullable List<OrderStatus> statuses,
-    @Nullable Long userId
+    @Nullable String userId
 ) {
 
   public Specification<Order> convertToSpecification() {

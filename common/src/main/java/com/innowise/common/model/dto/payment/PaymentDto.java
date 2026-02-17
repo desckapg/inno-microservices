@@ -6,10 +6,10 @@ import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.util.Locale;
 import lombok.Builder;
 
 @Builder
@@ -33,11 +33,11 @@ public record PaymentDto(
     @NotNull(
         message = "User id is required"
     )
-    @Min(
-        value = 1,
-        message = "User id must be not less than 1"
+    @Pattern(
+        regexp = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
+        message = "User id must be a valid UUID"
     )
-    Long userId,
+    String userId,
 
     @NotNull(
         message = "Payment status is required"
