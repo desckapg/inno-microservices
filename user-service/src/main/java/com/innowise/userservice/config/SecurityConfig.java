@@ -5,7 +5,6 @@ import com.innowise.auth.security.provider.AuthTokenProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -36,9 +35,6 @@ public class SecurityConfig {
         new NegatedRequestMatcher(
             PathPatternRequestMatcher.pathPattern("/actuator/**")
         ),
-        new NegatedRequestMatcher(
-            PathPatternRequestMatcher.pathPattern(HttpMethod.POST, "/api/v1/users")
-        ),
         PathPatternRequestMatcher.pathPattern("/api/v1/**")
     );
 
@@ -51,7 +47,6 @@ public class SecurityConfig {
         .authorizeHttpRequests(authz ->
             authz
                 .requestMatchers("/actuator/**").permitAll()
-                .requestMatchers(HttpMethod.POST, "/api/v1/users").permitAll()
                 .requestMatchers("/api/v1/**").authenticated()
         )
         .addFilterAfter(new JwtAuthenticationFilter(
