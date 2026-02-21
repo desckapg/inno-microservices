@@ -25,6 +25,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-opentelemetry")
     implementation(libs.opentelemetry.logback.appender)
     implementation("io.micrometer:micrometer-tracing-bridge-brave")
+    implementation("org.springframework.boot:spring-boot-starter-security-oauth2-resource-server")
 
     compileOnly("org.projectlombok:lombok")
 
@@ -36,6 +37,9 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     mockitoAgent(libs.mockito) { isTransitive = false }
     testImplementation("io.projectreactor:reactor-test")
+    testImplementation("org.testcontainers:testcontainers-junit-jupiter")
+    testImplementation("org.springframework.boot:spring-boot-testcontainers")
+    testImplementation(libs.testcontainers.keycloak)
 
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }

@@ -1,12 +1,12 @@
 package com.innowise.gateway.integration;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThatNoException;
-
 import com.innowise.gateway.integration.annotation.IT;
 import org.junit.jupiter.api.Test;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatNoException;
+
 @IT
-class GatewayApplicationIT {
+class GatewayApplicationIT extends AbstractIntegrationTest {
 
   @Test
   void contextLoads() {
