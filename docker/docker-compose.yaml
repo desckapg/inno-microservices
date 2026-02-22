@@ -152,19 +152,6 @@ services:
       - .env.user-service
     ports:
       - "8081:8081"
-  auth-service:
-    image: auth-service:latest
-    depends_on:
-      - postgres
-      - discovery-service
-    build:
-      context: ../auth-service
-    environment:
-      - SPRING_PROFILES_ACTIVE=prod
-    env_file:
-      - .env.auth-service
-    ports:
-      - "8082:8082"
   order-service:
     image: order-service:latest
     depends_on:
@@ -195,6 +182,17 @@ services:
       - .env.payment-service
     ports:
       - "8084:8084"
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.5.3
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - .env.keycloak
+    command:
+      - start-dev
+    ports:
+      - "8090:8080"
   init-permissions:
     image: busybox:latest
     user: root
@@ -204,14 +202,17 @@ services:
       - loki-data:/hadoop/loki
       - grafana-tempo:/var/tempo
   grafana-tempo:
-    image: grafana/tempo:latest
+    image: grafana/tempo:2.10.1
     command: [ "-config.file=/etc/tempo.yaml" ]
     volumes:
       - ./grafana-tempo/tempo.yaml:/etc/tempo.yaml
       - grafana-tempo:/var/tempo
     ports:
       - "3200:3200"
+      - "7946:7946"
     depends_on:
+      prometheus:
+        condition: service_started
       init-permissions:
         condition: service_completed_successfully
   grafana:
@@ -266,7 +267,7 @@ services:
       - '--storage.path=/var/lib/alloy/data'
       - '--stability.level=experimental'
   loki:
-    image: grafana/loki:main-c7c1411
+    image: grafana/loki:3.6
     container_name: loki
     depends_on:
       init-permissions:

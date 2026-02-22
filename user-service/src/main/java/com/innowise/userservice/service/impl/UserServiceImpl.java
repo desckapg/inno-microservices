@@ -26,6 +26,9 @@ public class UserServiceImpl implements UserService {
 
   @Transactional
   public UserDto create(UserDto dto) {
+    if (userRepository.findById(dto.id()).isPresent()) {
+      throw ResourceAlreadyExistsException.byField("User", "id", dto.id());
+    }
     if (userRepository.existsByEmail(dto.email())) {
       throw ResourceAlreadyExistsException.byField("User", Fields.EMAIL, dto.email());
     }
@@ -37,7 +40,7 @@ public class UserServiceImpl implements UserService {
   }
 
   @Transactional
-  public UserDto update(Long id, UserDto dto) {
+  public UserDto update(String id, UserDto dto) {
     User user = userRepository.findById(id)
         .orElseThrow(() -> ResourceNotFoundException.byId("User", id));
 
@@ -59,7 +62,7 @@ public class UserServiceImpl implements UserService {
 
   @Transactional
   @CacheEvict(value = CacheHelper.USER_CACHE, key = "#id")
-  public void delete(Long id) {
+  public void delete(String id) {
     userRepository.delete(
         userRepository.findById(id)
             .orElseThrow(() -> ResourceNotFoundException.byId("User", id))
@@ -67,7 +70,7 @@ public class UserServiceImpl implements UserService {
   }
 
   @Cacheable(value = CacheHelper.USER_CACHE, key = "#id")
-  public UserDto findById(Long id) {
+  public UserDto findById(String id) {
     return userRepository.findWithCardsById(id)
         .map(userMapper::toDto)
         .orElseThrow(() -> ResourceNotFoundException.byId("User", id));
@@ -79,7 +82,7 @@ public class UserServiceImpl implements UserService {
         .orElseThrow(() -> ResourceNotFoundException.byField("User", Fields.EMAIL, email));
   }
 
-  public List<UserDto> findAllByIdIn(List<Long> ids) {
+  public List<UserDto> findAllByIdIn(List<String> ids) {
     return userRepository.findAllByIdIn(ids)
         .stream()
         .map(userMapper::toDto)

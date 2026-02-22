@@ -55,6 +55,6 @@ public interface CardService {
    * @param userId user identifier
    * @return list of user's cards
    */
-  List<CardDto> findUserCards(Long userId);
+  List<CardDto> findUserCards(String userId);
 
 }

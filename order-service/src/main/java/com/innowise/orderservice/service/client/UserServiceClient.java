@@ -15,7 +15,7 @@ public interface UserServiceClient {
 
   @GetMapping("/api/v1/users/{id}")
   UserDto findById(
-      @PathVariable Long id,
+      @PathVariable String id,
       @RequestHeader(AuthConstants.AUTH_HEADER) String authorization
   );
 

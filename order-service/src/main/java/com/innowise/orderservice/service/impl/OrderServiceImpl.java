@@ -139,7 +139,7 @@ public class OrderServiceImpl implements OrderService {
   }
 
   @SuppressWarnings("unused")
-  public Long findOrderUserId(Long id) {
+  public String findOrderUserId(Long id) {
     return orderRepository.findUserIdById(id)
         .orElseThrow(() -> generateNotFoundException(id));
   }

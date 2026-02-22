@@ -1,12 +1,5 @@
 package com.innowise.userservice.unit.service;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 import com.innowise.userservice.cache.CacheHelper;
 import com.innowise.common.exception.ResourceAlreadyExistsException;
 import com.innowise.common.exception.ResourceNotFoundException;
@@ -22,12 +15,20 @@ import com.innowise.userservice.testutil.Users;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith({SpringExtension.class, MockitoExtension.class})
 class UserServiceTest {
@@ -57,14 +58,14 @@ class UserServiceTest {
         .email("john@example.com")
         .build();
 
-    User savedUser = Users.buildWithId(1L, "John", "Doe", "john@example.com");
+    User savedUser = Users.buildWithId(UUID.randomUUID().toString(), "John", "Doe",
+        "john@example.com");
 
     when(userRepository.existsByEmail("john@example.com")).thenReturn(false);
     when(userRepository.save(any(User.class))).thenReturn(savedUser);
 
     UserDto result = userService.create(createDto);
 
-    assertThat(result.id()).isEqualTo(1L);
     assertThat(result.name()).isEqualTo("John");
     assertThat(result.surname()).isEqualTo("Doe");
     assertThat(result.email()).isEqualTo("john@example.com");
@@ -93,6 +94,7 @@ class UserServiceTest {
 
   @Test
   void update_whenValidData_shouldUpdateUser() {
+    var id = UUID.randomUUID().toString();
     var updateDto = UserDto.builder()
         .name("Jane")
         .surname("Smith")
@@ -100,15 +102,15 @@ class UserServiceTest {
         .email("jane@example.com")
         .build();
 
-    User existingUser = Users.buildWithId(1L, "John", "Doe", "john@example.com");
-    User updatedUser = Users.buildWithId(2L, "Jane", "Smith", "jane@example.com");
+    User existingUser = Users.buildWithId(id, "John", "Doe", "john@example.com");
+    User updatedUser = Users.buildWithId(id, "Jane", "Smith", "jane@example.com");
     updatedUser.setBirthDate(LocalDate.of(1991, 2, 2));
 
-    when(userRepository.findById(1L)).thenReturn(Optional.of(existingUser));
+    when(userRepository.findById(id)).thenReturn(Optional.of(existingUser));
     when(userRepository.existsByEmail("jane@example.com")).thenReturn(false);
     when(userRepository.save(any(User.class))).thenReturn(updatedUser);
 
-    UserDto result = userService.update(1L, updateDto);
+    UserDto result = userService.update(id, updateDto);
 
     assertThat(result.name()).isEqualTo("Jane");
     assertThat(result.surname()).isEqualTo("Smith");
@@ -126,9 +128,10 @@ class UserServiceTest {
         .email("jane@example.com")
         .build();
 
-    when(userRepository.findById(1L)).thenReturn(Optional.empty());
+    var requestedId = UUID.randomUUID().toString();
+    when(userRepository.findById(requestedId)).thenReturn(Optional.empty());
 
-    assertThatThrownBy(() -> userService.update(1L, updateDto))
+    assertThatThrownBy(() -> userService.update(requestedId, updateDto))
         .isInstanceOf(ResourceNotFoundException.class)
         .hasMessageContaining("User", "id");
 
@@ -137,7 +140,7 @@ class UserServiceTest {
 
   @Test
   void delete_whenUserExists_shouldDeleteUser() {
-    Long userId = 1L;
+    var userId = UUID.randomUUID().toString();
     User user = Users.buildWithId(userId, "John", "Doe", "john@example.com");
 
     when(userRepository.findById(userId)).thenReturn(Optional.of(user));
@@ -149,7 +152,7 @@ class UserServiceTest {
 
   @Test
   void delete_whenUserNotFound_shouldThrowUserNotFoundException() {
-    Long userId = 1L;
+    var userId = UUID.randomUUID().toString();
 
     when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
@@ -162,7 +165,7 @@ class UserServiceTest {
 
   @Test
   void findById_whenUserExists_shouldReturnUser() {
-    Long userId = 1L;
+    String userId = UUID.randomUUID().toString();
     User user = Users.buildWithId(userId, "John", "Doe", "john@example.com");
 
     when(userRepository.findWithCardsById(userId)).thenReturn(Optional.of(user));
@@ -189,7 +192,7 @@ class UserServiceTest {
   @Test
   void findByEmail_whenUserExists_shouldReturnUser() {
     String email = "john@example.com";
-    User user = Users.buildWithId(1L, "John", "Doe", email);
+    User user = Users.buildWithId(UUID.randomUUID().toString(), "John", "Doe", email);
 
     when(userRepository.findByEmail(email)).thenReturn(Optional.of(user));
 
@@ -213,10 +216,13 @@ class UserServiceTest {
 
   @Test
   void findAllByIdIn_whenUsersExist_shouldReturnUsersList() {
-    List<Long> ids = List.of(1L, 2L);
+    List<String> ids = List.of(
+        UUID.randomUUID().toString(),
+        UUID.randomUUID().toString()
+    );
     List<User> users = List.of(
-        Users.buildWithId(1L, "John", "Doe", "john@example.com"),
-        Users.buildWithId(2L, "Jane", "Smith", "jane@example.com")
+        Users.buildWithId(ids.get(0), "John", "Doe", "john@example.com"),
+        Users.buildWithId(ids.get(1), "Jane", "Smith", "jane@example.com")
     );
 
     when(userRepository.findAllByIdIn(ids)).thenReturn(users);

@@ -43,11 +43,11 @@ public record CardDto(
     @NotNull(
         message = "User id must be provided"
     )
-    @Min(
-        value = 1,
-        message = "Id must be not less than 1"
+    @Pattern(
+        regexp = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
+        message = "Id must be a valid UUID"
     )
-    Long userId
+    String userId
 
 ) implements Serializable {
 

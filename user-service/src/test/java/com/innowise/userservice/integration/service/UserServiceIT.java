@@ -1,11 +1,5 @@
 package com.innowise.userservice.integration.service;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.awaitility.Awaitility.await;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-
 import com.innowise.common.exception.ResourceAlreadyExistsException;
 import com.innowise.common.exception.ResourceNotFoundException;
 import com.innowise.userservice.cache.CacheHelper;
@@ -21,6 +15,7 @@ import com.innowise.userservice.testutil.Users;
 import jakarta.persistence.EntityManager;
 import java.time.Duration;
 import java.util.List;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -29,6 +24,12 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.awaitility.Awaitility.await;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 @IT
 @RequiredArgsConstructor
@@ -128,7 +129,8 @@ class UserServiceIT extends AbstractIntegrationTest {
 
   @Test
   void findById_whenWithoutCardsAndUserNotExists_shouldThrowUserNotFoundException() {
-    assertThatThrownBy(() -> userService.findById(Long.MAX_VALUE))
+    var id = UUID.randomUUID().toString();
+    assertThatThrownBy(() -> userService.findById(id))
         .isInstanceOf(ResourceNotFoundException.class)
         .hasMessageContaining("User");
   }
@@ -149,19 +151,19 @@ class UserServiceIT extends AbstractIntegrationTest {
 
   @Test
   void findAllByIdIn_whenUsersExist_shouldReturnListOfUserResponseDto() {
-    assertThat(userService.findAllByIdIn(List.of(userDto.id(), Long.MAX_VALUE)))
+    assertThat(userService.findAllByIdIn(List.of(userDto.id(), UUID.randomUUID().toString())))
         .containsExactlyInAnyOrder(userDto);
   }
 
   @Test
   void findAllByIdIn_whenUsersNotExist_shouldReturnEmptyList() {
-    assertThat(userService.findAllByIdIn(List.of(Long.MAX_VALUE)))
+    assertThat(userService.findAllByIdIn(List.of(UUID.randomUUID().toString())))
         .isEmpty();
   }
 
   @Test
   void findWithCardsAllByIdIn_whenUsersNotExist_shouldReturnEmptyList() {
-    assertThat(userService.findAllByIdIn(List.of(Long.MAX_VALUE)))
+    assertThat(userService.findAllByIdIn(List.of(UUID.randomUUID().toString())))
         .isEmpty();
   }
 
@@ -170,6 +172,7 @@ class UserServiceIT extends AbstractIntegrationTest {
   void create_whenUserWithEmailExists_shouldThrowUserWithEmailExistsException() {
     var creatingdUser = Users.build();
     var createDto = UserDto.builder()
+        .id(UUID.randomUUID().toString())
         .name(creatingdUser.getName())
         .surname(creatingdUser.getSurname())
         .birthDate(creatingdUser.getBirthDate())
@@ -202,7 +205,8 @@ class UserServiceIT extends AbstractIntegrationTest {
   @Test
   @Transactional
   void update_whenUserNotExist_shouldThrowUserNotFoundException() {
-    assertThatThrownBy(() -> userService.update(Long.MAX_VALUE, userDto))
+    var id = UUID.randomUUID().toString();
+    assertThatThrownBy(() -> userService.update(id, userDto))
         .isInstanceOf(ResourceNotFoundException.class)
         .hasMessageContaining("User", "id");
   }
@@ -227,7 +231,8 @@ class UserServiceIT extends AbstractIntegrationTest {
   @Test
   @Transactional
   void delete_whenUserNotExist_shouldThrowUserNotFoundException() {
-    assertThatThrownBy(() -> userService.delete(Long.MAX_VALUE))
+    var id = UUID.randomUUID().toString();
+    assertThatThrownBy(() -> userService.delete(id))
         .isInstanceOf(ResourceNotFoundException.class)
         .hasMessageContaining("User", "id");
   }

@@ -1,17 +1,5 @@
 package com.innowise.orderservice.integration.controller.rest;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 import com.innowise.auth.security.provider.AuthTokenProvider;
 import com.innowise.auth.test.annotation.WithMockCustomUser;
 import com.innowise.common.model.dto.user.UserDto;
@@ -30,6 +18,7 @@ import com.navercorp.fixturemonkey.api.jqwik.JqwikPlugin;
 import java.math.BigDecimal;
 import java.net.URI;
 import java.time.LocalDate;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import net.jqwik.api.Arbitraries;
 import org.hamcrest.Matchers;
@@ -40,6 +29,17 @@ import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import tools.jackson.databind.json.JsonMapper;
+
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @IT
 @RequiredArgsConstructor
@@ -92,7 +92,7 @@ class OrderControllerIT extends AbstractIntegrationTest {
         .nullableContainer(false)
         .nullableElement(false)
         .register(UserDto.class, fm -> fm.giveMeBuilder(UserDto.class)
-            .set("id", Arbitraries.longs().greaterOrEqual(10000L))
+            .setLazy("id", () -> UUID.randomUUID().toString())
             .set("name", FAKER.name().firstName())
             .set("surname", FAKER.name().lastName())
             .set("birthDate", LocalDate.of(1970, 1, 1))
@@ -123,6 +123,7 @@ class OrderControllerIT extends AbstractIntegrationTest {
 
     var order = ordersSut.giveMeBuilder(Order.class)
         .set("userId", userDto.id())
+        .size("orderItems", 0)
         .sample();
 
     em.persist(order);
@@ -164,6 +165,7 @@ class OrderControllerIT extends AbstractIntegrationTest {
     var order = ordersSut.giveMeBuilder(Order.class)
         .set("userId", userDto.id())
         .sample();
+    order.getOrderItems().forEach(item -> item.setOrder(order));
 
     em.persist(order);
     em.flush();
@@ -197,7 +199,7 @@ class OrderControllerIT extends AbstractIntegrationTest {
         .forEach(em::persist);
 
     when(userServiceClient.findById(
-            anyLong(),
+            anyString(),
             anyString()
         )
     ).thenReturn(ownedUserDto);
@@ -233,7 +235,7 @@ class OrderControllerIT extends AbstractIntegrationTest {
     em.clear();
 
     when(userServiceClient.findById(
-            anyLong(),
+            anyString(),
             anyString()
         )
     ).thenReturn(ownedUserDto);
@@ -276,7 +278,7 @@ class OrderControllerIT extends AbstractIntegrationTest {
     em.clear();
 
     when(userServiceClient.findById(
-            anyLong(),
+            anyString(),
             anyString()
         )
     ).thenReturn(ownedUserDto);

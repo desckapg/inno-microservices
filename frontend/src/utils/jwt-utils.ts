@@ -26,7 +26,7 @@ export const jwtUtils = {
     }
   },
 
-  getCurrentUserId(): number | null {
+  getCurrentUserId(): string | null {
     const token = tokenStore.getAccessToken()
     if (!token) {
       return null
@@ -37,8 +37,7 @@ export const jwtUtils = {
       return null
     }
 
-    const userId = Number.parseInt(payload.sub, 10)
-    return Number.isNaN(userId) ? null : userId
+    return payload.sub
   },
 
   getCurrentUserRoles(): string[] {

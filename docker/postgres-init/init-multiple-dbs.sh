@@ -30,6 +30,11 @@ if [ -n "$ORDER_SERVICE_POSTGRES_DATABASE" ]; then
 	create_service_user_and_database "$ORDER_SERVICE_POSTGRES_DATABASE" "$ORDER_SERVICE_POSTGRES_USERNAME" "$ORDER_SERVICE_POSTGRES_PASSWORD"
 fi
 
+# Create Keycloak DB
+if [ -n "$KEYCLOAK_POSTGRES_DATABASE" ]; then
+	create_service_user_and_database "$KEYCLOAK_POSTGRES_DATABASE" "$KEYCLOAK_POSTGRES_USERNAME" "$KEYCLOAK_POSTGRES_PASSWORD"
+fi
+
 # Create grafana user
 if [ -n "$GRAFANA_POSTGRES_USERNAME" ]; then
     echo "  Creating grafana user"

@@ -1,13 +1,5 @@
 package com.innowise.userservice.unit.service;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 import com.innowise.userservice.cache.CacheHelper;
 import com.innowise.common.exception.ResourceAlreadyExistsException;
 import com.innowise.common.exception.ResourceNotFoundException;
@@ -29,6 +21,14 @@ import org.mapstruct.factory.Mappers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith({MockitoExtension.class})
 class CardServiceTest {
@@ -190,8 +190,10 @@ class CardServiceTest {
   void findAllById_In_whenCardsExist_shouldReturnCardsList() {
     var user1 = Users.build();
     var user2 = Users.build();
-    List<Long> ids = List.of(user1.getId(), user2.getId());
     List<Card> cards = List.of(Cards.build(user1), Cards.build(user2));
+    List<Long> ids = cards.stream()
+        .map(Card::getId)
+        .toList();
 
     when(cardRepository.findAllByIdIn(ids))
         .thenReturn(cards);

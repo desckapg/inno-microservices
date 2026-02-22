@@ -38,7 +38,7 @@ public class OrderController {
 
   @GetMapping
   public ResponseEntity<List<OrderDto>> findAll(
-      @RequestParam(required = false) Long userId,
+      @RequestParam(required = false) String userId,
       @RequestParam(required = false) List<Long> ids,
       @RequestParam(required = false) List<OrderStatus> statuses
   ) {

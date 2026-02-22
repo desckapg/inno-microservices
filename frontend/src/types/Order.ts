@@ -24,7 +24,7 @@ export interface UpdateOrderRequest {
 }
 
 export interface OrderFilters {
-  userId?: number
+  userId?: string
   ids?: number[]
   statuses?: OrderStatus[]
 }

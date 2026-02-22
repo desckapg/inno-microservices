@@ -26,7 +26,7 @@ public class Payment {
 
   private final Long orderId;
 
-  private final Long userId;
+  private final String userId;
 
   private PaymentStatus status;
 

@@ -1,43 +1,35 @@
 spring:
   application:
     name: 'api-gateway'
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${KEYCLOAK_ISSUER_URI}
+          jwk-set-uri: ${KEYCLOAK_JWK_SET_URI}
+
   cloud:
     gateway:
       server:
         webflux:
           routes:
-            - id: register
-              uri: lb://auth-service
-              predicates:
-                - 'Path=/api/v1/auth/register'
-            - id: login
-              uri: lb://auth-service
-              predicates:
-                - 'Path=/api/v1/auth/login'
-            - id: refresh
-              uri: lb://auth-service
-              predicates:
-                - 'Path=/api/v1/auth/refresh'
             - id: user-service
               uri: lb://user-service
               predicates:
                 - 'Path=/api/v1/users/**'
               filters:
-                - 'Authorization'
                 - 'CircuitBreaker=user-service'
             - id: order-service
               uri: lb://order-service
               predicates:
                 - 'Path=/api/v1/orders/**'
               filters:
-                - 'Authorization'
                 - 'CircuitBreaker=order-service'
             - id: order-service
               uri: lb://order-service
               predicates:
                 - 'Path=/api/v1/items/**'
               filters:
-                - 'Authorization'
                 - 'CircuitBreaker=order-service'
             - id: others
               uri: no://op

@@ -1,15 +1,11 @@
 package com.innowise.userservice.unit.controller;
 
-import static org.mockito.Mockito.doThrow;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 import com.innowise.userservice.controller.UserController;
 import com.innowise.userservice.exception.GlobalExceptionHandler;
 import com.innowise.common.exception.ResourceNotFoundException;
 import com.innowise.userservice.model.dto.user.UserDto;
 import com.innowise.userservice.service.UserService;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -21,6 +17,11 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import tools.jackson.databind.ObjectMapper;
+
+import static org.mockito.Mockito.doThrow;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @ExtendWith({SpringExtension.class, MockitoExtension.class})
 class UserControllerTest {
@@ -46,10 +47,11 @@ class UserControllerTest {
 
   @Test
   void delete_whenUserNotFound_shouldThrownResourceNotFoundException() throws Exception {
-    doThrow(ResourceNotFoundException.byField("User", "id", 1L))
+    var id = UUID.randomUUID().toString();
+    doThrow(ResourceNotFoundException.byField("User", "id", id))
         .when(userService)
-        .delete(1L);
-    mockMvc.perform(delete(BASE_URL + "/1"))
+        .delete(id);
+    mockMvc.perform(delete(BASE_URL + "/" + id))
         .andExpect(status().isNotFound());
   }
 

@@ -1,14 +1,5 @@
 package com.innowise.userservice.integration.controller;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 import com.innowise.auth.test.annotation.WithMockCustomUser;
 import com.innowise.userservice.cache.CacheHelper;
 import com.innowise.userservice.controller.UserController;
@@ -34,6 +25,15 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 import tools.jackson.databind.ObjectMapper;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @IT
 @RequiredArgsConstructor
@@ -67,13 +67,13 @@ class UserControllerIT extends AbstractIntegrationTest {
   void prepareFixtures() {
     userFixture = Users.build();
     Cards.buildWithoutId(userFixture);
-    transactionTemplate.executeWithoutResult(status ->
+    transactionTemplate.executeWithoutResult(_ ->
         entityManager.persist(userFixture));
   }
 
   @AfterAll
   void cleanupFixtures() {
-    transactionTemplate.executeWithoutResult(status ->
+    transactionTemplate.executeWithoutResult(_ ->
         entityManager.remove(entityManager.find(User.class, userFixture.getId())));
   }
 
@@ -173,7 +173,7 @@ class UserControllerIT extends AbstractIntegrationTest {
         post(BASE_URL)
             .contentType(MediaType.APPLICATION_JSON)
             .content(jsonMapper.writeValueAsString(UserDto.builder()
-                .id(1L)
+                .id(creatingUser.getId())
                 .name(creatingUser.getName())
                 .surname(creatingUser.getSurname())
                 .birthDate(creatingUser.getBirthDate())

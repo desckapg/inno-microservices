@@ -8,13 +8,13 @@ import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 @NullMarked
-public interface UserRepository extends JpaRepository<User, Long> {
+public interface UserRepository extends JpaRepository<User, String> {
 
   @EntityGraph(attributePaths = "cards")
-  Optional<User> findWithCardsById(Long id);
+  Optional<User> findWithCardsById(String id);
 
   @EntityGraph(attributePaths = "cards")
-  List<User> findAllByIdIn(List<Long> ids);
+  List<User> findAllByIdIn(List<String> ids);
 
   @EntityGraph(attributePaths = "cards")
   List<User> findAll();
