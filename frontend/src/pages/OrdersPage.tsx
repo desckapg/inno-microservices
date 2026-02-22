@@ -1,12 +1,14 @@
 import {useEffect, useState} from 'react'
 import {getOrders, createOrder, updateOrder, deleteOrder, getItems} from '../api/services/order-service'
-import type {Order, Item, CreateOrderRequest, UpdateOrderRequest} from '../types/Order'
+import type {Order, CreateOrderRequest, UpdateOrderRequest} from '../types/Order'
 import {jwtUtils} from '../utils/jwt-utils'
 import {tokenStore} from '../utils/token-store'
 import {OrdersTable} from '../components/OrdersTable'
 import {CreateOrderModal} from '../components/CreateOrderModal'
 import {EditOrderModal} from '../components/EditOrderModal'
 import {useNavigate} from 'react-router'
+import type {Item} from "../types/Item.ts"
+import {useAuth} from 'react-oidc-context';
 
 function getErrorMessage(err: unknown): string {
   if (err instanceof Error) return err.message
@@ -15,6 +17,7 @@ function getErrorMessage(err: unknown): string {
 
 export function OrdersPage() {
   const navigate = useNavigate()
+  const auth = useAuth()
   const [orders, setOrders] = useState<Order[]>([])
   const [items, setItems] = useState<Item[]>([])
   const [isLoading, setIsLoading] = useState(false)
@@ -28,7 +31,7 @@ export function OrdersPage() {
 
   const handleLogout = () => {
     tokenStore.clearTokens()
-    navigate('/login')
+    auth.signoutRedirect().catch(() => navigate('/'))
   }
 
   const loadData = async () => {

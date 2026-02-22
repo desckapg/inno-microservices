@@ -1,6 +1,7 @@
 import apiClient from '../axios-client'
-import type {Order, CreateOrderRequest, UpdateOrderRequest, OrderFilters, Item} from '../../types/Order'
+import type {Order, CreateOrderRequest, UpdateOrderRequest, OrderFilters} from '../../types/Order'
 import axios from 'axios'
+import type {Item} from "../../types/Item.ts";
 
 export async function getOrders(filters?: OrderFilters): Promise<Order[]> {
   try {

@@ -1,26 +1,28 @@
-const ACCESS_TOKEN_KEY = 'accessToken'
-const REFRESH_TOKEN_KEY = 'refreshToken'
+import { authority, clientId, userManager } from './auth-config.ts';
+import { User } from 'oidc-client-ts';
 
 export const tokenStore = {
+  // Helper to get user from local storage
+  getUser(): User | null {
+    const oidcStorage = localStorage.getItem(`oidc.user:${authority}:${clientId}`);
+    if (!oidcStorage) {
+        return null;
+    }
+
+    try {
+        return User.fromStorageString(oidcStorage);
+    } catch {
+        return null; // Invalid JSON
+    }
+  },
+
   getAccessToken(): string | null {
-    return localStorage.getItem(ACCESS_TOKEN_KEY)
+    const user = this.getUser();
+    return user?.access_token || null;
   },
 
-  getRefreshToken(): string | null {
-    return localStorage.getItem(REFRESH_TOKEN_KEY)
+  clearTokens() {
+      userManager.removeUser()
   },
 
-  setTokens(accessToken: string, refreshToken: string): void {
-    localStorage.setItem(ACCESS_TOKEN_KEY, accessToken)
-    localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken)
-  },
-
-  clearTokens(): void {
-    localStorage.removeItem(ACCESS_TOKEN_KEY)
-    localStorage.removeItem(REFRESH_TOKEN_KEY)
-  },
-
-  hasTokens(): boolean {
-    return Boolean(this.getAccessToken() && this.getRefreshToken())
-  }
 }

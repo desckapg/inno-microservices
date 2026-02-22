@@ -9,6 +9,7 @@ import com.innowise.auth.security.token.LoginRolesJwtAuthenticationToken;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import org.jspecify.annotations.Nullable;
@@ -33,8 +34,8 @@ public class JwtAuthenticationConverter implements AuthenticationConverter {
       String jwtToken = authHeader.substring(AuthConstants.AUTH_SCHEME.length());
       var decodedJwt = JWT.decode(jwtToken);
       return extractUserDetails(decodedJwt)
-        .map(userDetails -> new LoginRolesJwtAuthenticationToken(userDetails, jwtToken))
-        .orElseThrow(() -> new BadCredentialsException("JWT is malformed."));
+          .map(userDetails -> new LoginRolesJwtAuthenticationToken(userDetails, jwtToken))
+          .orElseThrow(() -> new BadCredentialsException("JWT is malformed."));
     } catch (JWTDecodeException _) {
       throw new BadCredentialsException("JWT is malformed.");
     }
@@ -55,15 +56,23 @@ public class JwtAuthenticationConverter implements AuthenticationConverter {
   }
 
   private Collection<GrantedAuthority> extractAuthorities(DecodedJWT jwt) {
-    var rolesClaim = jwt.getClaims().get(AuthConstants.USER_ROLES_CLAIM).asList(String.class);
-    if (rolesClaim != null) {
-      return rolesClaim.stream()
-          .map(Object::toString)
-          .map(String::trim)
-          .filter(s -> !s.isEmpty())
-          .map(SimpleGrantedAuthority::new)
-          .collect(Collectors.toUnmodifiableList());
+    var realmAccess = jwt.getClaim("realm_access");
+    if (realmAccess == null || realmAccess.isNull() || realmAccess.isMissing()) {
+      return List.of();
     }
-    return List.of();
+
+    Map<String, Object> realmAccessMap = realmAccess.asMap();
+    if (realmAccessMap == null || !realmAccessMap.containsKey("roles")) {
+      return List.of();
+    }
+
+    List<?> roles = (List<?>) realmAccessMap.get("roles");
+    return roles.stream()
+        .map(Object::toString)
+        .map(String::trim)
+        .filter(s -> !s.isEmpty())
+        .map(SimpleGrantedAuthority::new)
+        .collect(Collectors.toUnmodifiableList());
   }
+
 }
