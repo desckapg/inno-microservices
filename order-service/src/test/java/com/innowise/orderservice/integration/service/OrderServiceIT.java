@@ -104,6 +104,7 @@ class OrderServiceIT extends AbstractIntegrationTest {
         .nullableElement(false)
         .register(Order.class, fm -> fm.giveMeBuilder(Order.class)
             .setNull("id")
+            .setLazy("userId", UUID.randomUUID()::toString)
             .size("orderItems", 1, 5)
             .setLazy("orderItems[*]", () -> orderItemSut.giveMeOne(OrderItem.class))
         )
@@ -131,22 +132,14 @@ class OrderServiceIT extends AbstractIntegrationTest {
   }
 
   @Test
-  @WithMockCustomUser(
-      roles = {
-          "USER"
-      }
-  )
+  @WithMockCustomUser
   void findById_orderNotExists_throwResourceNotFoundException() {
     assertThatExceptionOfType(ResourceNotFoundException.class)
         .isThrownBy(() -> orderService.findById(Long.MAX_VALUE));
   }
 
   @Test
-  @WithMockCustomUser(
-      roles = {
-          "USER"
-      }
-  )
+  @WithMockCustomUser
   void findById_orderExistsAndUserHadUserAuthorityAndRequestOwnedOrder_returnOrder() {
     var userDto = userDtosSut.giveMeBuilder(UserDto.class)
         .set("id", authTokenProvider.get().getPrincipal().id())
@@ -168,11 +161,7 @@ class OrderServiceIT extends AbstractIntegrationTest {
   }
 
   @Test
-  @WithMockCustomUser(
-      roles = {
-          "USER"
-      }
-  )
+  @WithMockCustomUser
   void findById_orderExistsAndUserHasUserAuthorityAndRequestNowOwnedOrder_accessDenied() {
     var userDto = userDtosSut.giveMeBuilder(UserDto.class)
         .set("id", authTokenProvider.get().getPrincipal().id())
@@ -297,11 +286,7 @@ class OrderServiceIT extends AbstractIntegrationTest {
   }
 
   @Test
-  @WithMockCustomUser(
-      roles = {
-          "USER"
-      }
-  )
+  @WithMockCustomUser
   void findAll_byStatusesAndUserHasUserAuthority_accessDenied() {
 
     var orderSpecsDto = OrderSpecsDto.builder()

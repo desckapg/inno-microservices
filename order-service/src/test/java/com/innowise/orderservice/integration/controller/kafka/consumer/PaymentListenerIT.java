@@ -14,6 +14,7 @@ import com.navercorp.fixturemonkey.api.introspector.BuilderArbitraryIntrospector
 import com.navercorp.fixturemonkey.api.jqwik.JqwikPlugin;
 import jakarta.persistence.EntityManager;
 import java.time.Duration;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import net.jqwik.api.Arbitraries;
 import org.jspecify.annotations.NonNull;
@@ -43,6 +44,7 @@ class PaymentListenerIT extends AbstractIntegrationTest {
       .defaultNotNull(true)
       .register(Order.class, fm -> fm.giveMeBuilder(Order.class)
           .setNull("id")
+          .setLazy("userId", () -> UUID.randomUUID().toString())
           .size("orderItems", 0)
       )
       .build();
@@ -76,10 +78,7 @@ class PaymentListenerIT extends AbstractIntegrationTest {
 
   @AfterEach
   void clearOrderTable() {
-    tt.executeWithoutResult(_ -> {
-      em.createQuery("DELETE FROM Order").executeUpdate();
-
-    });
+    tt.executeWithoutResult(_ -> em.createQuery("DELETE FROM Order").executeUpdate());
   }
 
   @Test
@@ -104,11 +103,8 @@ class PaymentListenerIT extends AbstractIntegrationTest {
     await()
         .atMost(Duration.ofSeconds(3))
         .pollInterval(Duration.ofMillis(200))
-        .untilAsserted(() -> {
-          assertThat(em.find(Order.class, order.getId())).satisfies(foundOrder -> {
-            assertThat(foundOrder.getStatus()).isEqualTo(OrderStatus.PROCESSING);
-          });
-        });
+        .untilAsserted(() -> assertThat(em.find(Order.class, order.getId())).satisfies(foundOrder ->
+            assertThat(foundOrder.getStatus()).isEqualTo(OrderStatus.PROCESSING)));
   }
 
   @Test
@@ -142,11 +138,8 @@ class PaymentListenerIT extends AbstractIntegrationTest {
     await()
         .atMost(Duration.ofSeconds(3))
         .pollInterval(Duration.ofMillis(200))
-        .untilAsserted(() -> {
-          assertThat(em.find(Order.class, order.getId())).satisfies(foundOrder -> {
-            assertThat(foundOrder.getStatus()).isEqualTo(OrderStatus.PROCESSING);
-          });
-        });
+        .untilAsserted(() -> assertThat(em.find(Order.class, order.getId())).satisfies(foundOrder ->
+            assertThat(foundOrder.getStatus()).isEqualTo(OrderStatus.PROCESSING)));
 
     Mockito.verify(orderService, Mockito.times(1))
         .processPaymentCreation(Mockito.any());
@@ -176,11 +169,9 @@ class PaymentListenerIT extends AbstractIntegrationTest {
     await()
         .atMost(Duration.ofSeconds(3))
         .pollInterval(Duration.ofMillis(200))
-        .untilAsserted(() -> {
-          assertThat(em.find(Order.class, order.getId())).satisfies(foundOrder -> {
-            assertThat(foundOrder.getStatus()).isEqualTo(OrderStatus.PROCESSING);
-          });
-        });
+        .untilAsserted(() -> assertThat(em.find(Order.class, order.getId())).satisfies(foundOrder ->
+            assertThat(foundOrder.getStatus()).isEqualTo(OrderStatus.PROCESSING))
+        );
   }
 
   @Test
@@ -207,11 +198,8 @@ class PaymentListenerIT extends AbstractIntegrationTest {
     await()
         .atMost(Duration.ofSeconds(3))
         .pollInterval(Duration.ofMillis(200))
-        .untilAsserted(() -> {
-          assertThat(em.find(Order.class, order.getId())).satisfies(foundOrder -> {
-            assertThat(foundOrder.getStatus()).isEqualTo(OrderStatus.DELIVERING);
-          });
-        });
+        .untilAsserted(() -> assertThat(em.find(Order.class, order.getId())).satisfies(foundOrder ->
+            assertThat(foundOrder.getStatus()).isEqualTo(OrderStatus.DELIVERING)));
   }
 
   @Test
@@ -245,11 +233,8 @@ class PaymentListenerIT extends AbstractIntegrationTest {
     await()
         .atMost(Duration.ofSeconds(5))
         .pollInterval(Duration.ofMillis(200))
-        .untilAsserted(() -> {
-          assertThat(em.find(Order.class, order.getId())).satisfies(foundOrder -> {
-            assertThat(foundOrder.getStatus()).isEqualTo(OrderStatus.DELIVERING);
-          });
-        });
+        .untilAsserted(() -> assertThat(em.find(Order.class, order.getId())).satisfies(foundOrder ->
+            assertThat(foundOrder.getStatus()).isEqualTo(OrderStatus.DELIVERING)));
 
     Mockito.verify(orderService, Mockito.times(1))
         .processPaymentUpdate(Mockito.any(), Mockito.any());
