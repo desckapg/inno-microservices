@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.List;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity.CsrfSpec;
@@ -20,6 +21,7 @@ public class SecurityConfig {
     http
         .csrf(CsrfSpec::disable)
         .authorizeExchange(auth -> auth
+            .pathMatchers(HttpMethod.OPTIONS, "/**").permitAll()
             .anyExchange().authenticated()
         )
         .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()));
@@ -32,7 +34,7 @@ public class SecurityConfig {
     CorsConfiguration corsConfig = new CorsConfiguration();
     corsConfig.setAllowedOrigins(List.of("http://localhost:5173"));
     corsConfig.setAllowedMethods(
-        Arrays.asList("GET", "POST", "PUT", "DELETE")
+        Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")
     );
     corsConfig.setAllowedHeaders(List.of("*"));
     corsConfig.setAllowCredentials(true);
