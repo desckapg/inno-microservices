@@ -26,6 +26,9 @@ public class UserServiceImpl implements UserService {
 
   @Transactional
   public UserDto create(UserDto dto) {
+    if (userRepository.findById(dto.id()).isPresent()) {
+      throw ResourceAlreadyExistsException.byField("User", "id", dto.id());
+    }
     if (userRepository.existsByEmail(dto.email())) {
       throw ResourceAlreadyExistsException.byField("User", Fields.EMAIL, dto.email());
     }

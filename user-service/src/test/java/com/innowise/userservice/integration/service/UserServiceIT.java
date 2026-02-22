@@ -172,6 +172,7 @@ class UserServiceIT extends AbstractIntegrationTest {
   void create_whenUserWithEmailExists_shouldThrowUserWithEmailExistsException() {
     var creatingdUser = Users.build();
     var createDto = UserDto.builder()
+        .id(UUID.randomUUID().toString())
         .name(creatingdUser.getName())
         .surname(creatingdUser.getSurname())
         .birthDate(creatingdUser.getBirthDate())
